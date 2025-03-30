@@ -1,18 +1,26 @@
 """
-Copyright (C) 2024 Martin Pflaum
+MIT License
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Copyright (c) 2025 Martin Pflaum
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>."""
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 import torch
 import torch.nn as nn
@@ -20,6 +28,13 @@ from .utils.autograd import grad
 from .config import get_max_iterations,get_tolerance,get_damping_factor,get_show_iteration_count
 
 class SemiFunctionalModule(nn.Module):
+    """
+    Abstract base class for semi-functional surface modules.
+
+    These modules define a static method `functional` that computes a
+    functional transformation on inputs and parameters, and a method to list
+    their functional parameters for optimization purposes.
+    """
     def __init__(self):
         super().__init__()
 
@@ -31,6 +46,18 @@ class SemiFunctionalModule(nn.Module):
         raise NotImplementedError("functional not implemented")
 
 def cat_semi_functionals(functional_modules):
+    """
+    Recursively chains a list of `SemiFunctionalModule`s into a single composite function.
+
+    Each module's `functional()` method is applied in sequence using the respective
+    slice of the parameter list.
+
+    Args:
+        functional_modules (list[SemiFunctionalModule]): List of functional modules.
+
+    Returns:
+        Callable: A function f(O, *params) that applies all modules in sequence.
+    """
     if len(functional_modules) == 0:
         return lambda O,*params: O
     current_func = functional_modules[0].functional
@@ -42,6 +69,15 @@ def cat_semi_functionals(functional_modules):
     return fun_out
 
 def get_functional_param_args(semi_functional_module_list):
+    """
+    Collects all functional parameters from a list of semi-functional modules.
+
+    Args:
+        semi_functional_module_list (list[SemiFunctionalModule]): List of modules.
+
+    Returns:
+        list[torch.nn.Parameter]: Flattened list of all parameters.
+    """
     out = []
     for elem in semi_functional_module_list:
         out += elem.get_functional_param_args()
@@ -49,6 +85,24 @@ def get_functional_param_args(semi_functional_module_list):
 
 
 def construct_surface_and_normal_func(semi_functional_module_list):
+    """
+    Constructs a function to evaluate both the surface value and its gradient
+    (normal direction) with respect to the ray origin `O`.
+
+    The surface is defined by composing the provided semi-functional modules.
+
+    Returns a callable:
+
+    .. math::
+        (O, p_1, ..., p_n) \\mapsto \\left( s(O), \\frac{\\partial s}{\\partial O} \\right)
+
+    Args:
+        semi_functional_module_list (list[SemiFunctionalModule]): List of modules.
+
+    Returns:
+        Callable: A function `s_dsd(O, *params, only_s=False)` returning
+        surface value `s` and optionally gradient `ds/dO`.
+    """
     s = cat_semi_functionals(semi_functional_module_list)
     def s_dsd(O,*params,only_s = False):
         sval,dsdval= None,None
@@ -64,6 +118,19 @@ def construct_surface_and_normal_func(semi_functional_module_list):
     return s_dsd
 
 def construct_surface_and_normal_func_with_params(semi_functional_module_list):
+    """
+    Constructs both the surface function and a list of its functional parameters.
+
+    Useful for optimization workflows that require parameter tracking.
+
+    Args:
+        semi_functional_module_list (list[SemiFunctionalModule]): List of modules.
+
+    Returns:
+        tuple:
+            Callable: A function computing surface and its gradient.
+            list[torch.nn.Parameter]: The list of parameters for the surface.
+    """
     s_dsd = construct_surface_and_normal_func(semi_functional_module_list)
     args = get_functional_param_args(semi_functional_module_list)
     return s_dsd,args
@@ -72,14 +139,51 @@ def construct_surface_and_normal_func_with_params(semi_functional_module_list):
         
     
 class CustomAutogradRule_t(torch.autograd.Function):
+    """
+    Custom PyTorch autograd rule for ray-surface intersection.
+
+    Computes a differentiable intersection length `t` such that:
+
+    .. math::
+        s(O + t D) = 0
+
+    where `O` is the ray origin, `D` is the direction, and `s` is the surface function.
+
+    This rule enables backpropagation through `t` with respect to `O`, `D`, and surface parameters.
+    """
     @staticmethod
     def forward(ctx,O,D,surface_and_normal_func,t_detached,*param_args):
+        """
+        Stores inputs for backward pass and returns precomputed `t`.
+
+        Args:
+            O (torch.Tensor): Ray origin of shape (N, 3).
+            D (torch.Tensor): Ray direction of shape (N, 3).
+            surface_and_normal_func (Callable): Surface function returning (s, ds/dR).
+            t_detached (torch.Tensor): Estimated intersection length (detached).
+            *param_args: Surface parameters.
+
+        Returns:
+            torch.Tensor: Intersection length `t`.
+        """
         ctx.save_for_backward(O,D,t_detached,*param_args)
         ctx.surface_and_normal_func = surface_and_normal_func
         return t_detached
 
     @staticmethod
     def backward(ctx, grad_outputs):
+        """
+        Computes gradients of intersection length `t` with respect to:
+        - ray origin `O`
+        - ray direction `D`
+        - surface parameters
+
+        Args:
+            grad_outputs (torch.Tensor): Gradient of the loss w.r.t. output `t`.
+
+        Returns:
+            tuple: Gradients with respect to inputs (O, D, None, None, *param_args).
+        """
         saved_tensors = ctx.saved_tensors
         O = saved_tensors[0]
         D = saved_tensors[1]
@@ -109,6 +213,30 @@ class CustomAutogradRule_t(torch.autograd.Function):
         return jact_dtdO,jact_dtdD,None,None,*jact_dtdp
     
 def get_ray_intersection_length(O,D,surface_and_normal_func,param_args,t_init=None):
+    """
+    Solves for the intersection length `t` such that:
+
+    .. math::
+        s(O + t D) = 0
+
+    using a Newton-style iteration method with damping.
+
+    This function finds the length `t` where a ray intersects a parametric surface,
+    given by a composed function with normal information.
+
+    Args:
+        O (torch.Tensor): Ray origins of shape (N, 3).
+        D (torch.Tensor): Ray directions of shape (N, 3).
+        surface_and_normal_func (Callable): A function returning (s, ds/dR).
+        param_args (list): List of surface parameters.
+        t_init (torch.Tensor, optional): Initial guess for `t`. If None, starts from zero.
+
+    Returns:
+        torch.Tensor: Estimated intersection lengths `t` with autograd support.
+
+    Raises:
+        Warning is printed (not exception) if convergence fails within `max_iter`.
+    """
     tolerance = get_tolerance()
     max_iter = get_max_iterations()
     damping = get_damping_factor()

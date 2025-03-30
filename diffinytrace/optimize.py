@@ -1,18 +1,49 @@
 """
-Copyright (C) 2024 Martin Pflaum
+MIT License
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+Copyright (c) 2025 Martin Pflaum
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>."""
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+"""
+Optimization Utilities for PyTorch-SciPy Integration
+====================================================
+
+This submodule provides a set of tools for constrained and unconstrained optimization
+of PyTorch models using SciPy optimizers. It bridges the gap between SciPy’s powerful
+optimization routines and PyTorch’s autograd system, enabling flexible and efficient
+hybrid optimization workflows.
+
+Key Features:
+-------------
+- Seamless wrapping of PyTorch-based objective functions for use with SciPy.
+- Automatic gradient computation using PyTorch’s autograd.
+- Support for parameter bounds, including custom mask-based bounds.
+- Caching and reuse of recent function/gradient evaluations.
+- Integration with SciPy's `minimize`.
+- Optional tracking of optimization history (function values and gradient norms).
+- Utility functions for flattening/unpacking tensor parameters.
+- Conversion of PyTorch parameters to SciPy-compatible formats with bounds.
+- Support for custom constraints and callback functions.
+"""
+
 
 import scipy
 import scipy.optimize
@@ -21,7 +52,22 @@ import torch
 import numpy as np
 import torch.nn as nn
 import copy
+
 def make_bounds_from_param(param):
+    """
+    Creates default bounds (-∞, ∞) for each element of the input tensor.
+
+    This function returns a tensor of shape `param.shape + [2]`, where the last
+    dimension represents the lower and upper bounds for each element in `param`.
+
+    Args:
+        param (torch.Tensor): A tensor for which bounds should be created.
+
+    Returns:
+        torch.Tensor: A tensor of shape `param.shape + [2]` where
+        `[..., 0] = -inf` (lower bounds) and `[..., 1] = inf` (upper bounds),
+        with the same dtype and device as `param`.
+    """
     bounds = torch.zeros(list(param.shape)+[2],device=param.device,dtype=param.dtype)
     bounds[...,0] = -torch.inf
     bounds[...,1] = torch.inf
@@ -29,8 +75,19 @@ def make_bounds_from_param(param):
 
 
 def make_parameter_from_input(input,bounds=None, dtype=None, device=None,bounds_attr_name="bounds"):
-    # If input is not a tensor, convert it to a tensor
+    """
+    Converts input to a `torch.nn.Parameter` and attaches bounds as an attribute.
 
+    Args:
+        input (array-like or torch.Tensor): Input data.
+        bounds (torch.Tensor, optional): Bounds to attach to the parameter.
+        dtype (torch.dtype, optional): Desired tensor data type.
+        device (torch.device, optional): Device to store the parameter on.
+        bounds_attr_name (str): Attribute name used to store bounds.
+
+    Returns:
+        torch.nn.Parameter: The parameter with bounds attached as an attribute.
+    """
     if not torch.is_tensor(input):
         input = torch.tensor(input, dtype=dtype, device=device)
 
@@ -50,13 +107,13 @@ def make_parameter_from_input(input,bounds=None, dtype=None, device=None,bounds_
 
 def pack_tensors(tensor_list):
     """
-    Pack a list of tensors into a single 1D tensor.
+    Flattens and concatenates a list of tensors into a single 1D tensor.
 
-    Parameters:
-    tensor_list (list of torch.Tensor): List of tensors to be packed.
+    Args:
+        tensor_list (list of torch.Tensor or torch.Tensor): Input tensor(s).
 
     Returns:
-    torch.Tensor: A single 1D tensor containing all elements of the input tensors.
+        torch.Tensor: A 1D tensor.
     """
     if torch.is_tensor(tensor_list):
         return tensor_list.reshape(-1)
@@ -64,14 +121,14 @@ def pack_tensors(tensor_list):
 
 def unpack_tensors(packed_tensor, shapes):
     """
-    Unpack a single 1D tensor into a list of tensors.
+    Unpacks a 1D tensor into a list of tensors with specified shapes.
 
-    Parameters:
-    packed_tensor (torch.Tensor): The packed 1D tensor.
-    shapes (list of tuple): List of shapes corresponding to each original tensor.
+    Args:
+        packed_tensor (torch.Tensor): The flat tensor to unpack.
+        shapes (list of tuple): Target shapes for unpacked tensors.
 
     Returns:
-    list of torch.Tensor: A list of unpacked tensors with their original shapes.
+        list of torch.Tensor: Unpacked tensors with original shapes.
     """
     unpacked_tensors = []
     start = 0
@@ -87,6 +144,18 @@ def unpack_tensors(packed_tensor, shapes):
     return unpacked_tensors
 
 def apply_vec_to_params(vec,params,device=None,dtype = None):
+    """
+    Updates `params` with values from a flat NumPy vector.
+
+    Args:
+        vec (np.ndarray): A 1D NumPy array of new parameter values.
+        params (list of torch.nn.Parameter): Parameters to update.
+        device (torch.device, optional): Device to move data to.
+        dtype (torch.dtype, optional): Data type for the new parameter values.
+
+    Raises:
+        RuntimeError: If `vec` is not a NumPy array.
+    """
     if not isinstance(vec, np.ndarray):
         raise RuntimeError("vec should be a numpy vector")
     params = [elem for elem in params]
@@ -95,13 +164,21 @@ def apply_vec_to_params(vec,params,device=None,dtype = None):
     if device is None:
         device = params[0].device
     unpacked_params = unpack_tensors(torch.tensor(vec,device=device,dtype=dtype), [elem.shape for elem in params])
-    #unpacked_params = [torch.tensor(elem,device=device,dtype=dtype) for elem in unpacked_params]
     with torch.no_grad():
         for k,param in enumerate(params):
             param.data = unpacked_params[k]
     
 def set_full_if_nan(input,fill_value):
-    #TODO implement axis - not necassary
+    """
+    Replaces NaNs in input with a specified fill value.
+
+    Args:
+        input (np.ndarray): A NumPy array or scalar.
+        fill_value (float): Value to use in place of NaNs.
+
+    Returns:
+        np.ndarray or float: Modified input with no NaNs.
+    """
     if not isinstance(input, np.ndarray):
         raise RuntimeError("set_full_if_nan,input should be a numpy vector")
     
@@ -118,6 +195,14 @@ def set_full_if_nan(input,fill_value):
             return input
 
 class ParameterFunHelper():
+    """
+    Helper class to evaluate a function and its gradient w.r.t. torch parameters.
+
+    Attributes:
+        orginal_fun (Callable): Function to be optimized.
+        params (list of torch.nn.Parameter): Parameters for optimization.
+        nan_fallback (float): Value to return if NaNs are detected.
+    """    
     def __init__(self,orginal_fun,params,nan_fallback = float("inf")):
         self.last_x_fun_numpy = None
         self.last_fun_val_numpy = None
@@ -131,7 +216,15 @@ class ParameterFunHelper():
         self.nan_fallback = nan_fallback
         
     def fun(self,x):
-        
+        """
+        Evaluates the objective function at a given input.
+
+        Args:
+            x (np.ndarray): Flat input array.
+
+        Returns:
+            float: Function value with NaNs replaced if needed.
+        """
         if not self.last_x_fun_numpy is None:
             if (x == self.last_x_fun_numpy).all():
                 out = self.last_fun_val_numpy
@@ -151,6 +244,15 @@ class ParameterFunHelper():
         return out
      
     def jac(self,x):
+        """
+        Computes the gradient of the objective function at input x.
+
+        Args:
+            x (np.ndarray): Flat input array.
+
+        Returns:
+            np.ndarray: Gradient with NaNs replaced if needed.
+        """
         if not self.last_x_grad_numpy is None:
             if (x == self.last_x_grad_numpy).all():
                 out = self.last_grad_val_numpy
@@ -170,6 +272,15 @@ class ParameterFunHelper():
         return out
             
     def fun_jac(self,x):
+        """
+        Evaluates both function value and gradient at once.
+
+        Args:
+            x (np.ndarray): Flat input array.
+
+        Returns:
+            Tuple[float, np.ndarray]: Function value and gradient.
+        """
         fun_val_numpy = self.fun(x)
         grad_val_numpy = self.jac(x)
         return fun_val_numpy,grad_val_numpy
@@ -190,6 +301,20 @@ class ParameterFunHelper():
 
  
 def create_fun_and_gradient(merit_fun,params,nan_fallback,device,dtype):
+    """
+    Wraps a PyTorch merit function and returns a callable that evaluates both
+    the function and its gradient in NumPy format.
+
+    Args:
+        merit_fun (Callable): PyTorch function to optimize.
+        params (list): List of `torch.nn.Parameter` objects.
+        nan_fallback (float): Value to use if NaNs are encountered.
+        device (torch.device): Target device.
+        dtype (torch.dtype): Target dtype.
+
+    Returns:
+        Callable: Function that returns (value, gradient) as NumPy arrays.
+    """
     def fun_and_gradient(input):
         apply_vec_to_params(input,params,device,dtype)    
         merit_val = merit_fun()
@@ -208,11 +333,28 @@ def create_fun_and_gradient(merit_fun,params,nan_fallback,device,dtype):
 
 
 def remove_bounds(params,bounds_attr_name):
+    """
+    Removes the bounds attribute from parameters if present.
+
+    Args:
+        params (list): List of torch.nn.Parameter objects.
+        bounds_attr_name (str): Attribute name of bounds to remove.
+    """
     for elem in params:
         if hasattr(elem,bounds_attr_name):
             setattr(elem,bounds_attr_name,None)
 
 def get_bounds(params,bounds_attr_name="bounds"):
+    """
+    Extracts and concatenates bounds for all parameters.
+
+    Args:
+        params (list): List of torch.nn.Parameter objects.
+        bounds_attr_name (str): Name of attribute storing bounds.
+
+    Returns:
+        np.ndarray: Array of shape (N, 2) with all bounds.
+    """
     out = []
 
     for elem in params:
@@ -233,21 +375,44 @@ def get_bounds(params,bounds_attr_name="bounds"):
     return out
     
 def get_scipy_constraint(constraint,params,nan_fallback):
-        param_fun_helper = ParameterFunHelper(constraint.fun,params,nan_fallback)
-        param_fun_helper.constraint=True
+    """
+    Converts a constraint into SciPy-compatible format.
 
-        scipy_data = {'type': constraint.type,'fun':param_fun_helper.fun,'jac':param_fun_helper.jac}
-        return scipy_data
+    Args:
+        constraint (Constraint): A custom constraint object.
+        params (list): List of parameters for the optimization.
+        nan_fallback (float): Fallback value for NaNs.
+
+    Returns:
+        dict: A dictionary compatible with SciPy constraints.
+    """
+    param_fun_helper = ParameterFunHelper(constraint.fun,params,nan_fallback)
+    param_fun_helper.constraint=True
+
+    scipy_data = {'type': constraint.type,'fun':param_fun_helper.fun,'jac':param_fun_helper.jac}
+    return scipy_data
 
 
 def create_callback(callback_fun,params,device,dtype):
+    """
+    Wraps a PyTorch callback function for use in SciPy.
+
+    Args:
+        callback_fun (Callable): A function taking no arguments.
+        params (list): List of parameters to update before calling.
+        device (torch.device): Device of the parameters.
+        dtype (torch.dtype): Data type of the parameters.
+
+    Returns:
+        Callable: A callback function for SciPy optimizers.
+    """
     def call_back(input):
         apply_vec_to_params(input,params,device,dtype)    
         return callback_fun()
     return call_back
 
 #nlopt==2.6.2
-
+"""
 def global_dual_annealing(fun, 
                           params, 
                           constraints=[],
@@ -321,13 +486,30 @@ def global_dual_annealing(fun,
 
     apply_vec_to_params(result["x"],[p for p in params],device,dtype)    
     return result
-
+"""
 
     
 
 def minimize(fun, params, constraints=[], method=None, tol=1e-9,callback=None, options=None,nan_fallback = float("inf"),bounds_attr_name="bounds",save_history=False,call_before_minimize=False):
-    #hessp=None,
-    #constraints=(),
+    """
+    Minimizes a function using SciPy's `minimize`, supporting bounds and constraints.
+
+    Args:
+        fun (Callable): Objective function.
+        params (list): Parameters to optimize.
+        constraints (list): List of constraints.
+        method (str): SciPy optimization method (e.g., 'L-BFGS-B').
+        tol (float): Tolerance for convergence.
+        callback (Callable): Optional callback function.
+        options (dict): Optimizer options.
+        nan_fallback (float): Value to use if function returns NaN.
+        bounds_attr_name (str): Name of bounds attribute.
+        save_history (bool): If True, saves function values and gradient norms.
+        call_before_minimize (bool): Whether to evaluate once before optimization.
+
+    Returns:
+        dict: Dictionary containing optimization results (and optionally history).
+    """
     from .constraints import Constraint
 
     if isinstance(constraints,Constraint):
@@ -412,6 +594,15 @@ def minimize(fun, params, constraints=[], method=None, tol=1e-9,callback=None, o
 
 
 def copy_bounds_to_attr_name(params,bounds_attr_name_new,bounds_attr_name_old="bounds",replace_existing_once=True):
+    """
+    Copies bounds from one attribute name to another.
+
+    Args:
+        params (list): List of parameters.
+        bounds_attr_name_new (str): New attribute name.
+        bounds_attr_name_old (str): Existing attribute name.
+        replace_existing_once (bool): Whether to skip copying if new attribute exists.
+    """
     def copy_bounds(param,bounds_attr_name_new,bounds_attr_name_old="bounds"):
         bounds = None
         if hasattr(param,bounds_attr_name_old):
@@ -431,6 +622,16 @@ def copy_bounds_to_attr_name(params,bounds_attr_name_new,bounds_attr_name_old="b
 
 
 def set_bounds_from_params_mask(params,mask:list|torch.Tensor,bounds_attr_name_new,bounds_attr_name_old="bounds"):
+    """
+    Sets bounds for parameters based on a mask. Parameters with `mask=False`
+    get fixed bounds (equal lower and upper bounds).
+
+    Args:
+        params (list): List of parameters.
+        mask (list or torch.Tensor): Mask specifying which elements are free.
+        bounds_attr_name_new (str): Attribute name to store new bounds.
+        bounds_attr_name_old (str): Attribute name to read old bounds from.
+    """
     def set_new_bounds_from_param_mask(param,mask,bounds_attr_name_new,bounds_attr_name_old="bounds"):
         bounds = None
         if hasattr(param,bounds_attr_name_old):
