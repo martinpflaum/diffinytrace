@@ -13,19 +13,24 @@ release = '2.1'
 
 import os
 import sys
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 #sys.path.insert(0, os.path.abspath("."))
 #sys.path.insert(0, os.path.abspath("../../diffinytrace"))
-sys.path.insert(0, os.path.abspath("../diffinytrace"))
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+extensions = ["sphinx.ext.autodoc","sphinx.ext.autosummary","sphinx.ext.napoleon","sphinx.ext.viewcode"]
+
+"""
 extensions = [
-    "sphinx.ext.apidoc",             # Generate API documentation from Python packages
-    "sphinx.ext.autodoc",            # Include documentation from docstrings
-    "sphinx.ext.autosectionlabel",   # Allow referencing sections by their title
+#    "sphinx.ext.apidoc",             # Generate API documentation from Python packages
+ #   "sphinx.ext.autodoc",            # Include documentation from docstrings
+#    "sphinx.ext.autosectionlabel",   # Allow referencing sections by their title
     "sphinx.ext.autosummary",        # Generate autodoc summaries
-    "sphinx.ext.coverage",           # Collect doc coverage stats
+#    "sphinx.ext.coverage",           # Collect doc coverage stats
     #"sphinx.ext.doctest",            # Test snippets in the documentation
     #"sphinx.ext.duration",           # Measure durations of Sphinx processing
     #"sphinx.ext.extlinks",           # Markup to shorten external links
@@ -35,22 +40,17 @@ extensions = [
     #"sphinx.ext.imgconverter",       # A reference image converter using ImageMagick
     #"sphinx.ext.inheritance_diagram",# Include inheritance diagrams
     "sphinx.ext.intersphinx",        # Link to other projects’ documentation
-    "sphinx.ext.linkcode",           # Add external links to source code
+#    "sphinx.ext.linkcode",           # Add external links to source code
     "sphinx.ext.mathjax",            # Math support for HTML outputs in Sphinx
     "sphinx.ext.napoleon",           # Support for NumPy and Google style docstrings
     #"sphinx.ext.todo",               # Support for todo items
     "sphinx.ext.viewcode",           # Add links to highlighted source code
-    "sphinx_rtd_theme"]
+    "sphinx_rtd_theme"]"""
 
 templates_path = ['_templates']
 exclude_patterns = []
 
 autosummary_generate = True
-autodoc_default_options = {
-    "members": True,
-    "undoc-members": False,
-    "show-inheritance": True,
-}
 
 
 

@@ -1,3 +1,6 @@
+# Copyright (c) 2025 Martin Pflaum
+# This file is part of the diffinytrace project, licensed under the MIT License.
+
 import torch
 from PIL import Image
 import numpy as np

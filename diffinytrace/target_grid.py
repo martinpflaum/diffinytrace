@@ -1,27 +1,20 @@
+# Copyright (c) 2025 Martin Pflaum
+# This file is part of the diffinytrace project, licensed under the MIT License.
+
 """
-MIT License
+This module implements grid-based spatial aggregation for ray optics.
 
-Copyright (c) 2025 Martin Pflaum
+Classes:
+    - Grid: Represents a 2D grid for spatial aggregation and statistics.
+    - GridSquare: Square variant of Grid for symmetric apertures.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Functions:
+    - (none at top level)
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Example:
+    >>> grid = Grid([0, 1], [0, 1], 10, 10)
+    >>> area = grid.get_area()
 """
-
 
 import torch
 import torch.nn as nn
@@ -29,6 +22,15 @@ from sklearn.neighbors import NearestNeighbors
 import numpy as np
 
 class Grid():
+    """
+    Represents a 2D grid over a rectangular area with aggregation and indexing utilities.
+
+    Args:
+        y_range (tuple[float, float]): The range in y-direction, as (y_min, y_max).
+        x_range (tuple[float, float]): The range in x-direction, as (x_min, x_max).
+        y_grid_size (int): Number of grid cells in y-direction.
+        x_grid_size (int): Number of grid cells in x-direction.
+    """
     def __init__(self,y_range,x_range,y_grid_size,x_grid_size):
         super().__init__()
         self.y_range = np.array(y_range)
@@ -53,12 +55,40 @@ class Grid():
         
     """
     def get_area(self):
+        """
+        Computes the total area of the grid.
+
+        Returns:
+            float: Total area of the grid.
+
+        .. math::
+            A = (x_{max} - x_{min}) \cdot (y_{max} - y_{min})
+        """
         return (self.x_range[1]-self.x_range[0])*(self.y_range[1]-self.y_range[0])
     
-    def get_pixel_area(self):        
+    def get_pixel_area(self):     
+        """
+        Returns the area of a single pixel/grid cell.
+
+        Returns:
+            float: Area of a single grid cell.
+
+        .. math::
+            A_{pixel} = \Delta x \cdot \Delta y
+        """   
         return self.x_delta*self.y_delta
 
     def get_yi_xi(self,local_points,round_to_bounds=True):
+        """
+        Converts 2D local coordinates to integer grid indices.
+
+        Args:
+            local_points (torch.Tensor): Tensor of shape (N, 2) representing 2D points.
+            round_to_bounds (bool): If True, clamps indices to stay within grid bounds. If False, returns a mask indicating valid indices.
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: Tuple of tensors (yi, xi) of shape (N,).
+        """
         if len(local_points.shape) != 2 or local_points.shape[1] != 2:
             raise RuntimeError("The local_points must be in local coordinates and of shape [#points,2]")
         local_points = local_points.detach()
@@ -85,6 +115,18 @@ class Grid():
             return (yi,xi),valid
 
     def get_k(self,local_points,round_to_bounds=True):
+        """
+        Maps local coordinates to flattened grid indices.
+
+        Args:
+            local_points (torch.Tensor): Tensor of shape (N, 2).
+            round_to_bounds (bool): Whether to clamp indices to grid bounds.
+
+        Returns:
+            Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+            - If `round_to_bounds` is True: Tensor of shape (N,).
+            - Otherwise: Tuple (indices, validity_mask).
+        """
         if round_to_bounds:
             yi,xi = self.get_yi_xi(local_points,round_to_bounds=round_to_bounds)
             return (yi*self.x_grid_size+xi).long()
@@ -94,12 +136,34 @@ class Grid():
             return k,valid
         
     def map_matrix_to_ray(self,local_points,old_matrix):
+        """
+        Maps a matrix defined on the grid to the given local points.
+
+        Args:
+            local_points (torch.Tensor): Points of shape (N, 2).
+            old_matrix (torch.Tensor): Matrix of shape (H, W, ...).
+
+        Returns:
+            torch.Tensor: Resampled matrix values of shape (N, ...).
+        """
         device = local_points.device
         dtype = local_points.dtype
         k = self.get_k(local_points)
         return old_matrix.reshape(-1)[k].reshape(local_points.shape[0],*old_matrix.shape[2:]) 
         
     def sum(self,local_points,values,old_matrix = None,round_to_bounds=False):
+        """
+        Sums values over the grid based on point locations.
+
+        Args:
+            local_points (torch.Tensor): Points of shape (N, 2).
+            values (torch.Tensor): Values of shape (N,) or (N, D).
+            old_matrix (torch.Tensor or None): Previous result for accumulation.
+            round_to_bounds (bool): Clamp indices to bounds if True.
+
+        Returns:
+            torch.Tensor: Aggregated result of shape (H, W).
+        """
         device = local_points.device
         dtype = local_points.dtype
         out = torch.zeros((self.x_grid_size*self.y_grid_size),device=device,dtype=dtype)
@@ -212,6 +276,16 @@ class Grid():
         return y_middle
     
     def nearest(self,local_points,return_args=False):
+        """
+        Finds the nearest pixel for each local point using L2 distance.
+
+        Args:
+            local_points (torch.Tensor): Tensor of shape (N, 2).
+            return_args (bool): If True, also return indices.
+
+        Returns:
+            torch.Tensor or Tuple[torch.Tensor, torch.Tensor]: Minimum squared distances, optionally with indices.
+        """
         x_middle = self.__get_x_middle()
         y_middle = self.__get_y_middle()
 
@@ -223,6 +297,12 @@ class Grid():
         return self.min(local_points,l2diff,return_args=return_args)
 
     def get_pixel_centers(self):
+        """
+        Returns the 2D center coordinates of each grid cell.
+
+        Returns:
+            torch.Tensor: Tensor of shape (H, W, 2) with pixel center coordinates.
+        """
         x_middle = self.__get_x_middle()
         y_middle = self.__get_y_middle()
 
@@ -231,6 +311,15 @@ class Grid():
         return V.reshape(self.y_grid_size,self.x_grid_size,2)
 
     def get_nearest_ray(self,local_points):
+        """
+        Finds the index of the nearest ray for each grid cell using `sklearn.neighbors.NearestNeighbors`.
+
+        Args:
+            local_points (torch.Tensor): Tensor of shape (N, 2) representing sampled rays.
+
+        Returns:
+            torch.Tensor: Tensor of shape (H, W) with ray indices.
+        """
         device = local_points.device
         dtype = local_points.dtype
         local_points = local_points.detach()
@@ -251,6 +340,13 @@ class Grid():
 
 
 class GridSquare(Grid):
+    """
+    Convenience class for square grids centered at the origin.
+
+    Args:
+        aperture_radius (float): Half-width of the square domain.
+        grid_size (int): Number of grid points in each direction.
+    """
     def __init__(self,aperture_radius,grid_size):
         super().__init__(\
             [-aperture_radius,aperture_radius],\

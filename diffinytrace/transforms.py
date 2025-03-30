@@ -29,6 +29,21 @@ from .intersection import SemiFunctionalModule,cat_semi_functionals
 import numpy as np
 from . optimize import make_parameter_from_input  
 class Transform(SemiFunctionalModule):
+    """
+    Base class for coordinate transformations.
+
+    This class provides interfaces to transform directions and positions between
+    local and global coordinate systems using homogeneous coordinates.
+
+    Methods:
+        get_functional_param_args(): Return parameters required for the transformation.
+        functional(O, *params): Apply transformation in functional style.
+        get_transformation_matrix(): Return the 4x4 transformation matrix.
+        to_global_dir(direction): Transform direction to global space.
+        to_local_dir(direction): Transform direction to local space.
+        to_global_pos(position): Transform position to global space.
+        to_local_pos(position): Transform position to local space.
+    """
     def __init__(self):
         super().__init__()
 
@@ -72,6 +87,9 @@ class Transform(SemiFunctionalModule):
 
         
 class Identity(Transform):
+    """
+    Identity transformation that returns input positions unchanged.
+    """
     def __init__(self):
         super().__init__()
 
@@ -87,6 +105,12 @@ class Identity(Transform):
         return out 
 
 class Compose(Transform):
+    """
+    Compose multiple transforms in sequence.
+
+    Args:
+        transform_list (list[Transform]): List of transformations to apply in order.
+    """
     def __init__(self,transform_list):
         super().__init__()
         self.transform_list = nn.ModuleList(transform_list)
@@ -115,6 +139,13 @@ class Compose(Transform):
 
 
 class Offset(Transform):
+    """
+    Translation transform using an offset vector.
+
+    Args:
+        pos (Tensor or list or float): The offset position as a 3D vector.
+        parent_transform (Transform, optional): Optional parent transformation.
+    """
     def __init__(self,pos,parent_transform=Identity()):
         super().__init__()
         self.pos = make_parameter_from_input(pos)
@@ -142,6 +173,21 @@ class Offset(Transform):
 
 
 class Distance(Transform):
+    """
+    Applies a translation along a specific axis by a given distance.
+
+    Args:
+        distance (float or Tensor): Distance to translate.
+        axis (int): Axis along which translation is applied (0=X, 1=Y, 2=Z).
+        parent_transform (Transform): Optional parent transformation.
+
+    Notes:
+        Applies the transform:
+        
+        .. math::
+
+            \\mathbf{x}_\\text{local} = \\mathbf{x}_\\text{parent} - d \\cdot \\mathbf{e}_i
+    """
     def __init__(self,distance,axis = 2,parent_transform=Identity()):
         super().__init__()
         self.distance = make_parameter_from_input(distance)
@@ -223,7 +269,13 @@ import torch
 """
 def rotation_matrix_x(angle):
     """
-    Returns the 4x4 rotation matrix for a rotation around the X-axis by `angle` degrees.
+    Construct a 3x3 rotation matrix around the X-axis.
+
+    Args:
+        angle (Tensor): Angle in degrees.
+
+    Returns:
+        Tensor: 3x3 rotation matrix.
     """
     # Convert angle from degrees to radians
     angle = angle * (2.0 * torch.pi / 360.0)
@@ -243,7 +295,13 @@ def rotation_matrix_x(angle):
 
 def rotation_matrix_y(angle):
     """
-    Returns the 4x4 rotation matrix for a rotation around the Y-axis by `angle` degrees.
+    Construct a 3x3 rotation matrix around the Y-axis.
+
+    Args:
+        angle (Tensor): Angle in degrees.
+
+    Returns:
+        Tensor: 3x3 rotation matrix.
     """
     # Convert angle from degrees to radians
     angle = angle * (2.0 * torch.pi / 360.0)
@@ -263,7 +321,13 @@ def rotation_matrix_y(angle):
 
 def rotation_matrix_z(angle):
     """
-    Returns the 4x4 rotation matrix for a rotation around the Z-axis by `angle` degrees.
+    Construct a 3x3 rotation matrix around the Z-axis.
+
+    Args:
+        angle (Tensor): Angle in degrees.
+
+    Returns:
+        Tensor: 3x3 rotation matrix.
     """
     # Convert angle from degrees to radians
     angle = angle * (2.0 * torch.pi / 360.0)
@@ -283,6 +347,23 @@ def rotation_matrix_z(angle):
 
 
 class Rotation(Transform):
+    """
+    Applies a 3D rotation around a principal axis.
+
+    Args:
+        angle (float or Tensor): Rotation angle in degrees.
+        axis (int): Axis index (0=X, 1=Y, 2=Z).
+        parent_transform (Transform, optional): Optional parent transformation.
+
+    Notes:
+        The rotation is applied using the following form:
+
+        .. math::
+
+            \\mathbf{R} = \\text{rotation\_matrix}(\\theta)
+
+            \\mathbf{x}_\\text{local} = \\mathbf{x}_\\text{parent} @ \\mathbf{R}^T
+    """
     def __init__(self,angle,axis,parent_transform=Identity()):
         #TODO test rotation for combi angle_x, angle_y, angle_z Reihenfolge egal?
         super().__init__()
