@@ -29,22 +29,44 @@ from .optimize import minimize
 from .utils.autograd import grad
 #from .element import OpticalSurface
 class Constraint():
+    """
+    Base class for optimization constraints.
+
+    Attributes:
+        fun (Callable): Function defining the constraint.
+        type (str): Type of constraint ('eq' or 'ineq').
+    """
     def __init__(self,fun,type):
         self.fun = fun
         self.type = type
     
 class EqualZero(Constraint):
-    #equal to 0 
+    """
+    Equality constraint enforcing `fun() == 0`.
+
+    Args:
+        fun (Callable): The constraint function.
+    """
     def __init__(self,fun):
         super().__init__(fun,'eq')
 
 class GEQZero(Constraint):
-    #greater or equal 0 
+    """
+    Inequality constraint enforcing `fun() >= 0`.
+
+    Args:
+        fun (Callable): The constraint function.
+    """
     def __init__(self,fun):
         super().__init__(fun,'ineq')
 
 class LEQZero(Constraint):
-    #less or equal 0 
+    """
+    Inequality constraint enforcing `fun() <= 0`.
+
+    Args:
+        fun (Callable): The constraint function.
+    """
     def __init__(self,fun):
         super().__init__(lambda: -fun(),'ineq')
 
@@ -166,6 +188,18 @@ class SurfaceDistance(Constraint):
             return None,None,*dfdp
 """        
 class SurfaceDistanceConstraint(LEQZero):
+    """
+    Constraint that enforces a minimum distance between two 3D parametric surfaces.
+
+    Args:
+        surface1 (PhysicalSurface): The first surface.
+        surface2 (PhysicalSurface): The second surface.
+        params (list[torch.nn.Parameter]): Parameters used in optimization.
+        minimum_dist (float): Minimum allowed distance between surfaces.
+        minimizer_tol (float): Tolerance for internal distance minimization.
+        num_points (int): Number of sample points used.
+        methdod (str): Sampling method ('sobol' or 'monte_carlo').
+    """
     def __init__(self,surface1,
                  surface2,
                  params,
@@ -210,6 +244,13 @@ class SurfaceDistanceConstraint(LEQZero):
         self.params = params
 
     def get_closest_points3D(self):
+        """
+        Computes the closest 3D points between two surfaces by minimizing the Euclidean distance
+        between sampled surface points under given constraints.
+
+        Returns:
+            tuple[torch.Tensor, torch.Tensor]: Closest 3D points on surface1 and surface2.
+        """
         device = self.device
         dtype = self.dtype
 
@@ -305,9 +346,22 @@ class SurfaceDistanceConstraint(LEQZero):
             return points3D1,points3D2
         return fun(x)
     def get_closest_points_distance(self):
+        """
+        Computes the minimum distance between the two parametric surfaces.
+
+        Returns:
+            torch.Tensor: A 1D tensor with the smallest distance value.
+        """
         points3D1,points3D2 = self.get_closest_points3D()
         return torch.linalg.norm(points3D1-points3D2,dim=-1).reshape(-1)
     def get_constraint(self):
+        """
+        Constraint function ensuring the closest points between the two surfaces
+        remain at least `minimum_dist` apart.
+
+        Returns:
+            torch.Tensor: A constraint value. Should be `<= 0` for valid configurations.
+        """
         device = self.device
         dtype = self.dtype
         
