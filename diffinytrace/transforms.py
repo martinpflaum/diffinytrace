@@ -26,25 +26,66 @@ class Transform(SemiFunctionalModule):
         super().__init__()
 
     def get_functional_param_args(self):
+        """
+        Return parameters required for the transformation which constructs the surfaces through the functional.
+        
+        Returns:
+            list: List of parameters required for the functional which constructs the surfaces.
+        """
         raise NotImplementedError("params_list not implemented")
 
     @staticmethod
     def functional(O,*params):
+        """
+        Apply transformation in functional style. This is global to local.
+        
+        Args:
+            O (torch.Tensor): Input tensor to be transformed.
+            *params: Parameters for the transformation.
+        
+        """
         raise NotImplementedError("functional not implemented")
     
     def get_transformation_matrix(self,device=None,dtype=None):
+        """
+        Return the 4x4 transformation matrix.
+        
+        Args:
+            device (torch.device, optional): Device for the matrix.
+            dtype (torch.dtype, optional): Data type for the matrix.    
+            
+        Returns:
+            torch.Tensor: 4x4 transformation matrix.
+        """
         raise NotImplementedError("get_transformation_matrix not implemented")
     
     def get_transform(self):
+        """
+        Returns itself.
+        """
         return self
     
     def to_global_dir(self,direction):
+        """
+        Transform direction to global space.
+        Args:
+            direction (torch.Tensor): Direction vector in local space.
+        Returns:
+            torch.Tensor: Direction vector in global space.
+        """
         M = self.get_transformation_matrix(direction.device,direction.dtype)
         R = M[np.ix_([0,1,2],[0,1,2])]
         out = direction@R.T
         return out
 
     def to_local_dir(self,direction):
+        """
+        Transform direction to local space.
+        Args:
+            direction (torch.Tensor): Direction vector in global space.
+        Returns:
+            torch.Tensor: Direction vector in local space.
+        """
         M = self.get_transformation_matrix(direction.device,direction.dtype)
         R = M[np.ix_([0,1,2],[0,1,2])]
         R_inv = torch.inverse(R)
@@ -52,6 +93,13 @@ class Transform(SemiFunctionalModule):
         return out
 
     def to_global_pos(self,position):
+        """
+        Transform position to global space.
+        Args:
+            position (torch.Tensor): Position vector in local space.
+        Returns:
+            torch.Tensor: Position vector in global space.
+        """
         M = self.get_transformation_matrix(position.device,position.dtype)
         v = torch.zeros((position.shape[0],4),device=position.device,dtype=position.dtype)
         v[:,[0,1,2]] = position
@@ -61,6 +109,13 @@ class Transform(SemiFunctionalModule):
         return out
     
     def to_local_pos(self,position):
+        """
+        Transform position to local space.
+        Args:
+            position (torch.Tensor): Position vector in global space.
+        Returns:
+            torch.Tensor: Position vector in local space.
+        """
         return self.functional(position,*self.get_functional_param_args())
 
         
@@ -72,6 +127,13 @@ class Identity(Transform):
         super().__init__()
 
     def get_functional_param_args(self):
+        """
+        Return parameters required for the transformation which constructs the surfaces through the functional.
+        
+        Returns:
+            list: List of parameters required for the functional which constructs the surfaces.
+        """
+        
         return []
 
     @staticmethod
@@ -79,6 +141,14 @@ class Identity(Transform):
         return O
 
     def get_transformation_matrix(self,device=None,dtype=None):
+        """
+        Return the 4x4 identity transformation matrix.
+        Args:
+            device (torch.device, optional): Device for the matrix.
+            dtype (torch.dtype, optional): Data type for the matrix.    
+        Returns:
+            torch.Tensor: 4x4 identity transformation matrix.
+        """
         out = torch.eye(4,device=device,dtype=dtype)
         return out 
 
@@ -95,6 +165,12 @@ class Compose(Transform):
         self.functional = cat_semi_functionals(self.transform_list)
     
     def get_functional_param_args(self):
+        """
+        Return parameters required for the transformation.
+        
+        Returns:
+            list: List of parameters required for the functional which constructs the surfaces.
+        """
         out = []
         for elem in self.transform_list:
             out += elem.get_functional_param_args()

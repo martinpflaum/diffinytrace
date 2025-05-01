@@ -69,8 +69,7 @@ __all__ = [
     # optimize
     "minimize",
     "make_parameter_from_input",
-    "global_dual_annealing",
-
+    
     # refractive_index
     "materials",
     "RefractiveIndex",
@@ -112,7 +111,7 @@ from .element import OpticalSystem,SequentialOpticalSystem,OpticalElement,Optica
 from .config import set_tolerance,get_tolerance,set_max_iterations,\
     get_max_iterations,restore_default_settings,get_damping_factor,set_damping_factor,\
     get_show_iteration_count,set_show_iteration_count
-from .optimize import minimize,make_parameter_from_input,global_dual_annealing
+from .optimize import minimize,make_parameter_from_input
 
 from .refractive_index import materials
 from .refractive_index import RefractiveIndex
