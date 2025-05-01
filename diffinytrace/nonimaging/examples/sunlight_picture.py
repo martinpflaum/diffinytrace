@@ -57,8 +57,9 @@ def create_lens(\
     save_irradiance_results=False,
     num_rays_save_irradiance = None,
     html_plot_file_name=""):
-    """
+    r"""
     This function creates a lens from an image file and optimizes it using ray tracing.
+    
     Args:
         input_file_name (str): The path to the image file.
         output_step_file_name (str): The path to save the lens as a STEP file.
@@ -92,6 +93,7 @@ def create_lens(\
         save_irradiance_results (bool): Whether to save irradiance results or not.
         num_rays_save_irradiance (int): The number of rays to save for irradiance results.
         html_plot_file_name (str): The name of the HTML file to save the plot.
+    
     Returns:
         dict: A dictionary containing the results of the optimization and irradiance calculations.
     """

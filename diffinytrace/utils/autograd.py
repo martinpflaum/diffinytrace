@@ -17,6 +17,7 @@ def grad(
 ):
     """
     Computes the gradients of the outputs with respect to the inputs.
+    
     Args:
         outputs (torch.Tensor or tuple of torch.Tensor): The output tensors.
         inputs (torch.Tensor or tuple of torch.Tensor): The input tensors.

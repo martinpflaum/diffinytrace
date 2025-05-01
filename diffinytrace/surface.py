@@ -236,7 +236,7 @@ class Bspline(Surface):
     def get_CAD_face(self,affine_transform):
         """
         Get the CAD face from the affine transform."""
-        from . export.cad import makeBsplineFace
+        from . export.CAD import makeBsplineFace
         control_points = self.get_CAD_coeff(affine_transform)
         U1,U2 = self.Us
         u_order,v_order = self.orders

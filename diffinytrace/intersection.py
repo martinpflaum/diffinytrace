@@ -7,7 +7,7 @@ from .utils.autograd import grad
 from .config import get_max_iterations,get_tolerance,get_damping_factor,get_show_iteration_count
 
 class SemiFunctionalModule(nn.Module):
-    """
+    r"""
     Abstract base class for semi-functional surface modules.
 
     These modules define a static method `functional` that computes a
@@ -25,7 +25,7 @@ class SemiFunctionalModule(nn.Module):
         raise NotImplementedError("functional not implemented")
 
 def cat_semi_functionals(functional_modules):
-    """
+    r"""
     Recursively chains a list of `SemiFunctionalModule`s into a single composite function.
 
     Each module's `functional()` method is applied in sequence using the respective
@@ -37,6 +37,7 @@ def cat_semi_functionals(functional_modules):
     Returns:
         Callable: A function f(O, *params) that applies all modules in sequence.
     """
+    
     if len(functional_modules) == 0:
         return lambda O,*params: O
     current_func = functional_modules[0].functional
@@ -48,7 +49,7 @@ def cat_semi_functionals(functional_modules):
     return fun_out
 
 def get_functional_param_args(semi_functional_module_list):
-    """
+    r"""
     Collects all functional parameters from a list of semi-functional modules.
 
     Args:
@@ -64,7 +65,7 @@ def get_functional_param_args(semi_functional_module_list):
 
 
 def construct_surface_and_normal_func(semi_functional_module_list):
-    """
+    r"""
     Constructs a function to evaluate both the surface value and its gradient
     (normal direction) with respect to the ray origin `O`.
 
@@ -97,7 +98,7 @@ def construct_surface_and_normal_func(semi_functional_module_list):
     return s_dsd
 
 def construct_surface_and_normal_func_with_params(semi_functional_module_list):
-    """
+    r"""
     Constructs both the surface function and a list of its functional parameters.
 
     Useful for optimization workflows that require parameter tracking.

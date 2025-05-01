@@ -5,8 +5,6 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
-
    diffinytrace.basis_functions
    diffinytrace.export
    diffinytrace.nonimaging

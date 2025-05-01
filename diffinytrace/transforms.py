@@ -127,13 +127,6 @@ class Identity(Transform):
         super().__init__()
 
     def get_functional_param_args(self):
-        """
-        Return parameters required for the transformation which constructs the surfaces through the functional.
-        
-        Returns:
-            list: List of parameters required for the functional which constructs the surfaces.
-        """
-        
         return []
 
     @staticmethod
@@ -141,14 +134,6 @@ class Identity(Transform):
         return O
 
     def get_transformation_matrix(self,device=None,dtype=None):
-        """
-        Return the 4x4 identity transformation matrix.
-        Args:
-            device (torch.device, optional): Device for the matrix.
-            dtype (torch.dtype, optional): Data type for the matrix.    
-        Returns:
-            torch.Tensor: 4x4 identity transformation matrix.
-        """
         out = torch.eye(4,device=device,dtype=dtype)
         return out 
 
@@ -165,12 +150,6 @@ class Compose(Transform):
         self.functional = cat_semi_functionals(self.transform_list)
     
     def get_functional_param_args(self):
-        """
-        Return parameters required for the transformation.
-        
-        Returns:
-            list: List of parameters required for the functional which constructs the surfaces.
-        """
         out = []
         for elem in self.transform_list:
             out += elem.get_functional_param_args()

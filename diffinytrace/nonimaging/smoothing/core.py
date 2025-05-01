@@ -29,7 +29,24 @@ class Smoother:
                 v_num_eval_points:int=64,
                 h_num_eval_points:int=64,
                 use_eval_avg=True):
+        r"""
+        Constructor for the Smoother class.
         
+        Args:
+            v_range (tuple): Vertical range of the grid.
+            h_range (tuple): Horizontal range of the grid.
+            v_num_conv_points (int): Number of vertical convolution points.
+            h_num_conv_points (int): Number of horizontal convolution points.
+            device (torch.device): Device to use for computations.
+            dtype (torch.dtype): Data type for computations.
+            num_integration_points_desired (list[int]): Number of integration points for desired irradiance.
+            desired_irradiance_func (callable): Function to describing the desired irradiance.
+            residual_integration_method (str): Method for residual integration ('midpoint' or 'simpson').
+            total_power_desired (float): Total power of the source and desired irradiance.
+            v_num_eval_points (int): Number of vertical gaussian measurement functions.
+            h_num_eval_points (int): Number of horizontal gaussian measurement functions.
+            use_eval_avg (bool): Whether to use averaging durring the evaluation.
+        """
  
         self.device = device
         self.dtype = dtype
@@ -109,15 +126,46 @@ class Smoother:
     
 
     def get_desired_irradiance_none_smoothed(self,y)->torch.Tensor:
+        r"""
+        Returns the desired irradiance without smoothing.
+        
+        Args:
+            y (torch.Tensor): The input tensor.
+        
+        Returns:
+            torch.Tensor: The desired irradiance.
+        """
         return self.__desired_irradiance_func(y)*self.__desir_irradiance_func_multi
     
 
     def get_none_smooth_irradiance(self,y:torch.Tensor,val_multi:torch.Tensor)->torch.Tensor:
+        """
+        Returns the non-smoothed irradiance.
+        
+        Args:
+            y (torch.Tensor): The input tensor.
+            val_multi (torch.Tensor): The value multiplier.
+        
+        Returns:
+            torch.Tensor: The non-smoothed irradiance.
+        """
+        
         y = y.detach().cpu()
         val_multi = val_multi.detach().cpu()
         return self.grid_eval.sum(y,val_multi)/self.grid_eval.get_pixel_area()
 
     def calc_none_smooth_desired_irradiance_eval(self,device=None,dtype=None):
+        """
+        Calculates the non-smoothed desired irradiance for evaluation.
+        
+        Args:
+            device (torch.device, optional): Device to use for calculations.
+            dtype (torch.dtype, optional): Data type to use for calculations.
+        
+        Returns:
+            None
+        """
+        
         if device is None:
             device = self.device
         if dtype is None:
@@ -143,6 +191,17 @@ class Smoother:
             gc.collect()
                 
     def calc_none_smooth_desired_irradiance_opti(self,device=None,dtype=None):        
+        """
+        Calculates the non-smoothed desired irradiance for optimization.
+        
+        Args:
+            device (torch.device, optional): Device to use for calculations.
+            dtype (torch.dtype, optional): Data type to use for calculations.
+        
+        Returns:
+            None
+        """
+
         if device is None:
             device = self.device
         if dtype is None:
@@ -161,6 +220,16 @@ class Smoother:
 
 
     def calc_smooth_desired_irradiance(self,device=None,dtype=None):
+        """
+        Calculates the smoothed desired irradiance.
+        
+        Args:
+            device (torch.device, optional): Device to use for calculations.
+            dtype (torch.dtype, optional): Data type to use for calculations.
+        Returns:
+            None
+        """
+        
         #sqrt_integration_points = int(math.sqrt(float(self.num_integration_points)))
         if device is None:
             device = self.device
@@ -185,6 +254,16 @@ class Smoother:
         
 
     def get_integral_over_distribution(self,val:torch.Tensor)->torch.Tensor:
+        """
+        Returns the integral over the distribution.
+        
+        Args:
+            val (torch.Tensor): The input tensor.
+        
+        Returns:
+            torch.Tensor: The integral over the distribution.
+        """
+        
         device = val.device
         dtype = val.dtype
         
@@ -195,7 +274,18 @@ class Smoother:
     
 
     def get_eval_merit_function_value(self,points:torch.Tensor,ray_multi:torch.Tensor,wl:torch.Tensor):
-        #TODO TEST!!
+        """
+        Returns the merit function value for evaluation.
+        
+        Args:
+            points (torch.Tensor): The input points.
+            ray_multi (torch.Tensor): The ray multipliers.
+            wl (torch.Tensor): The wavelengths.
+            
+        Returns:
+            torch.Tensor: The merit function value.
+        """
+        
         device = "cpu"
         dtype = points.dtype
         points = points.cpu()
@@ -225,7 +315,20 @@ class Smoother:
             use_desired_irradiance_smoothing=True,
             use_power_correction=False,
             save_last_eval = False)->torch.Tensor:
+        """
+        Returns the merit function value.
         
+        Args:
+            points (torch.Tensor): The input points.
+            ray_multi (torch.Tensor): The ray multipliers.
+            wl (torch.Tensor): The wavelengths.
+            use_desired_irradiance_smoothing (bool): Whether to use desired irradiance smoothing.
+            use_power_correction (bool): Whether to use power correction.
+            save_last_eval (bool): Whether to save the last evaluation.
+        
+        Returns:
+            torch.Tensor: The merit function value.
+        """
         device = points.device
         dtype = points.dtype
         desired_irr = None
@@ -290,6 +393,16 @@ class Smoother:
             return out
         
     def get_smooth_irradiance(self,points,val_multi)->torch.Tensor:
+        """
+        Returns the smoothed irradiance.
+        
+        Args:
+            points (torch.Tensor): The input points.
+            val_multi (torch.Tensor): The value multipliers.
+        
+        Returns:
+            torch.Tensor: The smoothed irradiance.
+        """
         raise NotImplementedError("get_smooth_irradiance is not implemented")
 
 
@@ -304,6 +417,25 @@ def create_merit_function(optical_system:SequentialOpticalSystem,
                         use_desired_irradiance_smoothing=True,
                         use_power_correction=False,
                         save_last_eval=False):
+    """
+    Creates a merit function for the given optical system, source, and detector.
+    
+    Args:
+        optical_system (SequentialOpticalSystem): The optical system to be used.
+        sequence: The sequence of elements in the optical system.
+        source (LightSource): The light source to be used.
+        detector: The detector to be used.
+        num_rays (int): Number of rays to be traced.
+        smoother (Smoother): The smoother object for merit function calculation.
+        device: The device to be used for calculations.
+        method_ray_tracing (str): Method for ray tracing ('sobol' or 'midpoint').
+        use_desired_irradiance_smoothing (bool): Whether to use desired irradiance smoothing.
+        use_power_correction (bool): Whether to use power correction.
+        save_last_eval (bool): Whether to save the last evaluation.
+    
+    Returns:
+        Callable: A function that computes the merit value.
+    """
     def merit_function()->torch.Tensor:
         x,weights,y,wl = trace_to_detector(optical_system,sequence,source,detector,num_rays,device,method_ray_tracing=method_ray_tracing)
         Qval = source.get_flux(x)

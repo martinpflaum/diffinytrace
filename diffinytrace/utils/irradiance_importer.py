@@ -28,6 +28,7 @@ def create_irradiance_from_image_square(file_name,padding_ratio,grey_ratio,apert
                                         dtype=torch.get_default_dtype(),shape=None):
     """
     Create a function that returns the desired irradiance from an image file.
+    
     Args:
         file_name (str): The path to the image file.
         padding_ratio (float): The ratio of padding to be applied to the image.
@@ -67,6 +68,16 @@ def create_irradiance_from_image_square(file_name,padding_ratio,grey_ratio,apert
 
 
 def pil_center_crop(image):
+    """
+    Crop the image to a square by centering it.
+    
+    Args:
+        image (PIL.Image): The image to be cropped.
+    
+    Returns:
+        PIL.Image: The cropped image.
+    """
+
     width, height = image.size
     crop_box = None
     if width < height:
@@ -81,7 +92,18 @@ def pil_center_crop(image):
 
 
 def load_image(name,padding_ratio,grey_ratio,shape=None):
-
+    """
+    Load an image, convert it to grayscale, and apply padding.
+    
+    Args:
+        name (str): The path to the image file.
+        padding_ratio (float): The ratio of padding to be applied to the image.
+        grey_ratio (float): The ratio of grey value to be applied to the image.
+        shape (tuple, optional): The shape to resize the image to. If None, no resizing is done.
+    
+    Returns:
+        np.ndarray: The processed image as a numpy array.
+    """
     # Open and process the image
     image = Image.open(name)
     image = pil_center_crop(image)  # Assuming this function crops the image to its center
