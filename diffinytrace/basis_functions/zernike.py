@@ -29,6 +29,16 @@ def __zernike_calc(n, m, r_powers):
     return radial_sum
 
 def basis_function(max_n, points):
+    """
+    Compute Zernike polynomials for a given set of points.
+    
+    Args:
+        max_n (int): Maximum radial degree.
+        points (torch.Tensor): Tensor of shape (N, 2) containing the x and y coordinates of the points.
+    
+    Returns:
+        torch.Tensor: Tensor of shape (N, num_coeffs) containing the Zernike polynomial values.
+    """
     x = points[:, 0]
     y = points[:, 1]
     

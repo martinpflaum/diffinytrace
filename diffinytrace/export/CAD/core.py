@@ -33,6 +33,7 @@ import numpy as np
 def lens_to_solid(lens,resolution,tol=0.001,smoothing = None,minDeg: int = 1,maxDeg: int = 3):
     """
     Convert a lens object to a CAD solid.
+    
     Args:
         lens: The lens object to be converted.
         resolution (int): Resolution of the CAD model.

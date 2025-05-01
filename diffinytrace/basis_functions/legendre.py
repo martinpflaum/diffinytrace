@@ -7,7 +7,7 @@ def precompute_legendre_polynomials(degree, x):
     """
     Precomputes all Legendre polynomials up to a given degree.
 
-    Parameters:
+    Args:
     degree (int): Maximum degree of the Legendre polynomials.
     x (torch.Tensor): Input tensor for x-coordinates.
 
@@ -28,7 +28,7 @@ def legendre_2d_basis(degree, x, y):
     """
     Generates 2D Legendre polynomial basis functions up to a given degree using precomputed 1D polynomials.
 
-    Parameters:
+    Args:
     degree (int): Maximum degree of the Legendre polynomials.
     x (torch.Tensor): x-coordinates as a torch tensor.
     y (torch.Tensor): y-coordinates as a torch tensor.
@@ -56,26 +56,3 @@ def legendre_2d_basis(degree, x, y):
 
 def get_num_coeff(degree):
      return (degree + 1) * (degree + 2) // 2
-
-"""
-degree = 21
-get_num_coeff(degree)
-
-# Example usage
-x = torch.tensor([0.5,0.1])
-y = torch.tensor([0.5,0.1])
-basis = legendre_2d_basis(degree, x, y)
-# Example usage
-x = torch.linspace(-1, 1, 100)
-y = torch.linspace(-1, 1, 100)
-
-# Compute the 2D Legendre polynomial of degree (2, 3)
-L_2_3 = legendre_2d(x, y, 3, 1)
-L_2_3.shape
-x = torch.linspace(-1, 1, 100)
-P = precompute_legendre_polynomials(21, x)
-import matplotlib.pyplot as plt
-for L_x in P:
-    plt.plot(x,L_x)
-
-"""

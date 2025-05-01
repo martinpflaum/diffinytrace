@@ -5,6 +5,18 @@
 import matplotlib.pyplot as plt
 import torch
 def cox_de_boor_recursion(U,k,n,xis,k_curr):
+    r"""Cox-de Boor recursion for B-spline basis functions.
+    
+    Args:
+        U (torch.Tensor): Knot vector.
+        k (int): Order of the B-spline.
+        n (int): Number of control points.
+        xis (torch.Tensor): Evaluation points.
+        k_curr (int): Current recursion level.
+    
+    Returns:
+        torch.Tensor: B-spline basis function values at the evaluation points.
+    """
     #TODO REMOVE n 
     U = U.to(xis.device)
     if k_curr<0:
