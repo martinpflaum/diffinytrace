@@ -9,18 +9,18 @@ nonimaging.smoothing.core
    :undoc-members:
    :show-inheritance:
 
-nonimaging.smoothing.gaussianXYZ\ smoother
+nonimaging.smoothing.gaussianXYZ\_smoother
 --------------------------------------------------------------
 
-.. automodule:: diffinytrace.nonimaging.smoothing.gaussianXYZ smoother
+.. automodule:: diffinytrace.nonimaging.smoothing.gaussianXYZ_smoother
    :members:
    :undoc-members:
    :show-inheritance:
 
-nonimaging.smoothing.gaussian\ smoother
+nonimaging.smoothing.gaussian\_smoother
 -----------------------------------------------------------
 
-.. automodule:: diffinytrace.nonimaging.smoothing.gaussian smoother
+.. automodule:: diffinytrace.nonimaging.smoothing.gaussian_smoother
    :members:
    :undoc-members:
    :show-inheritance:

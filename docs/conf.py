@@ -1,10 +1,5 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# For the full list of built-in configuration values, see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
-
-# -- Project information -----------------------------------------------------
-# https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+# Copyright (c) 2025 Martin Pflaum
+# This file is part of the diffinytrace project, licensed under the MIT License.
 #%%
 import os
 import subprocess
@@ -83,7 +78,7 @@ for file_name in os.listdir(folder_path):
             content,
             flags=re.DOTALL
         )
-        content = re.sub( r"\_",r" ",content)
+        #content = re.sub( r"\_",r" ",content)
         
         # Write the updated content back to the file
         with open(file_path, "w", encoding="utf-8") as file:

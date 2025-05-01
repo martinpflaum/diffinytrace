@@ -1,42 +1,42 @@
-basis\ functions
+basis\_functions
 =====================================
 
-basis\ functions.bspline
+basis\_functions.bspline
 --------------------------------------------
 
-.. automodule:: diffinytrace.basis functions.bspline
+.. automodule:: diffinytrace.basis_functions.bspline
    :members:
    :undoc-members:
    :show-inheritance:
 
-basis\ functions.chebyshev
+basis\_functions.chebyshev
 ----------------------------------------------
 
-.. automodule:: diffinytrace.basis functions.chebyshev
+.. automodule:: diffinytrace.basis_functions.chebyshev
    :members:
    :undoc-members:
    :show-inheritance:
 
-basis\ functions.core
+basis\_functions.core
 -----------------------------------------
 
-.. automodule:: diffinytrace.basis functions.core
+.. automodule:: diffinytrace.basis_functions.core
    :members:
    :undoc-members:
    :show-inheritance:
 
-basis\ functions.legendre
+basis\_functions.legendre
 ---------------------------------------------
 
-.. automodule:: diffinytrace.basis functions.legendre
+.. automodule:: diffinytrace.basis_functions.legendre
    :members:
    :undoc-members:
    :show-inheritance:
 
-basis\ functions.zernike
+basis\_functions.zernike
 --------------------------------------------
 
-.. automodule:: diffinytrace.basis functions.zernike
+.. automodule:: diffinytrace.basis_functions.zernike
    :members:
    :undoc-members:
    :show-inheritance:
