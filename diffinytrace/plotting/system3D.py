@@ -186,6 +186,7 @@ def plot(element=None,
     
     """
     Plots the optical system in 3D using Plotly.
+
     Args:
         element (Plotable): The optical system element to plot.
         rays (list[torch.Tensor]): List of rays to plot.
@@ -203,6 +204,7 @@ def plot(element=None,
         ray_linewidth (float): Line width of the rays.
         show (bool): Whether to show the plot immediately.
         html_file_name (str | None): If provided, saves the plot as an HTML file.
+    
     Returns:
         fig (plotly.graph_objects.Figure): The plotly figure object.
     """

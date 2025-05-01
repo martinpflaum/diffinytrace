@@ -48,6 +48,7 @@ def add_colour_bar(fig, ax, wl):
 def plot(wl,vals=None,title="",xlabel="Wavelength [µm]",ylabel="y",labels=None,colour_bar=True,linewidth=2,legend=True,resolution=500,show=True):
     """
     Plot a spectrum with a color strip below it.
+
     Args:
         wl (array-like): Wavelengths in nm or µm.
         vals (array-like): Values of the spectrum at the given wavelengths.
@@ -60,6 +61,7 @@ def plot(wl,vals=None,title="",xlabel="Wavelength [µm]",ylabel="y",labels=None,
         legend (bool): Whether to show a legend.
         resolution (int): Resolution of the plot.
         show (bool): Whether to show the plot.
+        
     Returns:
         None
     """

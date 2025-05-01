@@ -11,6 +11,7 @@ def sympy_calc_grad(expr_dict,input_list,return_latex=False):
 
     """
     Calculate the gradient of a given expression with respect to the specified input variables.
+    
     Args:
         expr_dict (dict): A dictionary containing the expression to differentiate.
         input_list (list): A list of input variables with respect to which to differentiate.

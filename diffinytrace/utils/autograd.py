@@ -28,6 +28,7 @@ def grad(
         is_grads_batched (bool, optional): Whether the gradients are batched.
         materialize_grads (bool, optional): Whether to materialize the gradients.
         remove_no_grad_outputs (bool, optional): Whether to remove outputs that do not require gradients.
+    
     Returns:
         list: A list of gradients for each input tensor.
     """

@@ -9,11 +9,24 @@ class Plotable:
     Abstract base class for plotable objects in the optical system.
     """
     def __init__(self,fill_color="white", outline_color="black",is_volume=False):
+        """
+        Initialize the plotable object with fill and outline colors.
+        
+        Args:
+            fill_color (str): The color used to fill the object.
+            outline_color (str): The color used for the outline of the object.
+            is_volume (bool): If True, the object is treated as a volume.
+        
+        """
         self.fill_color = fill_color
         self.outline_color = outline_color
         self.is_volume = is_volume
 
     def get_plotly_color_scale(self):
+        """
+        Returns a color scale for Plotly, based on the fill and outline colors.
+        """
+        
         fill_color_rgb = mcolors.to_rgb(self.fill_color)
         outline_color_rgb = mcolors.to_rgb(self.outline_color)
 
@@ -37,10 +50,30 @@ class Plotable:
         return out
     
     def get_plot_points2D(self,resolution):
+        """
+        Returns a list of 2D plot points for the object.
+        
+        Args:
+            resolution (int): The resolution for the plot points.
+        
+        
+        Returns:
+            list: A list of 2D plot points.
+        """
+        
         print("get_plot_points2D not implemented")
         return []
     
     def get_plot_points3D(self,resolution):
+        """
+        Returns a list of 3D plot points for the object.
+        
+        Args:
+            resolution (int): The resolution for the plot points.
+        
+        Returns:
+            list: A list of 3D plot points.
+        """
         print("get_plot_points3D not implemented")
         return []
     
