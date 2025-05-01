@@ -17,7 +17,15 @@ class Integrator():
     def __init__(self):
         pass
 
-    def sample(self,num_points):
+    def sample(self,num_points,method):
+        """
+        Sample points and weights using the specified method.
+        Args:
+            num_points (int or list): Number of points in each dimension.
+            method (str): The integration method to use. Options are 'simpson', 'midpoint', 'monte_carlo', 'sobol', and 'sobol_pow2'.
+        Returns:
+            tuple: A tuple containing the sampled points and their corresponding weights.
+        """
         raise NotImplementedError("sample() not implemented")
 
     def in_bounds(self,x):
@@ -72,7 +80,9 @@ class Integrator():
 class Cube(Integrator):
     def __init__(self,bounds):
         """
-        [(min,max),(min,max),(min,max)]
+        Initialize the Cube integrator with given bounds.
+        Args:
+            bounds (list or np.ndarray): Bounds of the cube in each dimension.
         """
         super().__init__()
         bounds = np.array(bounds)
@@ -84,6 +94,16 @@ class Cube(Integrator):
             raise ValueError("len(self.bounds.shape)==2 must hold true!")
     
     def sample(self,num_points,method="midpoint")-> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Sample points and weights using the specified method.
+        Args:
+            num_points (int or list): Number of points in each dimension.
+            method (str): The integration method to use. Options are 'simpson', 'midpoint', 'monte_carlo', 'sobol', and 'sobol_pow2'.
+        Returns:
+            tuple: A tuple containing the sampled points and their corresponding weights.
+        """
+        
+        
         if method == 'simpson':
             return self._sample_simpson(num_points)
         elif method == 'midpoint':
@@ -105,7 +125,12 @@ class Cube(Integrator):
         return out
         
     def get_volume(self):
-        #TODO change this to Volume
+        
+        """
+        Returns:
+            float: Volume of the Cube.
+        """
+        
         volume = torch.prod(self.bounds[:,1]-self.bounds[:,0])
         return volume
     def _sample_midpoint(self, num_points):
@@ -280,9 +305,24 @@ class Cube(Integrator):
 
 class Disc(Integrator):
     def __init__(self,radius):
+        """
+        Initialize the Disc integrator with a given radius.
+        Args:
+            radius (float): Radius of the disc.
+        """
+        
         self.radius = float(radius)
     
     def sample(self,num_points,method="sobol")-> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Sample points and weights using the specified method.
+        Args:
+            num_points (int or list): Number of points in each dimension.
+            method (str): The integration method to use. Options are 'simpson', 'midpoint', 'monte_carlo', 'sobol', and 'sobol_pow2'.
+        Returns:
+            tuple: A tuple containing the sampled points and their corresponding weights.
+        """
+        
         if method == 'simpson':
             return self._sample_simpson(num_points)
         elif method == 'monte_carlo':
@@ -386,8 +426,20 @@ class Disc(Integrator):
         return out_points,out_weights
        
     def in_bounds(self,x):
+        """Check if points are within the disc.
+        Args:
+            x (torch.Tensor): Points to check.
+        Returns:
+            torch.Tensor: Boolean tensor indicating if points are within the disc.
+        """
         device = x.device
         dtype = x.dtype
         return torch.linalg.norm(x,dim=1)<self.radius
+    
     def get_volume(self):
-        return math.pi*self.radius
+        """Calculate the volume of the disc.
+        Returns:
+            float: Volume of the disc.
+        """
+        
+        return math.pi*self.radius**2.

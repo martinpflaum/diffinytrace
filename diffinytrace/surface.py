@@ -1,8 +1,6 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
-
-
 #%%
 import torch
 import torch.nn as nn
@@ -14,8 +12,7 @@ from . import basis_functions
 
 class Surface(SemiFunctionalModule):
     """
-    The functional should be 0 at O=(0,0,0)!
-    maybe default mode and another mode?
+    Abstract base class for surfaces in the optical system. 
     """
     @staticmethod
     def functional(O,*params_list):
@@ -29,6 +26,9 @@ class Surface(SemiFunctionalModule):
 
 class Plane(Surface):
     """
+    A class to represent a plane surface in 3D space.
+    The plane is defined by the equation z = 0, and the functional method
+    returns the z-coordinate of the input points.
     """
     def __init__(self):
         super().__init__()
@@ -185,8 +185,12 @@ def bspline_n_after_refinement(n,k):
     return ((2*n+1)-k)
 
 class Bspline(Surface):
+    """
+    A class to represent a B-spline surface in 3D space.
+    The surface is defined by the B-spline basis functions and control points.
+    The functional method returns the z-coordinate of the input points.
+    """
     
-
     def __init__(self,aperture_radius,orders,ns):
         super().__init__()
         #orders is order!!!
@@ -206,6 +210,9 @@ class Bspline(Surface):
         self.aperture_radius = torch.tensor(aperture_radius)    
 
     def get_CAD_coeff(self,affine_transform):
+        """
+        Get the CAD coefficients from the affine transform.
+        """
         affine_transform = affine_transform.detach().cpu()
         dtype = affine_transform.dtype
         coeff = self.coeff.detach()
@@ -227,6 +234,8 @@ class Bspline(Surface):
         return out.detach().cpu().numpy()
     
     def get_CAD_face(self,affine_transform):
+        """
+        Get the CAD face from the affine transform."""
         from . export.cad import makeBsplineFace
         control_points = self.get_CAD_coeff(affine_transform)
         U1,U2 = self.Us
@@ -236,6 +245,9 @@ class Bspline(Surface):
         return makeBsplineFace(control_points,U1,U2,u_degree,v_degree)
         
     def refine(self):
+        """
+        Refine the B-spline surface by increasing the number of control points.
+        The number of control points is increased by 1 in each direction."""
         Us,coeff = basis_functions.bspline.refine2D(self.Us,self.orders,self.coeff)
         self.Us = Us
         with torch.no_grad():
@@ -259,6 +271,14 @@ class Bspline(Surface):
         return [self.coeff,self.aperture_radius]
     
     def explicit(self,local_pos):
+        """
+        Convert local position to global position using the B-spline surface functional.
+        
+        Args:
+            local_pos (torch.Tensor): Local position in 2D space.
+        Returns:
+            torch.Tensor: Global position in 3D space.
+        """
         if local_pos.shape[-1] != 2:
             raise RuntimeError("local_pos needs to be of shape [:,2]")
         device = local_pos.device
@@ -282,6 +302,11 @@ class Bspline(Surface):
         return self
 """
 class Legendre(Surface):
+
+    """
+    A class to represent a Legendre surface in 3D space.
+    Its kinda work in progress.
+    """
     def __init__(self,aperture_radius,degree):
         super().__init__()
     

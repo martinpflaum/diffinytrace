@@ -46,6 +46,23 @@ def add_colour_bar(fig, ax, wl):
 #TODO change bmin and bmax to bounds
 #refractive_index
 def plot(wl,vals=None,title="",xlabel="Wavelength [µm]",ylabel="y",labels=None,colour_bar=True,linewidth=2,legend=True,resolution=500,show=True):
+    """
+    Plot a spectrum with a color strip below it.
+    Args:
+        wl (array-like): Wavelengths in nm or µm.
+        vals (array-like): Values of the spectrum at the given wavelengths.
+        title (str): Title of the plot.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        labels (list): Labels for the different curves.
+        colour_bar (bool): Whether to show a color bar.
+        linewidth (int): Line width of the plot.
+        legend (bool): Whether to show a legend.
+        resolution (int): Resolution of the plot.
+        show (bool): Whether to show the plot.
+    Returns:
+        None
+    """
     if vals is None:
         if not isinstance(wl,PlotableWavelength):
             raise RuntimeError("if vals=None, wl must be a PlotableWavelength!")

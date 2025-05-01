@@ -26,6 +26,19 @@ def from_image_square(file_name,padding_ratio,grey_ratio,aperture_radius):
 """
 def create_irradiance_from_image_square(file_name,padding_ratio,grey_ratio,aperture_radius,
                                         dtype=torch.get_default_dtype(),shape=None):
+    """
+    Create a function that returns the desired irradiance from an image file.
+    Args:
+        file_name (str): The path to the image file.
+        padding_ratio (float): The ratio of padding to be applied to the image.
+        grey_ratio (float): The ratio of grey value to be applied to the image.
+        aperture_radius (float): The radius of the aperture.
+        dtype (torch.dtype): The data type for the output tensor.
+        shape (tuple, optional): The shape to resize the image to. If None, no resizing is done.
+    Returns:
+        function: A function that takes a tensor as input and returns the desired irradiance.
+    """
+    
     #TODO maybe generalize to rectangle  - change apreture_radius_detector to target_grid-nöö
     image = load_image(file_name,padding_ratio=padding_ratio,grey_ratio=grey_ratio,shape=shape)
     #image = image.T

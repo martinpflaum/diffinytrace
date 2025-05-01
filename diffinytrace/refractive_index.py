@@ -9,13 +9,25 @@ import numpy as np
 from .plotting.wavelength import PlotableWavelength
 
 class RefractiveIndex(nn.Module,PlotableWavelength):
-    #TODO TEST
+    """This class is used to calculate the refractive index of a material.
+    
+    Args:
+        func (callable): A function that takes a wavelength in μm and returns the refractive index.
+        bounds (tuple): A tuple containing the minimum and maximum wavelength in μm.
+    """
     def __init__(self,func,bounds):
         nn.Module.__init__(self)
         PlotableWavelength.__init__(self,bounds,"n [1]")
         self.func = func
         self.bounds = bounds
+
     def forward(self,wl):
+        """Calculates the refractive index for given wavelengths.
+        Args:
+            wl (torch.Tensor or float): Wavelength in μm.
+        Returns:
+            torch.Tensor: Refractive index at the given wavelengths.
+        """
         if not torch.is_tensor(wl):
             wl = torch.tensor(wl)
         vmin,vmax = self.bounds
@@ -36,6 +48,7 @@ class RefractiveIndex(nn.Module,PlotableWavelength):
             if len(out.shape) == 0:
                 return out*torch.ones_like(wl)
         return out
+
 """
 All material data is from https://refractiveindex.info/. Please verify the equation and ranges by ur self and the references.
 """

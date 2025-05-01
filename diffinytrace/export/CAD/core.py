@@ -1,5 +1,6 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
+
 __all__ = [
     "lens_to_solid",
     "extract_knots_and_multiplicities",
@@ -30,7 +31,18 @@ import numpy as np
 
 #TODO maybe rename submodule to --exporters
 def lens_to_solid(lens,resolution,tol=0.001,smoothing = None,minDeg: int = 1,maxDeg: int = 3):
-    
+    """
+    Convert a lens object to a CAD solid.
+    Args:
+        lens: The lens object to be converted.
+        resolution (int): Resolution of the CAD model.
+        tol (float): Tolerance for the CAD model.
+        smoothing: Smoothing parameter for the CAD model.
+        minDeg (int): Minimum degree for the B-spline surface.
+        maxDeg (int): Maximum degree for the B-spline surface.
+    Returns:
+        cq.Solid: The CAD solid representing the lens.
+    """
     #direction
     dtype = torch.float
     device = "cpu"
@@ -79,9 +91,13 @@ def extract_knots_and_multiplicities(knots: List[float]) -> Tuple[List[float], L
     """
     Extract unique knots and their multiplicities from a knot vector.
     
-    :param knots: The knot vector with implicit multiplicities.
-    :return: A tuple of two lists - (unique_knots, multiplicities).
-    """
+    Args:
+        knots (List[float]): The knot vector with implicit multiplicities.
+
+    Returns:
+        unique_knots (List[float]): A list of unique knots.
+        multiplicities (List[int]): A list of multiplicities corresponding to the unique knots.
+    """    
     unique_knots = []
     multiplicities = []
     
@@ -110,16 +126,19 @@ def makeNurbsFace(
 ):
     """
     Create a B-spline surface from control points, weights, and implicit knot vectors.
-    
-    :param control_points: 2D list of control points as Vectors.
-    :param weights: 2D list of weights for each control point.
-    :param U1: Knot vector in U direction with implicit multiplicities.
-    :param U2: Knot vector in V direction with implicit multiplicities.
-    :param u_degree: Degree of the B-spline in the U direction.
-    :param v_degree: Degree of the B-spline in the V direction.
-    :param u_periodic: If True, makes the surface periodic in the U direction.
-    :param v_periodic: If True, makes the surface periodic in the V direction.
-    :return: Face instance representing the B-spline surface.
+
+    Args:
+        control_points (list): 2D list of control points as Vectors.
+        weights (list): 2D list of weights for each control point.
+        U1 (list): Knot vector in U direction with implicit multiplicities.
+        U2 (list): Knot vector in V direction with implicit multiplicities.
+        u_degree (int): Degree of the B-spline in the U direction.
+        v_degree (int): Degree of the B-spline in the V direction.
+        u_periodic (bool): If True, makes the surface periodic in the U direction.
+        v_periodic (bool): If True, makes the surface periodic in the V direction.
+
+    Returns:
+        cq.Face: Face instance representing the B-spline surface.
     """
     U1 = [float(elem) for elem in U1]
     U2 = [float(elem) for elem in U2]
@@ -189,6 +208,15 @@ def makeBsplineFace(
     return makeNurbsFace(control_points,weights,U1,U2,u_degree,v_degree,u_periodic,v_periodic)
 
 def export_lens(file_path,lens,resolution,tol=0.001):
+    """
+    Export a lens to a CAD file.
+    
+    Args:
+        file_path (str): The path to save the CAD file.
+        lens: The lens object to be exported.
+        resolution (int): Resolution of the CAD model.
+        tol (float): Tolerance for the CAD model.
+    """
     solid = lens_to_solid(lens,resolution,tol=tol)
     cq.exporters.export(solid, file_path)
 

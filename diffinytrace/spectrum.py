@@ -11,13 +11,29 @@ from .plotting.wavelength import PlotableWavelength
 
 
 class Spectrum(nn.Module,PlotableWavelength):
+    """
+    A class to represent a spectrum as a function of wavelength.
+    """
     def __init__(self,func,bounds):
+        """
+        Initialize the Spectrum class.
+        Args:
+            func (callable): A function that takes a wavelength and returns the spectrum value.
+            bounds (tuple): A tuple containing the minimum and maximum wavelength.
+        """
         nn.Module.__init__(self)
         PlotableWavelength.__init__(self,bounds,"Intensity [1]")
         self.func = func
         self.bounds = bounds
 
     def forward(self,wl):
+        """
+        Calculate the spectrum for given wavelengths.
+        Args:
+            wl (torch.Tensor or float): Wavelength in μm.
+        Returns:
+            torch.Tensor: Spectrum value at the given wavelengths.
+        """
         if not torch.is_tensor(wl):
             wl = torch.tensor(wl)
         
@@ -40,6 +56,10 @@ class Spectrum(nn.Module,PlotableWavelength):
         return out
 
 class VisibleSunlight_am15g(Spectrum):
+    """
+    A class to represent the AM 1.5 G spectrum.
+    This class uses the pvlib library to calculate the spectrum.
+    """
     def __init__(self):
         def func(wl):
             device = wl.device

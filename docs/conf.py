@@ -5,6 +5,56 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+#%%
+import os
+
+try:
+    # Path to the index.rst file
+    index_rst_path = r"index.rst"
+
+    # Directory to save the generated .rst files
+    docs_dir = os.path.dirname(index_rst_path)
+
+    # Read the content of index.rst
+    with open(index_rst_path, "r") as file:
+        lines = file.readlines()
+
+    # Find the "Submodules" section and extract submodule names
+    submodules_start = None
+    submodules = []
+    for i, line in enumerate(lines):
+        if line.strip() == "Submodules":
+            submodules_start = i
+        elif submodules_start is not None and line.startswith(".. automodule::"):
+            print("line:",line)
+            submodule_name = line.split("::")[1].strip()
+            submodules.append(submodule_name)
+        elif submodules_start is not None and line.strip() == "":
+            pass
+    # Generate .rst files for each submodule
+    for submodule in submodules:
+        rst_file_path = os.path.join(docs_dir, f"{submodule.split('.')[-1]}.rst")
+        with open(rst_file_path, "w") as rst_file:
+            rst_file.write(f"{submodule.split('.')[-1]}\n")
+            rst_file.write("=" * (len(submodule) + 7) + "\n\n")
+            rst_file.write(f".. automodule:: {submodule}\n")
+            rst_file.write("   :members:\n")
+            rst_file.write("   :undoc-members:\n")
+            rst_file.write("   :show-inheritance:\n")
+
+    # Remove everything after "Submodules" in index.rst
+    with open(index_rst_path, "w") as file:
+        for line in lines[:submodules_start-1]:  # Keep lines up to "Submodules"
+            if line != "Submodules\n" or "":
+                file.write(line)
+
+        # Add the generated .rst files to the first toctree
+        #file.write("\n.. toctree::\n   :maxdepth: 4\n\n")
+        for submodule in submodules:
+            file.write(f"   {submodule.split('.')[-1]}\n")
+except:
+    pass
+#%%
 
 project = 'diffinytrace'
 copyright = '2025, Martin Pflaum'
@@ -58,4 +108,5 @@ autosummary_generate = True
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
+html_theme = "furo"
 html_static_path = ['_static']

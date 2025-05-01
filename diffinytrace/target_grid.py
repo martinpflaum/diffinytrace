@@ -42,18 +42,6 @@ class Grid():
         self.x_delta = (self.x_range[1]-self.x_range[0])/x_grid_size
         self.y_delta = (self.y_range[1]-self.y_range[0])/y_grid_size
         
-    """def get_all_midpoints(self):
-        _x = self.__get_x_middle()
-        _y = self.__get_y_middle()
-        mesh = torch.meshgrid(_x,_y)
-        x = mesh[0].reshape(-1)
-        y = mesh[1].reshape(-1)
-        points = torch.zeros((x.shape[0],2))        
-        points[:,0] = x
-        points[:,1] = y
-        return points
-        
-    """
     def get_area(self):
         """
         Computes the total area of the grid.
@@ -185,6 +173,16 @@ class Grid():
 
 
     def prod(self,local_points,values,old_matrix = None,round_to_bounds=False):
+        """
+        Multiplies values over the grid based on point locations.
+        Args:
+            local_points (torch.Tensor): Points of shape (N, 2).
+            values (torch.Tensor): Values of shape (N,) or (N, D). 
+            old_matrix (torch.Tensor or None): Previous result for accumulation.
+            round_to_bounds (bool): Clamp indices to bounds if True.
+        Returns:
+            torch.Tensor: Aggregated result of shape (H, W).
+        """
         device = local_points.device
         dtype = local_points.dtype
         out = torch.ones((self.y_grid_size*self.x_grid_size),device=device,dtype=dtype)
@@ -204,6 +202,16 @@ class Grid():
             return out
 
     def mean(self,local_points,values,old_matrix = None,round_to_bounds=False):
+        """
+        Computes the mean of values over the grid based on point locations.
+        Args:
+            local_points (torch.Tensor): Points of shape (N, 2).
+            values (torch.Tensor): Values of shape (N,) or (N, D).
+            old_matrix (torch.Tensor or None): Previous result for accumulation.
+            round_to_bounds (bool): Clamp indices to bounds if True.
+        Returns:
+            torch.Tensor: Aggregated result of shape (H, W).
+        """
         device = local_points.device
         dtype = local_points.dtype
         out = torch.zeros((self.y_grid_size*self.x_grid_size),device=device,dtype=dtype)
@@ -234,6 +242,15 @@ class Grid():
         return M_argmin
 
     def min(self,local_points,values,old_matrix = None,return_args=False):
+        """Finds the minimum value for each grid cell based on local points.
+        Args:
+            local_points (torch.Tensor): Points of shape (N, 2).
+            values (torch.Tensor): Values of shape (N,) or (N, D).
+            old_matrix (torch.Tensor or None): Previous result for accumulation.
+            return_args (bool): If True, also return indices.
+        Returns:
+            torch.Tensor or Tuple[torch.Tensor, torch.Tensor]: Minimum values, optionally with indices.
+        """
         device = local_points.device
         dtype = local_points.dtype
         out = torch.full((self.y_grid_size*self.x_grid_size,),float('inf'),device=device,dtype=dtype)
@@ -251,6 +268,16 @@ class Grid():
             return out
 
     def max(self,local_points,values,old_matrix = None,return_args=False):
+        """
+        Finds the maximum value for each grid cell based on local points.
+        Args:
+            local_points (torch.Tensor): Points of shape (N, 2).
+            values (torch.Tensor): Values of shape (N,) or (N, D).
+            old_matrix (torch.Tensor or None): Previous result for accumulation.
+            return_args (bool): If True, also return indices.
+        Returns:
+            torch.Tensor or Tuple[torch.Tensor, torch.Tensor]: Maximum values, optionally with indices.
+        """
         device = local_points.device
         dtype = local_points.dtype
         out = torch.full((self.y_grid_size*self.x_grid_size,),float('-inf'),device=device,dtype=dtype)
@@ -353,41 +380,3 @@ class GridSquare(Grid):
             [-aperture_radius,aperture_radius],grid_size,grid_size)
         
 #%%
-
-"""import torch
-x = torch.tensor([1, 2, 3])
-y = torch.tensor([4, 5, 6])
-
-grid_y,grid_x = torch.meshgrid(y, x, indexing='ij')
-mid_pos = torch.cat([grid_x.reshape(-1,1),grid_y.reshape(-1,1)],dim=-1)
-mid_pos
-
-ix = torch.arange(0,x.shape[0])
-iy = torch.arange(0,y.shape[0])
-grid_ix, grid_iy = torch.meshgrid(iy, ix, indexing='ij')
-mid_idx = grid_iy.reshape(-1,1)*ix.shape[0]+grid_ix.reshape(-1,1)
-        
-import numpy as np
-from sklearn.neighbors import NearestNeighbors
-
-# Example: Initialize large V and W arrays (Replace with real data in practice)
-V = np.random.randn(1000000, 128)  # V is very large (e.g., 1,000,000 vectors of 128 dimensions)
-W = np.random.randn(1000, 128)     # W is smaller (e.g., 1,000 vectors of 128 dimensions)
-
-# Initialize NearestNeighbors model with an efficient algorithm for large datasets
-# 'auto' lets sklearn choose the best algorithm based on the input data
-nn_model = NearestNeighbors(n_neighbors=1, algorithm='auto', metric='euclidean')
-
-# Fit the model on W (the smaller collection)
-nn_model.fit(W)
-
-# Query the model with V to find the closest neighbors in W
-distances, indices = nn_model.kneighbors(V)
-
-# distances: The distance to the nearest neighbor in W for each vector in V
-# indices: The index of the nearest neighbor in W for each vector in V
-"""        
-
-#%%
-
-

@@ -79,6 +79,24 @@ def _plot_surface_recursively(current_elem,name,resolution=200,annotate=False,fi
         
 
 def plot(element=None,rays=None,resolution=200,annotate=False,ray_color="#85549c",ray_linewidth=1.25,fill_color=None,outline_color=None,linewidth=None,show=True):
+    """
+    Plot a 2D surface and optionally ray paths.
+    Args:
+        element (Plotable): The element to plot.
+        rays (list[torch.Tensor]): List of ray paths to plot.
+        resolution (int): Resolution for the surface plot.
+        annotate (bool): Whether to annotate the surface.
+        ray_color (str): Color of the rays.
+        ray_linewidth (float): Line width of the rays.
+        fill_color (str): Fill color for the surface.
+        outline_color (str): Outline color for the surface.
+        linewidth (float): Line width for the surface.
+        show (bool): Whether to show the plot.
+    
+    Returns:
+        None
+    """
+    
     layout()
     
     if isinstance(element,(list,tuple)):

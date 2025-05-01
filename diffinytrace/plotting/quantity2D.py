@@ -6,31 +6,37 @@ import matplotlib.pyplot as plt
 from torch import linspace,meshgrid,zeros,no_grad,is_tensor
 from copy import deepcopy
 import numpy as np
-#TODO implement shorter version for grid class
-#TODO yrange defined "reversly" so it fits val
 
-"""
-X: ArrayLike | PIL.Image.Image,
-    cmap: str | Colormap | None = None,
-    norm: str | Normalize | None = None,
-    aspect: Literal["equal", "auto"] | float | None = None,
-    interpolation: str | None = None,
-    alpha: float | ArrayLike | None = None,
-    vmin: float | None = None,
-    vmax: float | None = None,
-    origin: Literal["upper", "lower"] | None = None,
-    extent: tuple[float, float, float, float] | None = None,
-    interpolation_stage: Literal["data", "rgba"] | None = None,
-    filternorm: bool = True,
-    filterrad: float = 4.0,
-    resample: bool | None = None,
-    url: str | None = None,
-    data=None,
-    **kwargs,
-"""
 def plot(val,title="",x_range=None,y_range=None,cmap="jet",subtitle="",title_fontsize=14,suptitle_fontsize=12,interpolation="none",xlabel="x [mm]",ylabel="y [mm]",colorbar=True,norm=None,show=True,vmin: float | None = None,vmax: float | None = None,resolution=501,**kwargs):
-    #val = deepcopy(val)
-
+    """
+    Plot a 2D quantity using matplotlib.
+    This function handles both callable quantities and numpy arrays.
+    If a callable is provided, it should accept a 2D array of coordinates and return a 2D array of values.
+    The function will create a 2D plot with the specified parameters.
+    If a numpy array is provided, it will be plotted directly.
+    
+    Args:
+        val (callable or np.ndarray): The quantity to plot. If callable, it should accept a 2D array of coordinates.
+        title (str): Title of the plot.
+        x_range (tuple): Range of x-axis.
+        y_range (tuple): Range of y-axis.
+        cmap (str): Colormap to use.
+        subtitle (str): Subtitle of the plot.
+        title_fontsize (int): Font size of the title.
+        suptitle_fontsize (int): Font size of the subtitle.
+        interpolation (str): Interpolation method.
+        xlabel (str): Label for x-axis.
+        ylabel (str): Label for y-axis.
+        colorbar (bool): Whether to show colorbar.
+        show (bool): Whether to show the plot.
+        vmin (float): Minimum value for color normalization.
+        vmax (float): Maximum value for color normalization.
+        resolution (int): Resolution of the plot.
+        **kwargs: Additional arguments for imshow.
+    
+    Returns:
+        None
+    """
     
     if is_tensor(val):
         val = val.detach().cpu().numpy()#.T

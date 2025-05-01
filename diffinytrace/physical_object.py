@@ -7,6 +7,11 @@ import torch.nn as nn
 
 
 class PhysicalObject(nn.Module):
+    """
+    Abstract base class for physical objects in the optical system.
+    This class can be used to define surface distance constraints and is
+    also used for plotting.
+    """
     def __init__(self):
         super().__init__()
 
@@ -29,6 +34,11 @@ class PhysicalObject(nn.Module):
         raise NotImplementedError("PhysicalObject: get_transform not implemented")
 
 class PhysicalSurface(PhysicalObject):
+    """
+    Abstract base class for physical surfaces in the optical system.
+    This class can be used to define surface distance constraints and is
+    also used for plotting.
+    """
     def __init__(self):
         super().__init__()
     

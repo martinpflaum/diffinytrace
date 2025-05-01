@@ -15,6 +15,21 @@ def grad(
     materialize_grads: bool = False,
     remove_no_grad_outputs: bool = True
 ):
+    """
+    Computes the gradients of the outputs with respect to the inputs.
+    Args:
+        outputs (torch.Tensor or tuple of torch.Tensor): The output tensors.
+        inputs (torch.Tensor or tuple of torch.Tensor): The input tensors.
+        grad_outputs (torch.Tensor or tuple of torch.Tensor, optional): The gradients of the outputs.
+        retain_graph (bool, optional): Whether to retain the graph after computing gradients.
+        create_graph (bool, optional): Whether to create the graph for higher-order gradients.
+        only_inputs (bool, optional): Whether to only compute gradients for the inputs.
+        is_grads_batched (bool, optional): Whether the gradients are batched.
+        materialize_grads (bool, optional): Whether to materialize the gradients.
+        remove_no_grad_outputs (bool, optional): Whether to remove outputs that do not require gradients.
+    Returns:
+        list: A list of gradients for each input tensor.
+    """
     
     
     if torch.is_tensor(inputs):

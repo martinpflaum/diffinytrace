@@ -8,6 +8,16 @@ from sympy.utilities.lambdify import lambdify
 
 
 def sympy_calc_grad(expr_dict,input_list,return_latex=False):
+
+    """
+    Calculate the gradient of a given expression with respect to the specified input variables.
+    Args:
+        expr_dict (dict): A dictionary containing the expression to differentiate.
+        input_list (list): A list of input variables with respect to which to differentiate.
+        return_latex (bool): If True, return the LaTeX representation of the gradient.
+    Returns:
+        dict: A dictionary containing the gradient expressions.
+    """
     
     if not type(expr_dict)==dict:
         raise RuntimeError("expr_dict needs to be a dict! Example: {func: x**2}")

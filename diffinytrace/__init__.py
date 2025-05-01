@@ -1,6 +1,12 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+
+"""
+This module provides a collection of functions and classes for optical system design and analysis.
+It includes modules for ray tracing, surface definitions, optimization, and more.
+"""
+
 __all__ = [
     # Submodules
     "source",

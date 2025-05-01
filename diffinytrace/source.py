@@ -19,16 +19,28 @@ class RaySource(PhysicalObject):
     samples points. These points are used to initialize the rays with the forward function.
     """
     def __init__(self,transform):
+        """
+        Args:
+            transform (Transform): The transformation object to be used for the ray source.
+        """
         PhysicalObject.__init__(self)
         self.transform = transform
 
     def sample(self,num_points,method):
+        """
+        Samples points in the parameter space of the ray source.
+        Args:
+            num_points (int): The number of points to sample.
+            method (str): The sampling method to use. Can be "sobol", "monte_carlo", etc.
+        Returns:
+            tuple: A tuple containing the sampled points and their weights.
+        """
         raise NotImplementedError("sample() not implemented")
         
     def forward(self,x,n_func_enviroment):
+
         raise NotImplementedError("forward() not implemented")
-        #return O1,D1,wl,metadata
-    
+        
     def get_plot_points2D(self,resolution):
         print("get_plot_points2D not implemented")
         return []
@@ -258,6 +270,10 @@ plt.show()
 
 """
 class VisibleSunlightSimpleMonochromatic(PlaneSource):
+    """
+    A class representing a visible sunlight source with a monochromatic spectrum.
+    It also has a cone of 4.65 mrad."""
+    
     def __init__(self,transform,aperture_radius,wl=0.5,is_square=True,total_power=1.0):
         """
         cube1 = Cube([[-aperture_radius,aperture_radius],[-aperture_radius,aperture_radius]])
@@ -304,6 +320,9 @@ class VisibleSunlightSimpleMonochromatic(PlaneSource):
 
         
 class VisibleSunlightSimple(PlaneSource):
+    """
+    A class representing a visible sunlight source with a spectrum acording to the visble sunlight.
+    It also has a an etendue with cone of 4.65 mrad."""
     def __init__(self,transform,aperture_radius,is_square=True,total_power=1.0):
         self.spectrum = VisibleSunlight_am15g()
         self.aperture_radius = aperture_radius
@@ -344,6 +363,11 @@ class VisibleSunlightSimple(PlaneSource):
 
      
 class CollimatedMonochromatic(PlaneSource):
+    """
+    A class representing a collimated monochromatic light source.
+    This class is a subclass of PlaneSource and is used to generate rays
+    with a specific wavelength and a collimated beam profile.
+    """
     def __init__(self,transform,aperture_radius,wl,is_square=False,flux_func=None,total_power=1.0):
         integrator = None
         aperture_radius = abs(aperture_radius)
@@ -391,6 +415,10 @@ class CollimatedGaussianBeam(CollimatedMonochromatic):
         super().__init__(transform,aperture_radius,wl,is_square=False,flux_func=flux_func,total_power=total_power)
 
 class CollimatedMonochromatic1D(PlaneSource1D):
+    """
+    A class representing a collimated monochromatic light source.
+    This class is a subclass of PlaneSource1D and is used to generate rays
+    with a specific wavelength and a collimated beam profile."""
     def __init__(self,transform,aperture_radius,wl,flux_func=None,total_power=1.0):
         self.wl = wl
         integrator = Cube([[-aperture_radius,aperture_radius]])

@@ -5,6 +5,9 @@
 import matplotlib.colors as mcolors
 
 class Plotable:
+    """
+    Abstract base class for plotable objects in the optical system.
+    """
     def __init__(self,fill_color="white", outline_color="black",is_volume=False):
         self.fill_color = fill_color
         self.outline_color = outline_color
@@ -22,6 +25,10 @@ class Plotable:
         return [colorscale]
     
     def get_plotable_childs(self):
+        """
+        Returns a list of all plotable child objects of this object.
+        Each child is represented as a list containing the child object and its name.
+        """
         out = []
         for attr_name in dir(self):
             attr = getattr(self, attr_name)

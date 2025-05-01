@@ -184,6 +184,29 @@ def plot(element=None,
          show=True,
          html_file_name=None):
     
+    """
+    Plots the optical system in 3D using Plotly.
+    Args:
+        element (Plotable): The optical system element to plot.
+        rays (list[torch.Tensor]): List of rays to plot.
+        resolution (int): Resolution for the surface plot.
+        show_grid (bool): Whether to show the grid.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        zlabel (str): Label for the z-axis.
+        xticks (list[float]): Custom x-ticks.
+        yticks (list[float]): Custom y-ticks.
+        zticks (list[float]): Custom z-ticks.
+        axislabel_font_size (int): Font size for axis labels.
+        tick_font_size (int): Font size for tick labels.
+        ray_color (str): Color of the rays.
+        ray_linewidth (float): Line width of the rays.
+        show (bool): Whether to show the plot immediately.
+        html_file_name (str | None): If provided, saves the plot as an HTML file.
+    Returns:
+        fig (plotly.graph_objects.Figure): The plotly figure object.
+    """
+    
     data = []
     if isinstance(element,(list,tuple)):
         for subelem in element:

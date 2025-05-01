@@ -57,6 +57,44 @@ def create_lens(\
     save_irradiance_results=False,
     num_rays_save_irradiance = None,
     html_plot_file_name=""):
+    """
+    This function creates a lens from an image file and optimizes it using ray tracing.
+    Args:
+        input_file_name (str): The path to the image file.
+        output_step_file_name (str): The path to save the lens as a STEP file.
+        lens_material (str): The material of the lens.
+        air_material (str): The material of the air.
+        device (torch.device): The device to use for computation (CPU or GPU).
+        aperture_radius_source (float): The radius of the source aperture in mm.
+        aperture_radius_lens (float): The radius of the lens aperture in mm.
+        lens_thickness (float): The thickness of the lens in mm.
+        detector_distance (float): The distance from the lens to the detector in mm.
+        lens_distance (float): The distance from the light source to the lens in mm.
+        num_refinements (int): The number of refinements for the B-spline surface.
+        sigma_final (float): The final sigma value for Gaussian smoothing.
+        image_padding (float): The padding for the image.
+        etendue (bool): Whether to use etendue or not.
+        bspline_orders (list): The orders of the B-spline surface.
+        bspline_ns_start (list): The initial number of elements in x and y direction for B-spline surface.
+        use_sigma_refinement (bool): Whether to use sigma refinement or not.
+        use_desired_irradiance_smoothing (bool): Whether to use desired irradiance smoothing or not.
+        use_power_correction (bool): Whether to use power correction or not.
+        num_rays (int): The number of rays to trace.
+        method_ray_tracing (str): The method used for ray tracing ('sobol_pow2' or 'sobol').
+        num_conv_points (int): The number of Gaussian measurement functions used in one dimension.
+        residual_integration_method (str): The integration method used for calculating the final error ('sobol' or 'midpoint').
+        num_integration_points_desired (list): The number of integration points for desired irradiance calculation.
+        minimization_method (str): The method used for minimization ('L-BFGS-B').
+        post_process_lens (bool): Whether to post-process the lens or not.
+        total_power (float): The total power of the light source in Watts.
+        save_lens_history (bool): Whether to save lens history or not.
+        save_history (bool): Whether to save optimization history or not.
+        save_irradiance_results (bool): Whether to save irradiance results or not.
+        num_rays_save_irradiance (int): The number of rays to save for irradiance results.
+        html_plot_file_name (str): The name of the HTML file to save the plot.
+    Returns:
+        dict: A dictionary containing the results of the optimization and irradiance calculations.
+    """
     gc.collect()
 
     num_integration_points_desired = copy.deepcopy(num_integration_points_desired)

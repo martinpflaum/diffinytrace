@@ -23,17 +23,46 @@ def get_show_iteration_count():
     return show_iteration_count
 
 def set_tolerance(new_tolerance):
+    """
+    Set the tolerance for ray intersection calculations.
+    
+    Args:
+        new_tolerance (float): The new tolerance value (must be > 0).
+    """
+    if new_tolerance <= 0:
+        raise ValueError("Tolerance must be greater than 0.")
     global tolerance
     tolerance = new_tolerance
 
 def get_tolerance():
+    """
+    Get the current tolerance for ray intersection calculations.
+
+    Returns:
+        float: The current tolerance value.
+    """
     return tolerance
 
 def set_max_iterations(new_max_iterations):
+    """
+    Set the maximum number of iterations for the ray intersection solver.
+    
+    Args:
+        new_max_iterations (int): The new maximum number of iterations (must be > 0).
+    """
+    if new_max_iterations <= 0:
+        raise ValueError("Maximum iterations must be greater than 0.")
     global max_iterations
     max_iterations = new_max_iterations
 
 def get_max_iterations():
+    """
+    Get the current maximum number of iterations for the ray intersection solver.
+    
+    Returns:
+        int: The current maximum number of iterations.
+    """
+    global max_iterations
     return max_iterations
 
 def set_damping_factor(new_damping_factor):
@@ -59,7 +88,9 @@ def get_damping_factor():
     return damping_factor
 
 def restore_default_settings():
-    """Reset to the default configuration settings for the ray tracer."""
+    """
+    Reset to the default configuration settings for the ray tracer.
+    """
     global tolerance, max_iterations, damping_factor, show_iteration_count
     tolerance = 1e-6
     max_iterations = 100
