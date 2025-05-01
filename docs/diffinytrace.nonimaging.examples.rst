@@ -1,10 +1,7 @@
-diffinytrace.nonimaging.examples package
+nonimaging.examples
 ========================================
 
-Submodules
-----------
-
-diffinytrace.nonimaging.examples.sunlight\_picture module
+nonimaging.examples.sunlight\_picture
 ---------------------------------------------------------
 
 .. automodule:: diffinytrace.nonimaging.examples.sunlight_picture
@@ -12,10 +9,3 @@ diffinytrace.nonimaging.examples.sunlight\_picture module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: diffinytrace.nonimaging.examples
-   :members:
-   :undoc-members:
-   :show-inheritance:

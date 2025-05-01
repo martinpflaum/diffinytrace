@@ -1,10 +1,7 @@
-diffinytrace.export.CAD package
+export.CAD
 ===============================
 
-Submodules
-----------
-
-diffinytrace.export.CAD.core module
+export.CAD.core
 -----------------------------------
 
 .. automodule:: diffinytrace.export.CAD.core
@@ -12,10 +9,3 @@ diffinytrace.export.CAD.core module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: diffinytrace.export.CAD
-   :members:
-   :undoc-members:
-   :show-inheritance:

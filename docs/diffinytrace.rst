@@ -1,8 +1,5 @@
-diffinytrace package
+package
 ====================
-
-Subpackages
------------
 
 .. toctree::
    :maxdepth: 4
@@ -14,10 +11,7 @@ Subpackages
    diffinytrace.render
    diffinytrace.utils
 
-Submodules
-----------
-
-diffinytrace.config module
+config
 --------------------------
 
 .. automodule:: diffinytrace.config
@@ -25,7 +19,7 @@ diffinytrace.config module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.constraints module
+constraints
 -------------------------------
 
 .. automodule:: diffinytrace.constraints
@@ -33,7 +27,7 @@ diffinytrace.constraints module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.element module
+element
 ---------------------------
 
 .. automodule:: diffinytrace.element
@@ -41,7 +35,7 @@ diffinytrace.element module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.integrators module
+integrators
 -------------------------------
 
 .. automodule:: diffinytrace.integrators
@@ -49,7 +43,7 @@ diffinytrace.integrators module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.intersection module
+intersection
 --------------------------------
 
 .. automodule:: diffinytrace.intersection
@@ -57,7 +51,7 @@ diffinytrace.intersection module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.optimize module
+optimize
 ----------------------------
 
 .. automodule:: diffinytrace.optimize
@@ -65,7 +59,7 @@ diffinytrace.optimize module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.physical\_object module
+physical\_object
 ------------------------------------
 
 .. automodule:: diffinytrace.physical_object
@@ -73,7 +67,7 @@ diffinytrace.physical\_object module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.refractive\_index module
+refractive\_index
 -------------------------------------
 
 .. automodule:: diffinytrace.refractive_index
@@ -81,7 +75,7 @@ diffinytrace.refractive\_index module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.source module
+source
 --------------------------
 
 .. automodule:: diffinytrace.source
@@ -89,7 +83,7 @@ diffinytrace.source module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.spectrum module
+spectrum
 ----------------------------
 
 .. automodule:: diffinytrace.spectrum
@@ -97,7 +91,7 @@ diffinytrace.spectrum module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.surface module
+surface
 ---------------------------
 
 .. automodule:: diffinytrace.surface
@@ -105,7 +99,7 @@ diffinytrace.surface module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.target\_grid module
+target\_grid
 --------------------------------
 
 .. automodule:: diffinytrace.target_grid
@@ -113,7 +107,7 @@ diffinytrace.target\_grid module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.transforms module
+transforms
 ------------------------------
 
 .. automodule:: diffinytrace.transforms
@@ -121,10 +115,3 @@ diffinytrace.transforms module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: diffinytrace
-   :members:
-   :undoc-members:
-   :show-inheritance:

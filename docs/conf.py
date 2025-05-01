@@ -29,7 +29,66 @@ except subprocess.CalledProcessError as e:
     print("Error Output: " + e.output)
 
 
+import os
+import re
 
+# Path to the folder containing the .rst files
+folder_path = r"."
+
+# Iterate through all files in the folder
+for file_name in os.listdir(folder_path):
+    # Check if the file starts with "diffinytrace." and ends with ".rst"
+    if file_name.startswith("diffinytrace.") and file_name.endswith(".rst"):
+        file_path = os.path.join(folder_path, file_name)
+        
+        # Read the file contents
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+        
+        content = re.sub(
+            r"diffinytrace\.(\w+) package\n=+",
+            lambda match: f"{match.group(1)}\n{'=' * len(match.group(1))}",
+            content
+        )
+        content = re.sub(
+            r"^diffinytrace.",  # Matches lines starting with "diffinytrace."
+            "",                      # Replaces them with an empty string
+            content,
+            flags=re.MULTILINE       # Enables multi-line matching
+        )
+
+        content = re.sub( r" module",r"",content)
+        content = re.sub( r" package",r"",content)
+        
+        
+        # Remove "Subpackages" section but keep the toctree
+        content = re.sub(
+            r"Subpackages\n-+\n\n(.. toctree::.*?)(\n\n|$)",
+            r"\1\n\n",
+            content,
+            flags=re.DOTALL
+        )
+        
+        # Remove "Submodules" section
+        content = re.sub(
+            r"Submodules\n-+\n\n",
+            "",
+            content
+        )
+        
+        # Remove "Module contents" section at the end
+        content = re.sub(
+            r"Module contents\n-+\n\n\.\. automodule:: .*?\n   :members:\n   :undoc-members:\n   :show-inheritance:\n",
+            "",
+            content,
+            flags=re.DOTALL
+        )
+        
+        # Write the updated content back to the file
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(content)
+
+print("All matching .rst files have been updated.")
 #%%
 
 project = 'diffinytrace'

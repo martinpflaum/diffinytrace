@@ -1,10 +1,7 @@
-diffinytrace.render package
-===========================
+render
+======
 
-Submodules
-----------
-
-diffinytrace.render.core module
+render.core
 -------------------------------
 
 .. automodule:: diffinytrace.render.core
@@ -12,10 +9,3 @@ diffinytrace.render.core module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: diffinytrace.render
-   :members:
-   :undoc-members:
-   :show-inheritance:

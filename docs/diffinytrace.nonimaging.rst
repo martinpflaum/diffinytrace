@@ -1,8 +1,5 @@
-diffinytrace.nonimaging package
-===============================
-
-Subpackages
------------
+nonimaging
+==========
 
 .. toctree::
    :maxdepth: 4
@@ -10,10 +7,3 @@ Subpackages
    diffinytrace.nonimaging.examples
    diffinytrace.nonimaging.smoothing
 
-Module contents
----------------
-
-.. automodule:: diffinytrace.nonimaging
-   :members:
-   :undoc-members:
-   :show-inheritance:

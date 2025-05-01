@@ -1,10 +1,7 @@
-diffinytrace.plotting package
-=============================
+plotting
+========
 
-Submodules
-----------
-
-diffinytrace.plotting.core module
+plotting.core
 ---------------------------------
 
 .. automodule:: diffinytrace.plotting.core
@@ -12,7 +9,7 @@ diffinytrace.plotting.core module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.plotting.quantity2D module
+plotting.quantity2D
 ---------------------------------------
 
 .. automodule:: diffinytrace.plotting.quantity2D
@@ -20,7 +17,7 @@ diffinytrace.plotting.quantity2D module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.plotting.system2D module
+plotting.system2D
 -------------------------------------
 
 .. automodule:: diffinytrace.plotting.system2D
@@ -28,7 +25,7 @@ diffinytrace.plotting.system2D module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.plotting.system3D module
+plotting.system3D
 -------------------------------------
 
 .. automodule:: diffinytrace.plotting.system3D
@@ -36,7 +33,7 @@ diffinytrace.plotting.system3D module
    :undoc-members:
    :show-inheritance:
 
-diffinytrace.plotting.wavelength module
+plotting.wavelength
 ---------------------------------------
 
 .. automodule:: diffinytrace.plotting.wavelength
@@ -44,10 +41,3 @@ diffinytrace.plotting.wavelength module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: diffinytrace.plotting
-   :members:
-   :undoc-members:
-   :show-inheritance:
