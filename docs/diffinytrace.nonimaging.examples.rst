@@ -1,10 +1,10 @@
 nonimaging.examples
 ========================================
 
-nonimaging.examples.sunlight\_picture
+nonimaging.examples.sunlight\ picture
 ---------------------------------------------------------
 
-.. automodule:: diffinytrace.nonimaging.examples.sunlight_picture
+.. automodule:: diffinytrace.nonimaging.examples.sunlight picture
    :members:
    :undoc-members:
    :show-inheritance:

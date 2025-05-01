@@ -9,18 +9,18 @@ utils.autograd
    :undoc-members:
    :show-inheritance:
 
-utils.irradiance\_importer
+utils.irradiance\ importer
 ----------------------------------------------
 
-.. automodule:: diffinytrace.utils.irradiance_importer
+.. automodule:: diffinytrace.utils.irradiance importer
    :members:
    :undoc-members:
    :show-inheritance:
 
-utils.sympy\_helper
+utils.sympy\ helper
 ---------------------------------------
 
-.. automodule:: diffinytrace.utils.sympy_helper
+.. automodule:: diffinytrace.utils.sympy helper
    :members:
    :undoc-members:
    :show-inheritance:

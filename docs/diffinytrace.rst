@@ -4,7 +4,7 @@ package
 .. toctree::
    :maxdepth: 4
 
-   diffinytrace.basis_functions
+   diffinytrace.basis functions
    diffinytrace.export
    diffinytrace.nonimaging
    diffinytrace.plotting
@@ -59,18 +59,18 @@ optimize
    :undoc-members:
    :show-inheritance:
 
-physical\_object
+physical\ object
 ------------------------------------
 
-.. automodule:: diffinytrace.physical_object
+.. automodule:: diffinytrace.physical object
    :members:
    :undoc-members:
    :show-inheritance:
 
-refractive\_index
+refractive\ index
 -------------------------------------
 
-.. automodule:: diffinytrace.refractive_index
+.. automodule:: diffinytrace.refractive index
    :members:
    :undoc-members:
    :show-inheritance:
@@ -99,10 +99,10 @@ surface
    :undoc-members:
    :show-inheritance:
 
-target\_grid
+target\ grid
 --------------------------------
 
-.. automodule:: diffinytrace.target_grid
+.. automodule:: diffinytrace.target grid
    :members:
    :undoc-members:
    :show-inheritance:

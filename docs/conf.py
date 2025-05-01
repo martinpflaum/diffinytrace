@@ -83,6 +83,7 @@ for file_name in os.listdir(folder_path):
             content,
             flags=re.DOTALL
         )
+        content = re.sub( r"\_",r" ",content)
         
         # Write the updated content back to the file
         with open(file_path, "w", encoding="utf-8") as file:
