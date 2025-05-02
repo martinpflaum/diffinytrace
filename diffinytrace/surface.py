@@ -55,25 +55,36 @@ class Plane(Surface):
         return self.functional(O_new,*self.get_functional_param_args())
     
 class Aspheric(Surface):
-    """
-    THis From diffoptics
-    This is the aspheric surface class, implementation follows: https://en.wikipedia.org/wiki/Aspheric_lens.
+    r"""
+    This is the aspheric surface class, implementation follows: 
+    https://en.wikipedia.org/wiki/Aspheric_lens.
 
-    The surface is parameterized as an implicit function f(x,y,z) = 0.
-    For simplicity, we assume the surface function f(x,y,z) can be decomposed as:
-    
-    f(x,y,z) = g(x,y) + h(z),
+    The surface is parameterized as an implicit function :math:`f(x, y, z) = 0`.
+    For simplicity, we assume the surface function :math:`f(x, y, z)` can be decomposed as:
 
-    where g(x,y) and h(z) are explicit functions:
-    
-    r**2=x**2+y**2??
-    g(x,y) = c * r**2 / (1 + sqrt( 1 - (1+k) * r**2/R**2 )) + ai[0] * r**4 + ai[1] * r**6 + \cdots.
-    h(z) = -z.
-    
-    Args (new attributes):
-        c: Surface curvature, or one over radius of curvature.
-        k: Conic coefficient. 
-        ai: Aspheric parameters, could be a vector. When None, the surface is spherical.
+    .. math::
+
+        f(x, y, z) = g(x, y) + h(z),
+
+    where :math:`g(x, y)` and :math:`h(z)` are explicit functions:
+
+    .. math::
+
+        r^2 = x^2 + y^2
+
+    .. math::
+
+        g(x, y) = \frac{c \cdot r^2}{1 + \sqrt{1 - (1 + k) \cdot \frac{r^2}{R^2}}} 
+                  + a_0 \cdot r^4 + a_1 \cdot r^6 + \cdots
+
+    .. math::
+
+        h(z) = -z
+
+    Args:
+        c (float): Surface curvature, or one over the radius of curvature.
+        k (float): Conic coefficient.
+        ai (list or None): Aspheric parameters, could be a vector. When None, the surface is spherical.
     """
     def __init__(self, curvature, conic_coeff=None, aspheric_param=None):
         super().__init__()
@@ -212,6 +223,12 @@ class Bspline(Surface):
     def get_CAD_coeff(self,affine_transform):
         """
         Get the CAD coefficients from the affine transform.
+
+        Args:
+            affine_transform (torch.Tensor): Affine transformation matrix.
+
+        Returns:
+            numpy.ndarray: Control points of the B-spline surface.
         """
         affine_transform = affine_transform.detach().cpu()
         dtype = affine_transform.dtype
@@ -235,8 +252,16 @@ class Bspline(Surface):
     
     def get_CAD_face(self,affine_transform):
         """
-        Get the CAD face from the affine transform."""
-        from . export.CAD import makeBsplineFace
+        Get the CAD face from the affine transform.
+        
+        Args:
+            affine_transform (torch.Tensor): Affine transformation matrix.
+        
+        Returns:
+            CAD face object.
+        """
+
+        from . export.cad import makeBsplineFace
         control_points = self.get_CAD_coeff(affine_transform)
         U1,U2 = self.Us
         u_order,v_order = self.orders

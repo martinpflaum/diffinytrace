@@ -17,14 +17,6 @@ basis\_functions.chebyshev
    :undoc-members:
    :show-inheritance:
 
-basis\_functions.core
------------------------------------------
-
-.. automodule:: diffinytrace.basis_functions.core
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 basis\_functions.legendre
 ---------------------------------------------
 

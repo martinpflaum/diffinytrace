@@ -103,7 +103,11 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc","sphinx.ext.autosummary","sphinx.ext.napoleon","sphinx.ext.viewcode"]
+extensions = ["sphinx.ext.autodoc",
+              "sphinx.ext.autosummary",
+              "sphinx.ext.napoleon",
+              "sphinx.ext.viewcode",
+              "sphinx.ext.mathjax"]
 
 """
 extensions = [
