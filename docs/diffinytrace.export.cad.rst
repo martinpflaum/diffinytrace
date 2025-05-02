@@ -1,10 +1,10 @@
-export.CAD
+export.cad
 ===============================
 
-export.CAD.core
+export.cad.core
 -----------------------------------
 
-.. automodule:: diffinytrace.export.CAD.core
+.. automodule:: diffinytrace.export.cad.core
    :members:
    :undoc-members:
    :show-inheritance:

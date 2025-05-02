@@ -122,6 +122,10 @@ class Transform(SemiFunctionalModule):
 class Identity(Transform):
     """
     Identity transformation that returns input positions unchanged.
+
+    Example:
+        >>> import diffinytrace as dit
+        >>> transf1 = dit.transforms.Identity()
     """
     def __init__(self):
         super().__init__()
@@ -172,8 +176,27 @@ class Compose(Transform):
 
 
 class Offset(Transform):
-    """
+    r"""
     Translation transform using an offset vector.
+
+    The offset transformation shifts a position by a specified vector 
+    \( \vec{w} = (w_x, w_y, w_z) \). The transformation matrix \( M \) 
+    for an offset transformation is:
+
+    .. math::
+
+        M^{\\textit{offset}}(w_x, w_y, w_z) = 
+        \\begin{bmatrix}
+        1 & 0 & 0 & w_x \\\\
+        0 & 1 & 0 & w_y \\\\
+        0 & 0 & 1 & w_z \\\\
+        0 & 0 & 0 & 1
+        \\end{bmatrix}
+    
+    Example:
+        >>> import diffinytrace as dit
+        >>> transf1 = dit.transforms.Identity()
+        >>> transf2 = dit.transforms.Offset([1.0, 2.0, 3.0], parent_transform=transf1)
 
     Args:
         pos (Tensor or list or float): The offset position as a 3D vector.
@@ -206,20 +229,41 @@ class Offset(Transform):
 
 
 class Distance(Transform):
-    """
+    r"""
     Applies a translation along a specific axis by a given distance.
+
+    The distance transformation applies a translation by a specific distance along a given axis 
+    (e.g., \( x \)-, \( y \)-, or \( z \)-axis). The transformation matrix \( M \) for a distance 
+    transformation along the \( z \)-axis is given by:
+
+    .. math::
+
+        M^{\\textit{dist}}_z(d) = 
+        \\begin{bmatrix}
+        1 & 0 & 0 & 0 \\\\
+        0 & 1 & 0 & 0 \\\\
+        0 & 0 & 1 & d \\\\
+        0 & 0 & 0 & 1
+        \\end{bmatrix},
+
+    where \( d \) represents the distance of translation along the \( z \)-axis.
 
     Args:
         distance (float or Tensor): Distance to translate.
         axis (int): Axis along which translation is applied (0=X, 1=Y, 2=Z).
         parent_transform (Transform): Optional parent transformation.
 
+    Example:
+        >>> import diffinytrace as dit
+        >>> transf1 = dit.transforms.Identity()
+        >>> transf2 = dit.transforms.Distance(10.0,axis=2,parent_transform=transf1)
+
     Notes:
-        Applies the transform:
-        
+        For the local to global transformation it applies the following transformation:
+
         .. math::
 
-            \\mathbf{x}_\\text{local} = \\mathbf{x}_\\text{parent} - d \\cdot \\mathbf{e}_i
+            \\mathbf{x}_\\text{local} = \\mathbf{x}_\\text{parent} + d \\cdot \\mathbf{e}_i
     """
     def __init__(self,distance,axis = 2,parent_transform=Identity()):
         super().__init__()
@@ -253,53 +297,7 @@ class Distance(Transform):
         this_matrix[[0,1,2],-1] = self.distance.to(device=device,dtype=dtype)*unit_vec
         out = parent_transform_matrix@this_matrix
         return out 
-"""
-    def to(self, *args, **kwargs):
-        super(Distance, self).to(*args, **kwargs)
-        self.unit_vec = self.unit_vec.to(*args, **kwargs)
-        return self
-"""
 
-
-"""
-def rotation_matrix_x(angle):
-    angle = angle*(2.0*torch.pi/360.0)
-    
-    device = angle.device
-    dtype = angle.dtype
-    
-
-    return torch.tensor([
-        [1, 0, 0],
-        [0, torch.cos(angle), -torch.sin(angle)],
-        [0, torch.sin(angle), torch.cos(angle)]
-    ],device=device,dtype=dtype)
-
-def rotation_matrix_y(angle):
-    angle = angle*(2.0*torch.pi/360.0)
-    device = angle.device
-    dtype = angle.dtype
-
-
-    return torch.tensor([
-        [torch.cos(angle), 0, torch.sin(angle)],
-        [0, 1, 0],
-        [-torch.sin(angle), 0, torch.cos(angle)]
-    ],device=device,dtype=dtype)
-
-def rotation_matrix_z(angle):
-    angle = angle*(2.0*torch.pi/360.0)
-
-    device = angle.device
-    dtype = angle.dtype
-    return torch.tensor([
-        [torch.cos(angle), -torch.sin(angle), 0],
-        [torch.sin(angle), torch.cos(angle), 0],
-        [0, 0, 1]
-    ],device=device,dtype=dtype)
-
-import torch
-"""
 def rotation_matrix_x(angle):
     """
     Construct a 3x3 rotation matrix around the X-axis.
@@ -380,22 +378,35 @@ def rotation_matrix_z(angle):
 
 
 class Rotation(Transform):
-    """
+    r"""
     Applies a 3D rotation around a principal axis.
+
+    The rotational transformation rotates a point or direction around a specific axis 
+    (e.g., \( x \)-, \( y \)-, and \( z \)-axis). For example, the rotation matrix 
+    around the \( z \)-axis is:
+
+    .. math::
+
+        M^{\\textit{rot}}_z(\\theta_z) = 
+        \\begin{bmatrix}
+        \\cos \\theta_z & -\\sin \\theta_z & 0 & 0 \\\\
+        \\sin \\theta_z & \\cos \\theta_z & 0 & 0 \\\\
+        0 & 0 & 1 & 0 \\\\
+        0 & 0 & 0 & 1
+        \\end{bmatrix}
 
     Args:
         angle (float or Tensor): Rotation angle in degrees.
         axis (int): Axis index (0=X, 1=Y, 2=Z).
         parent_transform (Transform, optional): Optional parent transformation.
 
-    Notes:
-        The rotation is applied using the following form:
+    Example:
+        >>> import diffinytrace as dit
+        >>> transf1 = dit.transforms.Identity()
+        >>> transf2 = dit.transforms.Distance(10.0,axis=2,parent_transform=transf1)
+        >>> transf3 = dit.transforms.Rotation(45.,axis=0,parent_transform=transf2)
 
-        .. math::
-
-            \\mathbf{R} = \\text{rotation\_matrix}(\\theta)
-
-            \\mathbf{x}_\\text{local} = \\mathbf{x}_\\text{parent} @ \\mathbf{R}^T
+        
     """
     def __init__(self,angle,axis,parent_transform=Identity()):
         #TODO test rotation for combi angle_x, angle_y, angle_z Reihenfolge egal?

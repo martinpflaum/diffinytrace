@@ -11,8 +11,70 @@ from .optimize import make_parameter_from_input
 from . import basis_functions
 
 class Surface(SemiFunctionalModule):
-    """
-    Abstract base class for surfaces in the optical system. 
+    r"""
+    While we all have an intuitive idea of what curves and surfaces are, we need a mathematically accurate definition from which we can proceed to illustrate how different types of algorithms are implemented. In the following, we will introduce three common ways of describing curves and surfaces.
+
+    1. **Parametric Equations**  
+    Parametric curves are functions that map a single variable \( \theta \) (the parameter) to a vector in \( \mathbb{R}^2 \). Thus, such curves are referred to as parametrized or parametrically defined curves (see :cite:`implicit_surfaces`). The variable \( \theta \) is an element of the *parametric domain* of the parametric curve (see :cite:`IGA`). For example, a circle can be described with the *parametric domain* \([0, 2\pi]\) and the function \( f: [0, 2\pi] \mapsto \mathbb{R}^2 \),
+
+    .. math::
+
+        f(\theta) = 
+        \begin{bmatrix}
+        \cos \theta \\
+        \sin \theta
+        \end{bmatrix}.
+
+    Similarly, parametric surfaces can be described by a function that maps from a two-dimensional *parametric domain* to \( \mathbb{R}^3 \) (see :cite:`implicit_surfaces`).
+
+    2. **Explicit Equations**  
+    Curves and surfaces can also be expressed using explicit equations. When describing a curve with explicit equations, an explicit function \( f: \mathbb{R} \to \mathbb{R} \) of the form \( y = f(x) \) assigns a unique value of \( y \) to each \( x \in \mathbb{R} \). The values of \( y \) can then be seen as a description of the curve. Unfortunately, it is not possible to describe all curves and surfaces with this method. For example, considering the unit circle, only one semicircle can be represented at a time using explicit equations such as:
+
+    .. math::
+
+        y = \sqrt{1 - x^2} \quad \text{or} \quad y = -\sqrt{1 - x^2}.
+
+    Similarly, three-dimensional surfaces can be described explicitly using functions of the form \( y = f(x_1, x_2) \), which assign a unique \( y \)-value to each pair of \( (x_1, x_2) \)-coordinates (see :cite:`implicit_surfaces`).
+
+    3. **Implicit Equations**  
+    A planar curve is defined implicitly, or in Cartesian coordinates, when it is described as the set of solutions to an equation involving two variables, typically expressed as \( f(y_1, y_2) = 0 \). For example, the equation
+
+    .. math::
+
+        y_1^2 + y_2^2 - 1 = 0
+
+    represents an implicit unit circle in \( \mathbb{R}^2 \). Similarly, an implicit surface can be expressed with an equation in the form of (see :cite:`implicit_surfaces`):
+
+    .. math::
+
+        f(y_1, y_2, y_3) = 0.
+
+    **Optical Surfaces** 
+    
+     
+    In our ray tracer, we use a less general description of the surfaces. We will call surfaces relevant for ray tracing *optical surfaces*. Every *optical surface* is composed of an *explicit surface* \( \hat{S}: \mathbb{R}^2 \mapsto \mathbb{R} \) and a transformation matrix \( M \in \mathbb{R}^{4 \times 4} \). In the following, we will state the *implicit surface* description for the ray tracer itself and the *parametric surface* description for plots and constraint optimization.
+
+    1. **Implicit Surface Description**  
+    Here, surfaces are described implicitly by the equation \( s(\hat{y}) = 0 \). The function \( s \) is composed of the explicit description \( \hat{S}(\hat{x}_1, \hat{x}_2) \) and an affine transformation matrix \( M \) as follows:
+
+    .. math::
+
+        \begin{bmatrix} \hat{x} \\ 1 \end{bmatrix} = M^{-1} \begin{bmatrix} \hat{y} \\ 1 \end{bmatrix}^T
+
+    .. math::
+
+        s(\hat{y}) = \hat{S}(\hat{x}_1(\hat{y}), \hat{x}_2(\hat{y})) - \hat{x}_3(\hat{y})
+
+    This description allows us to calculate ray-surface intersections efficiently. Typically, we do not state \( M^{-1} \) explicitly in the implementation but simply apply the transformation itself directly.
+
+    2. **Parametric Surface Description**  
+    In this approach, surfaces are defined by parameterizing coordinates. For optical surfaces, the surface is described again as a composition of the explicit description \( \hat{S} \) and a transformation matrix \( M \) as follows:
+
+    .. math::
+
+        \begin{bmatrix} S(\hat{x}_1, \hat{x}_2) \\ 1 \end{bmatrix} = M \begin{bmatrix} \hat{x}_1 \\ \hat{x}_2 \\ \hat{S}(\hat{x}_1, \hat{x}_2) \\ 1 \end{bmatrix}
+
+    In our library, the *parametric domains* are defined by the lenses or target surfaces (detectors). For example, in the case of a round lens, the *parametric domain* would be the disc determined by the aperture radius. This surface description is typically used for plotting but is also useful in the context of constraint optimization.
     """
     @staticmethod
     def functional(O,*params_list):

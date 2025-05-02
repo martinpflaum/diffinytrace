@@ -57,6 +57,52 @@ def basis_1d(points,U,k,n,val_range):
     return cox_de_boor_recursion(U,k,n,points,k_curr-1)
 
 def basis_2d(points,Us,orders,ns,x_range,y_range):
+    """Compute the 2D B-spline basis functions for given points.
+    
+    Args:
+        points (torch.Tensor): Points where the basis functions are evaluated.
+        Us (list[torch.Tensor]): Knot vectors for x and y directions.
+        orders (list[int]): Orders of the B-spline in x and y directions.
+        ns (list[int]): Number of control points in x and y directions.
+        x_range (tuple): Range of the target plane in the x direction.
+        y_range (tuple): Range of the target plane in the y direction.
+    
+    Returns:
+        torch.Tensor: 2D B-spline basis function values at the evaluation points.
+    
+    Example:
+        >>> import diffinytrace as dit
+        >>> from diffinytrace.basis_functions.bspline import basis_2d
+        >>> import torch
+        >>> 
+        >>> U1 = torch.tensor([0., 0.2, 0.4, 0.6, 0.8, 1])
+        >>> Us = [U1, U1]
+        >>> ps = [3, 3]
+        >>> ns = [3, 3]
+        >>> 
+        >>> side_points = 100
+        >>> _x = torch.linspace(0, 1, side_points)
+        >>> _y = torch.linspace(0, 1, side_points)
+        >>> grid_y, grid_x = torch.meshgrid(_y, _x, indexing='ij')
+        >>> points = torch.cat([grid_x.reshape(-1, 1), grid_y.reshape(-1, 1)], dim=-1)
+        >>> 
+        >>> N2D = basis_2d(points, Us, ps, ns, torch.tensor([0, 1]), torch.tensor([0, 1]))
+        >>> 
+        >>> xi = 0
+        >>> yi = 2
+        >>> dit.plotting.quantity2D.plot(
+        >>>     N2D[:, yi, xi].reshape(side_points, side_points),
+        >>>     "basis fun",
+        >>>     [0, 1],
+        >>>     [0, 1],
+        >>>     xlabel="x",
+        >>>     ylabel="y"
+        >>> )
+
+    Raises:
+        RuntimeError: If the input points are not in local coordinates or have an incorrect shape.
+
+    """
     if len(points.shape) != 2 or points.shape[1] != 2:
         raise RuntimeError("The points must be in local coordinates and of shape [#points,2]")
     device = points.device

@@ -136,7 +136,7 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 autosummary_generate = True
-
+autodoc_member_order = 'bysource'
 
 
 # -- Options for HTML output -------------------------------------------------

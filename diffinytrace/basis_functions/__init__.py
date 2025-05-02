@@ -5,35 +5,6 @@
 The basis functions module provides a collection of functions for working with B-splines, Legendre polynomials, Zernike polynomials, and Chebyshev polynomials.
 
 Examples:
-    Example 1: Using 2D B-spline basis functions
-    ```python
-    import diffinytrace as dit
-    import torch
-
-    U1 = torch.tensor([0., 0.2, 0.4, 0.6, 0.8, 1])
-    Us = [U1, U1]
-    ps = [3, 3]
-    ns = [3, 3]
-
-    side_points = 100
-    _x = torch.linspace(0, 1, side_points)
-    _y = torch.linspace(0, 1, side_points)
-    grid_y, grid_x = torch.meshgrid(_y, _x, indexing='ij')
-    points = torch.cat([grid_x.reshape(-1, 1), grid_y.reshape(-1, 1)], dim=-1)
-    N2D = bspline_basis_funs2D(Us, ps, ns, points)
-    N2D.shape
-
-    xi = 0
-    yi = 2
-    dit.plotting.quantity2D.plot(
-        N2D[:, yi, xi].reshape(side_points, side_points),
-        "basis fun",
-        [0, 1],
-        [0, 1],
-        xlabel="x",
-        ylabel="y"
-    )
-    ```
 
     Example 2: Using 1D B-spline basis functions
     ```python

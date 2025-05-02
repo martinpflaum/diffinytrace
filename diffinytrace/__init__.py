@@ -78,6 +78,8 @@ __all__ = [
     "grad",
 ]
 
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 import torch
 torch.set_default_dtype(torch.float64)
 

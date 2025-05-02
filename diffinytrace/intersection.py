@@ -74,7 +74,7 @@ def construct_surface_and_normal_func(semi_functional_module_list):
     Returns a callable:
 
     .. math::
-        (O, p_1, ..., p_n) \\mapsto \\left( s(O), \\frac{\\partial s}{\\partial O} \\right)
+        (O, p_1, ..., p_n) \\mapsto ( s(O), \\frac{\\partial s}{\\partial O} )
 
     Args:
         semi_functional_module_list (list[SemiFunctionalModule]): List of modules.
