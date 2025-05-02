@@ -7,23 +7,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import colour
-"""
-def plot_phy(x,y,title="",xlabel="x [mm]",ylabel="y",scalex: bool = True,scaley: bool = True,data=None,show=True,**kwargs):
-    plt.cla()   # Clear axis
-    plt.clf()   # Clear figure
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
-    plt.title(title)
-    plt.plot(x,y,scalex=scalex,scaley=scaley,data=data,**kwargs)
-    if show:
-        plt.show()
-"""
+
 class PlotableWavelength:
     def __init__(self,bounds,ylabel):
+        """
+        Initialize the PlotableWavelength object with bounds and ylabel.
+        
+        Args:
+            bounds (tuple): The bounds for the wavelength range.
+            ylabel (str): The label for the y-axis.
+        """
         self.bounds = bounds
         self.ylabel = ylabel
 
 def add_colour_bar(fig, ax, wl):
+    """
+    Add a color strip below the plot to represent the wavelength spectrum.
+    
+    Args:
+        fig (matplotlib.figure.Figure): The figure object.
+        ax (matplotlib.axes.Axes): The main axis of the plot.
+        wl (array-like): Wavelengths in µm.
+    """
     left, bottom, width, height = ax.get_position().bounds
     color_ax = fig.add_axes([left, bottom - 0.15, width, 0.03])  # Position further below to avoid overlap
     
@@ -61,7 +66,7 @@ def plot(wl,vals=None,title="",xlabel="Wavelength [µm]",ylabel="y",labels=None,
         legend (bool): Whether to show a legend.
         resolution (int): Resolution of the plot.
         show (bool): Whether to show the plot.
-        
+
     Returns:
         None
     """

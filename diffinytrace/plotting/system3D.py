@@ -36,6 +36,17 @@ def ray_paths_one_bin(rays,ray_color,ray_linewidth):
     return line_fig
 
 def ray_paths(rays,ray_color="#9673A6",ray_linewidth=3):#9673A6#D6B656
+    """
+    Plot the ray paths in 3D.
+    
+    Args:
+        rays (list[torch.Tensor]): List of rays to plot.
+        ray_color (str): Color of the rays.
+        ray_linewidth (float): Line width of the rays.
+    
+    Returns:
+        data (list): List of plotly line objects.
+    """
     ray_color = mcolors.to_hex(ray_color)
     data = []
     if not rays is None:
@@ -51,6 +62,22 @@ def ray_paths(rays,ray_color="#9673A6",ray_linewidth=3):#9673A6#D6B656
 
 
 def surface(transformation,surface,name,aperture_radius,resolution,colorscale,is_square=False):
+    """
+    Plot the surface of an optical element in 3D.
+    
+    Args:
+        transformation (Transformation): The transformation object for the optical element.
+        surface (Surface): The surface object to plot.
+        name (str): Name of the surface.
+        aperture_radius (float): Radius of the aperture.
+        resolution (int): Resolution for the surface plot.
+        colorscale (list): Color scale for the surface plot.
+        is_square (bool): Whether the aperture is square or circular.
+    
+    Returns:
+        data (list): List of plotly surface objects.
+    """
+    
     _x = torch.linspace(-aperture_radius,aperture_radius,resolution)
     _y = torch.linspace(-aperture_radius,aperture_radius,resolution)
     mesh = torch.meshgrid(_x,_y)
@@ -95,6 +122,23 @@ def surface(transformation,surface,name,aperture_radius,resolution,colorscale,is
 
 
 def get_optical_system_layout(show_grid,xlabel="x [mm]",ylabel="y [mm]",zlabel="z [mm]",xticks=None,yticks=None,zticks=None,axislabel_font_size=10,tick_font_size=10):
+    """
+    Get the layout for the optical system plot.
+    
+    Args:
+        show_grid (bool): Whether to show the grid.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        zlabel (str): Label for the z-axis.
+        xticks (list[float]): Custom x-ticks.
+        yticks (list[float]): Custom y-ticks.
+        zticks (list[float]): Custom z-ticks.
+        axislabel_font_size (int): Font size for axis labels.
+        tick_font_size (int): Font size for tick labels.
+    
+    Returns:
+        layout (plotly.graph_objects.Layout): The layout object for the plot.
+    """
     #TODO write wrapper for plot3D!
     camera = dict(
         up=dict(x=1., y=0., z=0)

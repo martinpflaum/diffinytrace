@@ -55,4 +55,14 @@ def legendre_2d_basis(degree, x, y):
     return torch.stack(out, dim=1)
 
 def get_num_coeff(degree):
-     return (degree + 1) * (degree + 2) // 2
+    """
+    Returns the number of coefficients for a given degree of Legendre polynomials.
+    The number of coefficients is given by the formula (degree + 1) * (degree + 2) / 2.
+    
+    Args:
+        degree (int): Degree of the Legendre polynomial.
+        
+    Returns:
+        int: Number of coefficients.
+    """
+    return (degree + 1) * (degree + 2) // 2

@@ -75,10 +75,32 @@ def basis_function(max_n, points):
     return zernike_basis
 
 def get_num_coeffs(max_radial_degree):
+    """
+    Calculate the number of coefficients for Zernike polynomials up to a given radial degree.
+    The number of coefficients is given by the formula (n + 1) * (n + 2) / 2.
+
+    Args:
+        max_radial_degree (int): Maximum radial degree.
+    
+    Returns:
+        int: Number of coefficients.
+    """
+
     n = max_radial_degree+1
     return int(n*(n+1) / 2)
 
 
 def get_radial_degree(num_coeff):
+    """
+    Calculate the radial degree from the number of coefficients.
+    
+    Args:
+        num_coeff (int): Number of coefficients.
+    
+    Returns:
+        int: Radial degree.
+    """
+
+
     out = math.sqrt(num_coeff*2)
     return int(np.floor(out))-1

@@ -10,6 +10,14 @@ import matplotlib.colors as mcolors
 from copy import deepcopy
 
 def annotate_position_simple(nz,ny,name):
+    """
+    Annotate the position of a point in 2D space.
+    
+    Args:
+        nz (torch.Tensor): z-coordinates of the point.
+        ny (torch.Tensor): y-coordinates of the point.
+        name (str): Name to annotate.
+    """
     zdiff = (torch.max(nz)-torch.min(nz))
     ydiff = (torch.max(ny)-torch.min(ny))
     offset = max(ydiff*0.05,zdiff*0.025)
@@ -22,10 +30,33 @@ def annotate_position_simple(nz,ny,name):
 
 
 def annotate_position(position,offset,name,color="black"):
+    """
+    Annotate the position of a point in 2D space with an arrow.
+    
+    Args:
+        position (tuple): Position of the point (z, y).
+        offset (tuple): Offset for the annotation.
+        name (str): Name to annotate.
+        color (str): Color of the annotation.
+        
+    """
     plt.annotate(name,color=color,xy=position,xytext=offset, textcoords='offset points',arrowprops=dict(arrowstyle="->",color=color,linewidth=1.5, mutation_scale=10))
 
 
 def annotated_arrow(start,end,offset,name,arrowstyle,color="black"):
+    """
+    Annotate an arrow between two points in 2D space.
+    
+    Args:
+        start (tuple): Start position of the arrow (z, y).
+        end (tuple): End position of the arrow (z, y).
+        offset (tuple): Offset for the annotation.
+        name (str): Name to annotate.
+        arrowstyle (str): Style of the arrow.
+        color (str): Color of the arrow and annotation.
+        
+    """
+    
     arrow_patch = patches.FancyArrowPatch(start, end, arrowstyle=arrowstyle,linewidth=1.5, mutation_scale=10,color=color)
     plt.gca().add_patch(arrow_patch)
     middle = (start[0]+ (end[0]-start[0])*0.5,start[1]+ (end[1]-start[1])*0.5)
@@ -33,6 +64,9 @@ def annotated_arrow(start,end,offset,name,arrowstyle,color="black"):
     plt.annotate(name,xy=middle,xytext=offset, textcoords='offset points',color=color)
 
 def layout():
+    """
+    Set up the layout for the plot.
+    """
     #plt.grid(True)
     plt.margins(x=0.1,y=0.1)
     plt.gca().set_aspect('equal')
@@ -40,6 +74,14 @@ def layout():
     plt.xlabel("z [mm]")
 
 def ray_paths(rays,ray_color="#85549c",ray_linewidth=1.25):
+    """
+    Plot the ray paths in 2D space.
+    
+    Args:
+        rays (list[torch.Tensor]): List of ray paths to plot.
+        ray_color (str): Color of the rays.
+        ray_linewidth (float): Line width of the rays.
+    """
     ray_color = mcolors.to_hex(ray_color)
     print("WARNING: ray_paths will project the ray position onto the y-z plane!")
     pathsA = rays

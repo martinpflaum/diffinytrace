@@ -10,6 +10,19 @@ import torch
 
 
 def gaussian_func1D(eval_points:torch.Tensor,p_range,num_gauss_points:int,sigma:float,include_boundary=True)->torch.Tensor:
+    """
+    Gaussian function for 1D convolution.
+    
+    Args:
+        eval_points (torch.Tensor): Points where the Gaussian function is evaluated.
+        p_range (tuple): Range of the target plane.
+        num_gauss_points (int): Number of Gaussian points.
+        sigma (float): Standard deviation of the Gaussian function.
+        include_boundary (bool): Whether to include the boundary points.
+        
+    Returns:
+        torch.Tensor: Evaluated Gaussian function.
+    """
     device = eval_points.device
     dtype = eval_points.dtype
     
@@ -40,6 +53,23 @@ def gaussian_func2D(eval_points:torch.Tensor,
                                   val_multi:torch.Tensor|None=None,
                                   summed:bool=True,
                                   include_boundary=True)->torch.Tensor:
+    """
+    Gaussian function for 2D convolution.
+    
+    Args:
+        eval_points (torch.Tensor): Points where the Gaussian function is evaluated.
+        v_range (tuple): Range of the target plane in the vertical direction.
+        h_range (tuple): Range of the target plane in the horizontal direction.
+        v_num_conv_points (int): Number of Gaussian points in the vertical direction.
+        h_num_conv_points (int): Number of Gaussian points in the horizontal direction.
+        sigma (float): Standard deviation of the Gaussian function.
+        val_multi (torch.Tensor|None): Optional multiplier for the Gaussian function.
+        summed (bool): Whether to sum the Gaussian function.
+        include_boundary (bool): Whether to include the boundary points.
+
+    Returns:
+        torch.Tensor: Evaluated Gaussian function.
+    """
     
     if eval_points.shape[-1] != 2:
         raise RuntimeError("points need to be in local coordinates and shape [numraysx2]")
@@ -103,6 +133,26 @@ class GaussianSmoother(Smoother):
                 v_num_eval_points:int=64,
                 h_num_eval_points:int=64,
                 use_eval_avg=True):
+        """
+        Initialize the GaussianSmoother object.
+
+        Args:
+            v_range (list): Range of the target plane in the vertical direction.
+            h_range (list): Range of the target plane in the horizontal direction.
+            v_num_conv_points (int): Number of Gaussian points in the vertical direction.
+            h_num_conv_points (int): Number of Gaussian points in the horizontal direction.
+            sigma (float): Standard deviation of the Gaussian function.
+            device (torch.device, optional): Device to perform computations on. Default is the default device.
+            dtype (torch.dtype, optional): Data type for computations. Default is the default data type.
+            num_integration_points_desired (list, optional): Number of integration points desired. Default is [701, 701].
+            desired_irradiance_func (callable, optional): Function to compute desired irradiance. Default is None.
+            residual_integration_method (str, optional): Method for residual integration. Default is "midpoint".
+            total_power_desired (float, optional): Desired total power. Default is 1.0.
+            v_num_eval_points (int, optional): Number of evaluation points in the vertical direction. Default is 64.
+            h_num_eval_points (int, optional): Number of evaluation points in the horizontal direction. Default is 64.
+            use_eval_avg (bool, optional): Whether to use average evaluation. Default is True.
+        """
+
         self._sigma = sigma
         super().__init__(v_range,h_range,
                          v_num_conv_points,h_num_conv_points,
@@ -140,6 +190,24 @@ class GaussianSmootherSquare(GaussianSmoother):
                 total_power_desired=1.0,
                 num_eval_points = 64,
                 use_eval_avg=True):
+        """
+        Initialize the GaussianSmootherSquare object.
+        
+        Args:
+            aperture_radius (float): Radius of the square aperture.
+            num_conv_points (int): Number of Gaussian points.
+            sigma (float): Standard deviation of the Gaussian function.
+            device (torch.device, optional): Device to perform computations on. Default is the default device.
+            dtype (torch.dtype, optional): Data type for computations. Default is the default data type.
+            num_integration_points_desired (list, optional): Number of integration points desired. Default is [701, 701].
+            desired_irradiance_func (callable, optional): Function to compute desired irradiance. Default is None.
+            residual_integration_method (str, optional): Method for residual integration. Default is "midpoint".
+            total_power_desired (float, optional): Desired total power. Default is 1.0.
+            num_eval_points (int, optional): Number of evaluation points. Default is 64.
+            use_eval_avg (bool, optional): Whether to use average evaluation. Default is True.
+        """
+        
+
         super().__init__([-aperture_radius,aperture_radius],
                          [-aperture_radius,aperture_radius],
                          num_conv_points,num_conv_points,
