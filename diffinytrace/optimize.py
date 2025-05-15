@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
-"""
+r"""
 Optimization Utilities for PyTorch-SciPy Integration
 ====================================================
 
@@ -21,6 +21,82 @@ Key Features:
 - Utility functions for flattening/unpacking tensor parameters.
 - Conversion of PyTorch parameters to SciPy-compatible formats with bounds.
 - Support for custom constraints and callback functions.
+
+Optimization Constraints in Optical Systems
+-------------------------------------------
+
+When using optimization procedures to attain parameters of an optical system, it is important to have constraints that 
+ensure that the optical system can be manufactured. The following demonstrates the implementation of different types of 
+constraints in our library, with a specific focus on the positive air spacing and minimum glass thickness constraints.
+
+Constraint optimization problems can often be expressed as a *nonlinear program*, which is defined as follows (see :cite:`italiens`):
+
+.. math::
+
+    \min_{p} \quad m(p)
+
+.. math::
+
+    \text{subject to} \quad \hat{g}_i(p) \leq 0, \quad i = 1, \ldots, N_1,
+
+.. math::
+
+    \text{subject to} \quad \hat{h}_j(p) = 0, \quad j = 1, \ldots, N_2,
+
+where:
+- :math:`p \in \mathbb{R}^n` is the vector of parameters.
+- :math:`m: \mathbb{R}^n \to \mathbb{R}` is the nonlinear objective (merit) function.
+- :math:`\hat{g}_i: \mathbb{R}^n \to \mathbb{R}` are the inequality constraint functions.
+- :math:`\hat{h}_j: \mathbb{R}^n \to \mathbb{R}` are the equality constraint functions.
+
+For this type of problem, multiple numerical schemes are available in the Python library *SciPy*. Some optimization schemes 
+also require derivative information for functions that describe constraints. For example, Sequential Least Squares Programming 
+(SLSQP) uses the derivatives of the constraint functions :math:`\hat{g}_i` and :math:`\hat{h}_j` to find local minima.
+
+By combining the libraries PyTorch and SciPy, we leverage the strengths of two sophisticated and established libraries:
+1. **PyTorch**: Efficiently calculates the derivatives of the merit function :math:`m` and the constraint functions 
+   :math:`\hat{g}_i` and :math:`\hat{h}_j` using automatic differentiation. Additionally, it allows evaluation of these 
+   functions and their derivatives on a graphics card, providing significant speedups.
+2. **SciPy**: Provides well-tested traditional algorithms to find local minima. While PyTorch also has a wide variety of 
+   optimization algorithms, its main application is stochastic gradient descent in deep learning, which may not be the 
+   best choice for optimizing optical systems.
+
+Types of Constraints
+--------------------
+
+In our library, we implemented three ways to define constraints:
+
+1. **Bounds**  
+   Most numerical schemes in SciPy support bounding box constraints, allowing the definition of minimum and maximum values 
+   for each parameter. These bounds can be interpreted as constraints in the form :math:`\hat{g}_i(p) = p - C_i` or 
+   :math:`\hat{g}_i(p) = C_i - p`, where :math:`C_i \in \mathbb{R}`. This is particularly useful for distance transformations, 
+   where we can ensure that the distance parameter is never smaller than 0. For example:
+
+   >>> import diffinytrace as dit
+   >>> import torch
+   >>> dist_transform = dit.transforms.Distance(10.)
+   >>> dist_transform.distance.bounds = torch.tensor([5.0, torch.inf])
+
+   Here, **torch.inf** indicates that the distance can be arbitrarily large, with no upper bound.
+
+2. **Constant Variables**  
+   If a specific parameter should be fixed, PyTorch allows disabling gradient computation for that parameter. For example:
+
+   >>> import diffinytrace as dit
+   >>> distance_transform = dit.transforms.Distance(10.)
+   >>> distance_transform.distance.requires_grad = False
+
+   Note: While it is easy to set specific parameters as constants, it is not possible to disable gradient computation for 
+   individual parameters if the variable contains multiple values. For instance, in the case of a B-spline surface, it is 
+   not possible to disable gradient computation for individual B-spline coefficients.
+
+3. **Arbitrary Constraint Functions**  
+   Our library also supports defining nonlinear inequality constraint functions :math:`\hat{g}_i` and equality constraint 
+   functions :math:`\hat{h}_i`. Some local optimization methods require derivative information for these nonlinear constraint 
+   functions. To efficiently evaluate these derivatives, we use automatic differentiation. This is achieved by defining the 
+   constraint functions :math:`\hat{g}_i` with PyTorch and calculating their derivatives with respect to the parameters of 
+   the optical system. This approach eliminates the need for finite differences, which could significantly slow down the 
+   optimization procedure.
 """
 
 

@@ -107,7 +107,8 @@ extensions = ["sphinx.ext.autodoc",
               "sphinx.ext.autosummary",
               "sphinx.ext.napoleon",
               "sphinx.ext.viewcode",
-              "sphinx.ext.mathjax"]
+              "sphinx.ext.mathjax",
+            'sphinxcontrib.bibtex']
 
 """
 extensions = [
@@ -145,3 +146,12 @@ autodoc_member_order = 'bysource'
 html_theme = 'sphinx_rtd_theme'
 html_theme = "furo"
 html_static_path = ['_static']
+bibtex_bibfiles = ['refs.bib']
+
+mathjax3_config = {
+    'tex': {
+        #'macros': {
+        #    'R': '\\mathbb{R}'
+        #}
+    }
+}

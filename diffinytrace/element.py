@@ -463,6 +463,16 @@ def get_refracted_directions(D, N, n1, n2):
     r"""
     Computes refracted ray directions using Snell's law.
 
+    At material interfaces, the transmitted direction :math:`\mathbf{D'}` is computed based on the surface normal 
+    :math:`\mathbf{N} = \nabla s / \|\nabla s\|` and the incident direction :math:`\mathbf{D}`, using Snell's law (see :cite:`do`):
+
+    .. math::
+
+        \mathbf{D'} = \mathbf{N} \sqrt{1 - (1 - \cos^2 \psi_i) \eta^2} + \eta (\mathbf{D} - \mathbf{N} \cos \psi_i),
+
+    where :math:`\cos \psi_i = \mathbf{D} \cdot \mathbf{N}` and :math:`\eta = n / n'` is the ratio of the refractive indices 
+    of the two materials.
+
     Args:
         D (torch.Tensor): Incident directions of shape (M, 3), normalized.
         N (torch.Tensor): Surface normals at points of incidence, shape (M, 3).
@@ -472,13 +482,6 @@ def get_refracted_directions(D, N, n1, n2):
     Returns:
         torch.Tensor: Refracted directions of shape (M, 3).
 
-    Notes:
-        Implements the vector form of Snell's law:
-        
-        .. math::
-            \mathbf{T} = \frac{n_1}{n_2} \mathbf{I} + \left(\frac{n_1}{n_2} \cos\theta_i - \cos\theta_t\right) \mathbf{N}
-        
-        where \( \cos\theta_i = -\mathbf{I} \cdot \mathbf{N} \).
     """
     # Ensure the input tensors are normalized (unit vectors)
     D = torch.nn.functional.normalize(D, dim=1)
@@ -715,13 +718,31 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
             return Plotable.get_plotly_color_scale(self)
 
 class Lens(OpticalElement):
-    """
+    r"""
     Represents a transmissive lens consisting of two refractive surfaces.
 
     The lens is modeled as a sequence of:
     - Entry surface (refraction from external medium into the lens)
     - Exit surface (refraction from lens into external medium)
     - Side surface (purely for visualization)
+
+    In our implementation, lenses consist of two *explicit surfaces*, a transformation matrix :math:`M`, a lens thickness, 
+    an *aperture radius*, and a material. When the lens is initialized, one can also optionally specify whether the lens 
+    is round or square. If the keyword **is_square** is not specified, the lens will default to being round.
+
+    Example:
+        Below is an example of initializing a square lens:
+
+        >>> import diffinytrace as dit
+        >>> aperture_half = 30.
+        >>> lens_thickness = 8.
+        >>> material = dit.materials["NBK7"]
+        >>> transform = dit.transforms.Identity()
+        >>> bspline = dit.Bspline(aperture_half, [3, 3], [8, 8])
+        >>> plane = dit.Plane()
+        >>> lens = dit.Lens(transform, lens_thickness,
+        >>>          bspline, plane,
+        >>>          material, aperture_half, is_square=True)
 
     Attributes:
         n_func (Callable): Function mapping wavelength to refractive index of the lens material.
@@ -829,11 +850,6 @@ def compute_reflected_directions(D, N):
     Returns:
         torch.Tensor: Reflected directions of shape (M, 3).
 
-    Notes:
-        Implements the reflection formula:
-
-        .. math::
-            \mathbf{R} = \mathbf{I} - 2 (\mathbf{I} \cdot \mathbf{N}) \mathbf{N}
     """
     # Ensure the input tensors are normalized (unit vectors)
     D = torch.nn.functional.normalize(D, dim=1)
@@ -881,18 +897,30 @@ class Mirror(OpticalSurface):
 
    
 class Detector(OpticalSurface):
-    """
+    r"""
     Represents a terminal optical element that collects ray data.
 
-    Tracks intersections with the final surface but does not alter ray direction.
+    Detectors consist of an *explicit surface*, a transformation matrix :math:`M`, and an *aperture radius*. 
+    The detector class represents a target surface used to track the rays that hit it. When the detector is initialized, 
+    one can also optionally specify whether the detector is round or square. If the keyword **is_square** is not specified, 
+    the detector defaults to being square.
 
-    Used to read out where rays hit the image plane or measurement surface.
+    Example:
+        Below is an example of how to initialize a detector:
+
+        >>> import diffinytrace as dit
+        >>> aperture_half = 30.
+        >>> transform = dit.transforms.Identity()
+        >>> plane = dit.Plane()
+        >>> detector = dit.Detector(transform, plane,
+        >>>                         aperture_half, is_square=False)
+
     """
     def __init__(self,transform,surface,aperture_radius,is_square=True):
         super().__init__(transform,surface,aperture_radius,is_square,'#d5e8d4','#82b366')
     
     def forward(self,O1,D1,wl,n_func_enviroment,meta_data):
-        """
+        r"""
         Captures the final ray interaction without altering its direction.
 
         Args:
@@ -924,7 +952,7 @@ class Detector(OpticalSurface):
     
 
 def trace_to_detector(optical_system:SequentialOpticalSystem,sequence,source,detector:Detector,num_rays=200000,device=torch.get_default_device(),method_ray_tracing="sobol"):
-    """
+    r"""
     Traces rays through a system to a detector and returns the impact coordinates.
 
     Args:

@@ -168,8 +168,103 @@ class SurfaceDistance(Constraint):
             return None,None,*dfdp
 """        
 class SurfaceDistanceConstraint(LEQZero):
-    """
+    r"""
     Constraint that enforces a minimum distance between two 3D parametric surfaces.
+
+    One very important constraint in any optimization procedure in the context of optical systems is the positive air spacing 
+    and the minimum glass thickness constraint (see :cite:`do`). Such constraints were already implemented in the context of 
+    differential ray tracing with bounding box constraints (see :cite:`do`). However, to always ensure that no surfaces overlap, 
+    nonlinear constraints are needed instead of bounding box constraints. To the best of our knowledge, nonlinear constraints 
+    have never been used before in the context of differential ray tracing to ensure positive air spacing or minimum glass thickness. 
+
+    The positive air spacing and minimum glass thickness constraint are, in general, equivalent to a minimum surface distance 
+    constraint (MSDC). This constraint ensures that the optical system, attained from the optimization procedure, makes 
+    geometrical sense and does not have overlapping surfaces.
+
+    Calculation of the Minimal Distance Between Two Surfaces
+    ---------------------------------------------------------
+
+    Given two parameterized surfaces :math:`S_1: \mathbb{R}^2 \to \mathbb{R}^3` and :math:`S_2: \mathbb{R}^2 \to \mathbb{R}^3`, 
+    the minimum surface distance constraint function is given by:
+
+    .. math::
+
+        \hat{g}(p) = ||S_1(x_*, p) - S_2(x_*, p)|| - l,
+
+    where :math:`l` is the smallest distance between the two surfaces that should be separated. :math:`x_*` is the solution 
+    to the nonlinear program:
+
+    .. math::
+
+        \operatorname{MSDC}(p): \left\{
+        \begin{aligned}
+            &\min_{x} \quad \hat{f}^{MSDC}(x, p) \\
+            &\text{subject to} \quad \hat{g}_i^{S_1}([x_1, x_2], p) \leq 0, \quad i = 1, \ldots, N_1, \\
+            &\text{subject to} \quad \hat{g}_j^{S_2}([x_3, x_4], p) \leq 0, \quad j = 1, \ldots, N_2. \\
+        \end{aligned}
+        \right.
+
+    Here:
+
+    .. math::
+
+        \hat{f}^{MSDC}(x, p) = ||S_1([x_1, x_2], p) - S_2([x_3, x_4], p)||.
+
+    The constraints :math:`\hat{g}_i^{S_1}` and :math:`\hat{g}_j^{S_2}` ensure that :math:`x_*` lies within the *parametric domain* 
+    of the *parametric surface description* of the two surfaces.
+
+    In our library, we have only implemented the minimum surface distance constraint for round *optical surfaces*. In this case, 
+    there are only two constraint functions :math:`\hat{g}^{S_1}` and :math:`\hat{g}^{S_2}` for the two surfaces. If the first 
+    surface has radius :math:`\hat{r}_1` and the second surface has radius :math:`\hat{r}_2`, the constraints are given by:
+
+    .. math::
+
+        \hat{g}^{S_1}(x) := ||x||_2 - \hat{r}_1, \quad \hat{g}^{S_2}(x) := ||x||_2 - \hat{r}_2.
+
+    Steps to Calculate :math:`x_*`
+    ------------------------------
+
+    1. **Sampling Points**  
+    Sample :math:`N` points :math:`a_{(k)} \in \Xi_1` and :math:`b_{(i)} \in \Xi_2` uniformly from the *parametric domains* 
+    :math:`\Xi_1` and :math:`\Xi_2` of both surfaces.
+
+    2. **Evaluate Surface Points**  
+    Evaluate :math:`v_{(k)} = S_1(a_{(k)}, p)` and :math:`w_{(i)} = S_2(b_{(i)}, p)` for all :math:`k` and :math:`i`.
+
+    3. **Find Initial Solution**  
+    Find the arguments :math:`k_*` and :math:`i_*` for which the expression:
+
+    .. math::
+
+        ||S_1(a_{(k_*)}, p) - S_2(b_{(i_*)}, p)||
+
+    is minimized.
+
+    4. **Local Optimization**  
+    Perform a local optimization procedure for the *nonlinear program* :math:`\operatorname{MSDC}(p)` using the SLSQP method 
+    in SciPy, with the initial solution:
+
+    .. math::
+
+        x_0 = \begin{bmatrix}
+            a_{(k_*)} \\
+            b_{(i_*)}
+        \end{bmatrix}.
+
+    Similar to the original *nonlinear program* for optimizing the optical system, one can use automatic differentiation to 
+    compute the derivatives of the objective function and the constraints required to solve :math:`\operatorname{MSDC}(p)`.
+
+    Visualization
+    -------------
+
+    The figure below shows a point :math:`x_*` that minimizes the nonlinear problem :math:`\operatorname{MSDC}(p)`:
+
+    .. figure:: figures/constraints/surface_distance_constraint1.png
+    :align: center
+    :width: 40%
+    :alt: Visualization of the minimum distance between two surfaces.
+
+    Visualization of the minimum distance between two surfaces.
 
     Args:
         surface1 (PhysicalSurface): The first surface.

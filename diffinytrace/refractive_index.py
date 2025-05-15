@@ -9,8 +9,37 @@ import numpy as np
 from .plotting.wavelength import PlotableWavelength
 
 class RefractiveIndex(nn.Module,PlotableWavelength):
-    """This class is used to calculate the refractive index of a material.
+    r"""This class is used to calculate the refractive index of a material.
     
+    At material interfaces, the transmitted direction :math:`\mathbf{D'}` is computed based on the surface normal 
+    :math:`\mathbf{N} = \nabla s / \|\nabla s\|` and the incident direction :math:`\mathbf{D}`, using Snell's law (see :cite:`do`):
+
+    .. math::
+
+        \mathbf{D'} = \mathbf{N} \sqrt{1 - (1 - \cos^2 \psi_i) \eta^2} + \eta (\mathbf{D} - \mathbf{N} \cos \psi_i),
+
+    where :math:`\cos \psi_i = \mathbf{D} \cdot \mathbf{N}` and :math:`\eta = n / n'` is the ratio of the refractive indices 
+    of the two materials.
+
+    We have implemented the refractive indices as a class that is initialized by a refractive index function and the start 
+    and end wavelengths for which the function is valid. This makes it very convenient to use with the RefractiveIndex.info 
+    database of optical constants (see :cite:`polyanskiy2024refractiveindex`), since this database often provides Python 
+    functions for wavelength-dependent refractive indices.
+
+    Example:
+        Below is an example of how to set up an optical material in our ray tracing library:
+
+        >>> import diffinytrace as dit
+        >>> BaSF = dit.RefractiveIndex(
+        >>>     lambda x: (1 + 1.65554268 / (1 - 0.0104485644 / x**2) +
+        >>>                   0.17131977 / (1 - 0.0499394756 / x**2) +
+        >>>                   1.33664448 / (1 - 118.961472 / x**2))**0.5,
+        >>>     [0.365, 2.5]
+        >>> )
+        >>> dit.plotting.wavelength.plot(
+        >>>     BaSF, title="Refractive index of BaSF (Barium dense flint)"
+        >>> )
+
     Args:
         func (callable): A function that takes a wavelength in μm and returns the refractive index.
         bounds (tuple): A tuple containing the minimum and maximum wavelength in μm.
