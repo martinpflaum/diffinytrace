@@ -99,7 +99,19 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 #sys.path.insert(0, os.path.abspath("."))
 #sys.path.insert(0, os.path.abspath("../../diffinytrace"))
 sys.path.insert(0, os.path.abspath(".."))
+import shutil
+import os
 
+source_dir = "../examples"
+target_dir = "."  # Change this to your target path
+
+os.makedirs(target_dir, exist_ok=True)
+
+for filename in os.listdir(source_dir):
+    if filename.endswith(".ipynb"):
+        full_src_path = os.path.join(source_dir, filename)
+        full_dst_path = os.path.join(target_dir, filename)
+        shutil.copy(full_src_path, full_dst_path)
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -108,7 +120,8 @@ extensions = ["sphinx.ext.autodoc",
               "sphinx.ext.napoleon",
               "sphinx.ext.viewcode",
               "sphinx.ext.mathjax",
-            'sphinxcontrib.bibtex']
+            'sphinxcontrib.bibtex',
+            "nbsphinx"]
 
 """
 extensions = [

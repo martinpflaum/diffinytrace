@@ -1,5 +1,4 @@
-import diffinytrace as dit
-from diffinytrace.nonimaging.examples.sunlight_picture import create_lens
+#%%
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
@@ -10,30 +9,6 @@ import os
 import pickle
 import gc
 
-def save_data(data, filename):
-    with open(filename, 'wb') as file:
-        pickle.dump(data, file)
-    print(f"Data saved to {filename}")
-
-def load_data(filename):
-    with open(filename, 'rb') as file:
-        data = pickle.load(file)
-    print(f"Data loaded from {filename}")
-    return data
-
-def create_folder(folder_path):
-    try:
-        os.makedirs(folder_path, exist_ok=True)
-        return f"Folder created successfully at: {folder_path}" if not os.path.exists(folder_path) else f"Folder already exists at: {folder_path}"
-    except Exception as e:
-        return f"An error occurred: {e}"
-
-device = "cuda:0"
-image_file_name = "image_vertical.jpg"
-#results_folder_main = "Results/results_v3"#.2"
-#create_folder(results_folder_main)
-
-
 def save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar,show_x_axis):
     # Create the plot
     fig, ax = plt.subplots()
@@ -41,7 +16,7 @@ def save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_ti
     cax = ax.imshow(matrix, cmap=cmap,vmin=vmin,vmax=vmax,extent=extent)
     #ax.axis('off')  # Remove the axes
     if plot_colorbar:
-        cbar = plt.colorbar(cax,shrink=0.65,aspect=9,extend='max')  # Add a colorbar for reference
+        cbar = plt.colorbar(cax,shrink=0.65,aspect=9)  # Add a colorbar for reference
         cbar.ax.tick_params(labelsize=cbar_labelsize)
         cbar.ax.set_title(cbar_title, fontsize=cbar_title_fontsize, pad=10,loc="left")  # Set label above
         offset_text = cbar.ax.yaxis.offsetText
@@ -107,8 +82,12 @@ def make_row(matrices,extent,cmap,cbar_labelsize,cbar_title,cbar_title_fontsize,
     file_names = []
     for i,matrix in enumerate(matrices):
         if len(matrices)-1 == i:
-            file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=False)
-            file_names.append(file_name)
+            if i ==0:
+                file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=show_x_axis_first)
+                file_names.append(file_name)
+            else:
+                file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=False)
+                file_names.append(file_name)
         elif show_x_axis_first and i ==0:
             file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = False,show_x_axis=True)
             file_names.append(file_name)
@@ -289,7 +268,7 @@ def create_white_image_with_dimensions(image1_path, image2_path):
         white_image.save(temp_file.name)
         return temp_file.name
     
-def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,cbar_titles,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=None,rows_vmax=None):
+def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,cbar_titles,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=None,rows_vmax=None,column_title_ratio=0.2):
     if rows_vmin is None:
         rows_vmin = [None for elem in image_grid]
     if rows_vmax is None:
@@ -318,12 +297,12 @@ def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,c
         #    for k in range():
 
         row_files = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=show_x_axis_first,vmin=rows_vmin[i],vmax=rows_vmax[i])
-        image_column_text = create_image_with_text_orientation(row_files[1], rows_title[i], 0.2,font_size_PIL,vertical=True)
+        image_column_text = create_image_with_text_orientation(row_files[1], rows_title[i], column_title_ratio,font_size_PIL,vertical=True)
         if i==0:
             images_row_text = []
             for k,elem in enumerate(columns_title):
 
-                tmp1 = create_image_with_text_orientation(row_files[0], elem, 0.2,font_size_PIL,vertical=False)
+                tmp1 = create_image_with_text_orientation(row_files[0], elem, column_title_ratio,font_size_PIL,vertical=False)
                 if k == 0:
                     tmp2 = create_white_image_with_dimensions(image_column_text,tmp1)
                     images_row_text.append(tmp2)
@@ -345,7 +324,7 @@ def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,c
     return concatenate_images_tempfile_vertical(out)
 
 
-def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,columns_title,cbar_titles,max_num_column,font_size_PIL,cbar_labelsize,cbar_title_fontsize):
+def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,columns_title,cbar_titles,max_num_column,font_size_PIL,cbar_labelsize,cbar_title_fontsize,column_title_ratio=0.2):
     num_x = len(image_grid[0])
     num_splits = int(np.ceil(num_x/float(max_num_column)))
     
@@ -375,8 +354,6 @@ def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,column
         idx = rows_vidx[i]
         vmin = rows_vmin_idx_dict[idx]
         vmax = rows_vmax_idx_dict[idx]
-
-
         rows_vmin.append(vmin)
         rows_vmax.append(vmax)
         
@@ -392,70 +369,6 @@ def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,column
     out = []
     for i,split in enumerate(image_grids):
         
-        tmp = _image_from_grid(split,rows_extent,rows_cmap,rows_title,columns_title[num_x_perbrow*i:num_x_perbrow*(i+1)],cbar_titles,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=rows_vmin,rows_vmax=rows_vmax)
+        tmp = _image_from_grid(split,rows_extent,rows_cmap,rows_title,columns_title[num_x_perbrow*i:num_x_perbrow*(i+1)],cbar_titles,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=rows_vmin,rows_vmax=rows_vmax,column_title_ratio=column_title_ratio)
         out.append(tmp)
     return out
-
-import torch
-all_main_subfolders = ["results_classical","results_desired_irr_smoothing","results_sigma_refinement"]
-#,"results_power_correction_pure","results_power_correction_R"]
-
-def get_folder(idx,etendue):
-    out = results_folder_main+"/"
-    main_subfolder = all_main_subfolders[idx]
-    out += main_subfolder
-    if etendue:
-        out += "/etendue"
-    else:
-        out += "/no_etendue"
-    return out
-def load_results(idx,etendue):
-    folder = get_folder(idx,etendue)
-    results = load_data(folder+"/results_dict.pkl")
-    return results
-
-
-def add_title_to_plot_with_auto_height(image_path, title, output_path, font_size=20):
-    """
-    Adds a title on top of an existing plot image, automatically estimating the required whitespace height.
-
-    Parameters:
-    - image_path: Path to the input image file.
-    - title: The title text to be added.
-    - output_path: Path to save the resulting image.
-    - font_size: Size of the font for the title.
-
-    Returns:
-    - Saves the modified image with the title.
-    """
-    # Open the original image
-    original_image = Image.open(image_path)
-    original_width, original_height = original_image.size
-
-    # Prepare the font (using Arial)
-    try:
-        font = ImageFont.truetype("arial.ttf", size=font_size)
-    except Exception as e:
-        print(f"Error loading font: {e}. Using default font.")
-        font = ImageFont.load_default()
-
-    # Estimate the whitespace height based on font size and title text
-    text_bbox = font.getbbox(title)
-    text_width, text_height = text_bbox[2], text_bbox[3]  # Get width and height
-    whitespace_height = int(1.5 * text_height)  # Add some padding above and below the text
-
-    # Create a new image with extra whitespace on top
-    new_height = original_height + whitespace_height
-    new_image = Image.new("RGB", (original_width, new_height), "white")
-
-    # Paste the original image onto the new image
-    new_image.paste(original_image, (0, whitespace_height))
-
-    # Draw the title on the new image
-    draw = ImageDraw.Draw(new_image)
-    text_position = ((original_width - text_width) // 2, (whitespace_height - text_height) // 2)
-    draw.text(text_position, title, fill="black", font=font)
-
-    # Save the result
-    new_image.save(output_path)
-    print(f"Title added and saved to {output_path}")
