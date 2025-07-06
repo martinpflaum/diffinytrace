@@ -1,4 +1,4 @@
-constraints
+Constraints
 ===============================
 
 .. automodule:: diffinytrace.constraints

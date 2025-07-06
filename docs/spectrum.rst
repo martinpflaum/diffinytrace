@@ -1,4 +1,4 @@
-spectrum
+Spectrum
 ============================
 
 .. automodule:: diffinytrace.spectrum

@@ -1,4 +1,4 @@
-nonimaging
+Nonimaging
 ==========
 
 .. toctree::
@@ -7,3 +7,10 @@ nonimaging
    diffinytrace.nonimaging.examples
    diffinytrace.nonimaging.smoothing
 
+Module Contents
+---------------
+
+.. automodule:: diffinytrace.nonimaging
+   :members:
+   :undoc-members:
+   :show-inheritance:

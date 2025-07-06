@@ -1,11 +1,9 @@
-diffinytrace package
+Package
 ====================
-
-Subpackages
------------
 
 .. toctree::
    
    index_base
    index_utilities
    examples
+

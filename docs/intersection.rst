@@ -1,4 +1,4 @@
-intersection
+Intersection
 ================================
 
 .. automodule:: diffinytrace.intersection

@@ -1,7 +1,7 @@
-render
+Render
 ======
 
-core
+Core
 -------------------------------
 
 .. automodule:: diffinytrace.render.core
@@ -9,3 +9,10 @@ core
    :undoc-members:
    :show-inheritance:
 
+Module Contents
+---------------
+
+.. automodule:: diffinytrace.render
+   :members:
+   :undoc-members:
+   :show-inheritance:

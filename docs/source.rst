@@ -1,4 +1,4 @@
-source
+Source
 ==========================
 
 .. automodule:: diffinytrace.source

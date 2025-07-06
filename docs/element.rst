@@ -1,4 +1,4 @@
-element
+Element
 ===========================
 
 .. automodule:: diffinytrace.element

@@ -1,4 +1,4 @@
-physical_object
+Physical Object
 ===================================
 
 .. automodule:: diffinytrace.physical_object

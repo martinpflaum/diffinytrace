@@ -1,7 +1,7 @@
-smoothing
+Smoothing
 =========================================
 
-core
+Core
 ---------------------------------------------
 
 .. automodule:: diffinytrace.nonimaging.smoothing.core
@@ -9,7 +9,7 @@ core
    :undoc-members:
    :show-inheritance:
 
-gaussianXYZ smoother
+Gaussianxyz Smoother
 --------------------------------------------------------------
 
 .. automodule:: diffinytrace.nonimaging.smoothing.gaussianXYZ_smoother
@@ -17,7 +17,7 @@ gaussianXYZ smoother
    :undoc-members:
    :show-inheritance:
 
-gaussian smoother
+Gaussian Smoother
 -----------------------------------------------------------
 
 .. automodule:: diffinytrace.nonimaging.smoothing.gaussian_smoother
@@ -25,3 +25,10 @@ gaussian smoother
    :undoc-members:
    :show-inheritance:
 
+Module Contents
+---------------
+
+.. automodule:: diffinytrace.nonimaging.smoothing
+   :members:
+   :undoc-members:
+   :show-inheritance:

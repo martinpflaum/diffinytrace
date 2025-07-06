@@ -1,4 +1,4 @@
-refractive_index
+Refractive Index
 ====================================
 
 .. automodule:: diffinytrace.refractive_index

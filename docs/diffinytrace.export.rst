@@ -1,4 +1,4 @@
-export
+Export
 ======
 
 .. toctree::
@@ -6,3 +6,10 @@ export
 
    diffinytrace.export.cad
 
+Module Contents
+---------------
+
+.. automodule:: diffinytrace.export
+   :members:
+   :undoc-members:
+   :show-inheritance:

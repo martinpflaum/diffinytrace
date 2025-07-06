@@ -1,4 +1,4 @@
-transforms
+Transforms
 ==============================
 
 .. automodule:: diffinytrace.transforms

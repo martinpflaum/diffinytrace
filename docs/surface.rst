@@ -1,4 +1,4 @@
-surface
+Surface
 ===========================
 
 .. automodule:: diffinytrace.surface

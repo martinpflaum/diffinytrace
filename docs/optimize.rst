@@ -1,4 +1,4 @@
-optimize
+Optimize
 ============================
 
 .. automodule:: diffinytrace.optimize

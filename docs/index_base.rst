@@ -1,4 +1,4 @@
-base package
+Base
 ====================
 
 .. toctree::

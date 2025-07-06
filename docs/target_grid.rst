@@ -1,4 +1,4 @@
-target_grid
+Target Grid
 ===============================
 
 .. automodule:: diffinytrace.target_grid

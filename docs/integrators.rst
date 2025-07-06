@@ -1,4 +1,4 @@
-integrators
+Integrators
 ===============================
 
 .. automodule:: diffinytrace.integrators
