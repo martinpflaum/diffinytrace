@@ -71,6 +71,21 @@ for file_name in os.listdir(folder_path):
             content
         )
         
+        content = re.sub(
+            r"^(.*\\_.*)\n([-=]+)$",
+            lambda match: f"{match.group(1).replace(r'\_', 'XXReplaceSpaceXX')}\n{match.group(2)}",
+            content,
+            flags=re.MULTILINE
+        )
+        
+        # Apply regex first, then replace underscores
+        content = re.sub(
+            r"^(\w+(?:\.\w+)+)\n(=+|-+)$",
+            lambda match: f"{match.group(1).split('.')[-1]}\n{match.group(2)}",
+            content,
+            flags=re.MULTILINE
+        )
+        content = content.replace("XXReplaceSpaceXX"," ")
         # Remove "Module contents" section at the end
         content = re.sub(
             r"Module contents\n-+\n\n\.\. automodule:: .*?\n   :members:\n   :undoc-members:\n   :show-inheritance:\n",
@@ -106,12 +121,35 @@ source_dir = "../examples"
 target_dir = "."  # Change this to your target path
 
 os.makedirs(target_dir, exist_ok=True)
+def create_examples_rst(examples, output_file="examples.rst"):
+    """
+    Creates an examples.rst file from a list of example names.
+    
+    Args:
+        examples (list): List of example names (strings).
+        output_file (str): Path to the output file. Defaults to "examples.rst".
+    """
+    with open(output_file, 'w') as f:
+        # Write the header
+        f.write("examples\n")
+        f.write("=" * len("examples") + "\n\n")
+        
+        # Write the toctree directive
+        f.write(".. toctree::\n")
+        
+        # Write each example name with proper indentation
+        for example in examples:
+            f.write(f"    {example}\n")
 
+examples = []
 for filename in os.listdir(source_dir):
     if filename.endswith(".ipynb"):
         full_src_path = os.path.join(source_dir, filename)
         full_dst_path = os.path.join(target_dir, filename)
         shutil.copy(full_src_path, full_dst_path)
+        examples.append(filename.split(".")[0])  # Store the filename without extension
+
+create_examples_rst(examples)
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -121,7 +159,8 @@ extensions = ["sphinx.ext.autodoc",
               "sphinx.ext.viewcode",
               "sphinx.ext.mathjax",
             'sphinxcontrib.bibtex',
-            "nbsphinx"]
+            "nbsphinx",
+            "sphinx.ext.intersphinx"]
 
 """
 extensions = [
@@ -168,3 +207,12 @@ mathjax3_config = {
         #}
     }
 }
+nbsphinx_allow_errors = True
+nbsphinx_execute = 'never'
+
+
+# Exclude certain notebooks from processing
+nbsphinx_execute_arguments = [
+    "--InlineBackend.figure_formats={'svg', 'pdf'}",
+    "--InlineBackend.rc={'figure.dpi': 96}",
+]

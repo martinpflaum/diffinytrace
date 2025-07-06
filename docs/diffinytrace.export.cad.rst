@@ -1,7 +1,7 @@
-export.cad
+cad
 ===============================
 
-export.cad.core
+core
 -----------------------------------
 
 .. automodule:: diffinytrace.export.cad.core

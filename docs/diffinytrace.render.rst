@@ -1,7 +1,7 @@
 render
 ======
 
-render.core
+core
 -------------------------------
 
 .. automodule:: diffinytrace.render.core

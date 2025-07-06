@@ -1,7 +1,7 @@
 utils
 =====
 
-utils.autograd
+autograd
 ----------------------------------
 
 .. automodule:: diffinytrace.utils.autograd
@@ -9,7 +9,7 @@ utils.autograd
    :undoc-members:
    :show-inheritance:
 
-utils.irradiance\_importer
+irradiance importer
 ----------------------------------------------
 
 .. automodule:: diffinytrace.utils.irradiance_importer
@@ -17,7 +17,7 @@ utils.irradiance\_importer
    :undoc-members:
    :show-inheritance:
 
-utils.sympy\_helper
+sympy helper
 ---------------------------------------
 
 .. automodule:: diffinytrace.utils.sympy_helper

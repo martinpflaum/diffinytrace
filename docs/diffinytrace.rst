@@ -59,7 +59,7 @@ optimize
    :undoc-members:
    :show-inheritance:
 
-physical\_object
+physical object
 ------------------------------------
 
 .. automodule:: diffinytrace.physical_object
@@ -67,7 +67,7 @@ physical\_object
    :undoc-members:
    :show-inheritance:
 
-refractive\_index
+refractive index
 -------------------------------------
 
 .. automodule:: diffinytrace.refractive_index
@@ -99,7 +99,7 @@ surface
    :undoc-members:
    :show-inheritance:
 
-target\_grid
+target grid
 --------------------------------
 
 .. automodule:: diffinytrace.target_grid

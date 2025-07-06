@@ -1,7 +1,7 @@
-nonimaging.examples
+examples
 ========================================
 
-nonimaging.examples.sunlight\_picture
+sunlight picture
 ---------------------------------------------------------
 
 .. automodule:: diffinytrace.nonimaging.examples.sunlight_picture
