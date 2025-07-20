@@ -227,9 +227,15 @@ autodoc_member_order = 'bysource'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+#html_theme = 'sphinx_rtd_theme'
 html_theme = "furo"
 html_static_path = ['_static']
+html_theme_options = {
+    "light_logo": "logo_light.svg",
+    "dark_logo": "logo_dark.svg",
+    "sidebar_hide_name": True,
+}
+
 bibtex_bibfiles = ['refs.bib']
 
 mathjax3_config = {
