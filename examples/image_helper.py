@@ -41,7 +41,7 @@ def save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_ti
     cax = ax.imshow(matrix, cmap=cmap,vmin=vmin,vmax=vmax,extent=extent)
     #ax.axis('off')  # Remove the axes
     if plot_colorbar:
-        cbar = plt.colorbar(cax,shrink=0.65,aspect=9,extend='max')  # Add a colorbar for reference
+        cbar = plt.colorbar(cax,shrink=0.65,aspect=9)  # Add a colorbar for reference
         cbar.ax.tick_params(labelsize=cbar_labelsize)
         cbar.ax.set_title(cbar_title, fontsize=cbar_title_fontsize, pad=10,loc="left")  # Set label above
         offset_text = cbar.ax.yaxis.offsetText
