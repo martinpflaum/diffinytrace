@@ -318,7 +318,7 @@ class SurfaceDistanceConstraint(LEQZero):
         #self.active_gs_tol = active_gs_tol
         self.params = params
 
-    def get_closest_points3D(self):
+    def get_extreme_points3D(self,find_min=True):
         """
         Computes the closest 3D points between two surfaces by minimizing the Euclidean distance
         between sampled surface points under given constraints.
@@ -329,7 +329,7 @@ class SurfaceDistanceConstraint(LEQZero):
         device = self.device
         dtype = self.dtype
 
-        def find_minima(\
+        def find_extreme(\
             parametric_surfac1,\
             parametric_surfac2,\
             kwargs1,\
@@ -354,24 +354,35 @@ class SurfaceDistanceConstraint(LEQZero):
                 param2 = reference_to_param2(reference2)
                 points3D1 = parametric_surfac1(param1)
                 points3D2 = parametric_surfac2(param2)
-                arg = torch.argmin(torch.linalg.norm(points3D1-points3D2,dim=-1))
+                arg = None
+                if find_min:
+                    arg = torch.argmin(torch.linalg.norm(points3D1-points3D2,dim=-1))
+                else:
+                    arg = torch.argmax(torch.linalg.norm(points3D1-points3D2,dim=-1))
+                #arg = torch.argmin(torch.linalg.norm(points3D1-points3D2,dim=-1))
+                
                 refval1 = reference1[arg].detach().reshape(1,-1)
                 refval2 = reference2[arg].detach().reshape(1,-1)
             
             refval1.requires_grad = not is_corner1
             refval2.requires_grad = not is_corner2
-            constraints = [LEQZero(lambda : constraint_func(reference_to_param1(refval1))) for constraint_func in parametric_constraints1_leq_zero]
+            """constraints = [LEQZero(lambda : constraint_func(reference_to_param1(refval1))) for constraint_func in parametric_constraints1_leq_zero]
             constraints += [LEQZero(lambda : constraint_func(reference_to_param2(refval2))) for constraint_func in parametric_constraints2_leq_zero]
+            
             def distance_fun():
                 param1 = reference_to_param1(refval1)
                 param2 = reference_to_param2(refval2)
                 points3D1 = parametric_surfac1(param1)
                 points3D2 = parametric_surfac2(param2)
                 val = torch.linalg.norm(points3D1-points3D2,dim=-1).reshape(-1)
+                if find_min:
+                    pass
+                else:
+                    val = -val
                 return val
             
-
-            minout = minimize(distance_fun,[refval1,refval2],constraints,tol=self.minimizer_tol,method="SLSQP")
+            """
+            #minout = minimize(distance_fun,[refval1,refval2],constraints,tol=self.minimizer_tol,method="SLSQP")
             #print("minout nit",minout["nit"])
             param1 = reference_to_param1(refval1).detach().cpu()
             param2 = reference_to_param2(refval2).detach().cpu()
@@ -390,8 +401,8 @@ class SurfaceDistanceConstraint(LEQZero):
         
         parametric_surfac1 = lambda x: surface1.parametric_surface(x)
         parametric_surfac2 = lambda x: surface2.parametric_surface(x)
-                    
-        param1,param2 = find_minima(\
+
+        param1,param2 = find_extreme(\
             parametric_surfac1,\
             parametric_surfac2,\
             create_domain_kwargs(surface1),\
@@ -420,6 +431,8 @@ class SurfaceDistanceConstraint(LEQZero):
             points3D2 = parametric_surfac2(x2)
             return points3D1,points3D2
         return fun(x)
+    
+
     def get_closest_points_distance(self):
         """
         Computes the minimum distance between the two parametric surfaces.
@@ -427,8 +440,19 @@ class SurfaceDistanceConstraint(LEQZero):
         Returns:
             torch.Tensor: A 1D tensor with the smallest distance value.
         """
-        points3D1,points3D2 = self.get_closest_points3D()
+        points3D1,points3D2 = self.get_extreme_points3D()
         return torch.linalg.norm(points3D1-points3D2,dim=-1).reshape(-1)
+    
+    def get_furthest_points_distance(self):
+        """
+        Computes the maximum distance between the two parametric surfaces.
+
+        Returns:
+            torch.Tensor: A 1D tensor with the largest distance value.
+        """
+        points3D1,points3D2 = self.get_extreme_points3D(find_min=False)
+        return torch.linalg.norm(points3D1-points3D2,dim=-1).reshape(-1)
+
     def get_constraint(self):
         """
         Constraint function ensuring the closest points between the two surfaces
