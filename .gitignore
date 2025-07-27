@@ -1,3 +1,5 @@
 __pycache__
 build
 _build
+examples/results_NV1
+examples/*.html

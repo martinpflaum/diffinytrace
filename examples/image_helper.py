@@ -319,6 +319,7 @@ def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,c
 
         row_files = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=show_x_axis_first,vmin=rows_vmin[i],vmax=rows_vmax[i])
         image_column_text = create_image_with_text_orientation(row_files[1], rows_title[i], 0.2,font_size_PIL,vertical=True)
+        
         if i==0:
             images_row_text = []
             for k,elem in enumerate(columns_title):
