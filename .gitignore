@@ -3,3 +3,4 @@ build
 _build
 examples/results_NV1
 examples/*.html
+examples/results/collimated_compare/collimated2.html
