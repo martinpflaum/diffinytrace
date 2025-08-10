@@ -46,7 +46,7 @@ def create_lens(\
     use_power_correction = False,
     num_rays=2**16, #!this option performance critical. if sigma_final is low this option should be high.
     method_ray_tracing="sobol_pow2",
-    num_conv_points=301, #number of gaussians used in one dimension - so 301x301 gaussian measurement functions used in this case
+    num_conv_points=300, #number of gaussians used in one dimension - so 301x301 gaussian measurement functions used in this case
     residual_integration_method="midpoint", #integration method used for calulating the final error- should be sobol or midpoint, doenst really make much of a difference
     num_integration_points_desired=2**21,
     minimization_method='L-BFGS-B',

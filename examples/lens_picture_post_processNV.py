@@ -34,7 +34,7 @@ def create_folder(folder_path):
         return f"An error occurred: {e}"
 
 device = "cuda:0"
-image_file_name = "image_vertical.jpg"
+image_file_name = "image_vertical.png"
 results_folder_main = "results/results_NV1"#.2"
 create_folder(results_folder_main)
 
@@ -119,9 +119,10 @@ def create_all_plots_from_run(etendue,results_index):
             ax.axvline(x=current_iter, color='gray', linestyle='--', linewidth=1.2)
 
 
-        ax.grid(True, which='both', axis='both', linestyle='--', linewidth=0.5)
+        #ax.grid(True, which='both', axis='both', linestyle='--', linewidth=0.5)
         ax.minorticks_on()  # Enable minor ticks
-        ax.grid(True, which='minor', linestyle=':', linewidth=0.5)  # Minor grid lines (finer)
+        ax.grid(True, which='minor', linestyle='--', linewidth=0.5)  # Minor grid lines (finer)
+        ax.grid(True, which='major', linestyle='--', linewidth=1)  # Minor grid lines (finer)
         fig.suptitle("Convergence of Merit Function $m$")
         ax.set_title(subtitle)
         ax.set_xlabel("Number of Iterations")
@@ -149,11 +150,12 @@ def create_all_plots_from_run(etendue,results_index):
             plt.plot(iters,fun_vals,label=f"n={coeff_shape[0]}")
             plt.axvline(x=current_iter, color='gray', linestyle='--', linewidth=1.2)
 
-        ax.grid(True, which='both', axis='both', linestyle='--', linewidth=0.5)
-
         # Adjust the grid to have a finer resolution by changing the major and minor ticks
         ax.minorticks_on()  # Enable minor ticks
-        ax.grid(True, which='minor', linestyle=':', linewidth=0.5)  # Minor grid lines (finer)
+        ax.grid(True, which='minor', linestyle='--', linewidth=0.5)  # Minor grid lines (finer)
+        ax.grid(True, which='major', linestyle='--', linewidth=1)  # Minor grid lines (finer)
+        
+        
         fig.suptitle("Convergence of Error Per Iteration")
         ax.set_title(subtitle)
         ax.set_xlabel("Number of Iterations")
@@ -278,7 +280,7 @@ def create_all_plots_from_run(etendue,results_index):
                             cbar_labelsize=20,
                             cbar_title_fontsize=20)
         
-        file_name_getter = lambda i: current_result_folder+"/"+prefix_filename+f"_{i}.jpg"
+        file_name_getter = lambda i: current_result_folder+"/"+prefix_filename+f"_{i}.png"
         for k in range(len(out)):
             if k% 2 ==1:
                 concatenate_images_vertical([out[k-1],out[k]],file_name_getter(k))
@@ -483,7 +485,9 @@ surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surfac
 
 
 #%%
-Image.open(surface_img)
+surface_img_pil = Image.open(surface_img)
+surface_img_pil.save(results_folder_main + "/CCsurface_img_PIL0.png")
+
 #%%
 from image_grid_maker import concatenate_images_tempfile_row,create_white_image_with_dimensions
 #baseline
@@ -515,7 +519,7 @@ out = concatenate_images_tempfile_vertical([row0,row1,row2])
 xout = [out,surface_img]
 xout = concatenate_images_tempfile_row(xout)
 
-file_name_out = results_folder_main + f"/final_plot2.jpg"
+file_name_out = results_folder_main + f"/final_plot2.png"
 image = Image.open(xout)
 image.save(file_name_out)
 #%%
@@ -614,7 +618,8 @@ def create_2d4x4_plots(etendue):
 
             #ax.grid(True, which='both', axis='both', linestyle='--', linewidth=0.5)
         ax.minorticks_on()
-        ax.grid(True, which='minor', linestyle=':', linewidth=0.5)
+        ax.grid(True, which='minor', linestyle='--', linewidth=0.5)  # Minor grid lines (finer)
+        ax.grid(True, which='major', linestyle='--', linewidth=1)  # Minor grid lines (finer)
         ax.set_title(title)
         ax.set_xlabel("Number of Iterations")
         ax.set_ylabel(y_label)
@@ -690,7 +695,8 @@ def create_2d4x4_plots(etendue):
 
             #ax.grid(True, which='both', axis='both', linestyle='--', linewidth=0.5)
         ax.minorticks_on()
-        ax.grid(True, which='minor', linestyle=':', linewidth=0.5)
+        ax.grid(True, which='minor', linestyle='--', linewidth=0.5)  # Minor grid lines (finer)
+        ax.grid(True, which='major', linestyle='--', linewidth=1)  # Minor grid lines (finer)
         ax.set_title(title)
         ax.set_xlabel("Number of Iterations")
         ax.set_ylabel(y_label)
@@ -715,16 +721,16 @@ def create_2d4x4_plots(etendue):
         _etendue_add_on = " (without étendue)"
     _etendue_add_on = ""
         
-    file_name_out_merit = results_folder_main + f"/convergence_merit_fun_{etendue_add_on}.jpg"
+    file_name_out_merit = results_folder_main + f"/convergence_merit_fun_{etendue_add_on}.png"
     create_convergence_plot_res("Convergence of Merit Function"+_etendue_add_on,"fun_vals","$m$", file_name_out_merit)
 
-    file_name_out_error = results_folder_main + f"/convergence_error_{etendue_add_on}.jpg"
+    file_name_out_error = results_folder_main + f"/convergence_error_{etendue_add_on}.png"
     create_convergence_plot_default("Convergence of Error "+_etendue_add_on,"convergence","Error", file_name_out_error)
 
-    file_name_out = results_folder_main + f"/power_irr_smooth_{etendue_add_on}.jpg"
+    file_name_out = results_folder_main + f"/power_irr_smooth_{etendue_add_on}.png"
     create_convergence_plot_default("Integrated Power of Smoothed Irradiance"+_etendue_add_on,"power_irr_smooth_list","Power [W]", file_name_out)
 
-    file_name_out = results_folder_main + f"/power_desired_irr_smooth_{etendue_add_on}.jpg"
+    file_name_out = results_folder_main + f"/power_desired_irr_smooth_{etendue_add_on}.png"
     create_convergence_plot_default("Integrated Power of (Smoothed) Desired Irradiance"+_etendue_add_on,"power_desired_irr_list","Power [W]", file_name_out)
 #%%
 create_2d4x4_plots(True)
@@ -734,7 +740,6 @@ create_2d4x4_plots(True)
 etendue = True
 results_classical = load_results(0,etendue)
 results_desired_irr_smoothing = load_results(1,etendue)
-# %%
 #%%
 settings = results_desired_irr_smoothing["settings"]
 
@@ -742,8 +747,12 @@ aperture_radius_detector = settings['aperture_radius_detector']
     
 desired_none_smooth_irradiance_opti = results_desired_irr_smoothing["results_minimize"][-1]["desired_none_smooth_irradiance_opti"]
 desired_smooth_irradiance = results_classical["results_minimize"][-1]["desired_smooth_irradiance"]
-dit.plotting.quantity2D.plot(desired_smooth_irradiance,"Smoothed Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray")
-dit.plotting.quantity2D.plot(desired_none_smooth_irradiance_opti,"Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray")
+dit.plotting.quantity2D.plot(desired_smooth_irradiance,"Smoothed Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
+plt.savefig(results_folder_main + "/CCdesired_smooth_irradiance0.png")
+
+
+dit.plotting.quantity2D.plot(desired_none_smooth_irradiance_opti,"Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
+plt.savefig(results_folder_main + "/CCdesired_none_smooth_irradiance0.png")
 #%%
 font_size_PIL=30
 cbar_labelsize=16
@@ -759,7 +768,7 @@ vmin = min(desired_none_smooth_irradiance_opti.min(),desired_smooth_irradiance.m
 image_desired = make_row([desired_none_smooth_irradiance_opti,desired_smooth_irradiance],[-aperture_radius_detector,aperture_radius_detector,-aperture_radius_detector,aperture_radius_detector],"gray",cbar_labelsize,"[W/mm²]",cbar_title_fontsize,show_x_axis_first=True,vmin=vmin,vmax=vmax)
 #tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
 bottom = concatenate_images_tempfile_row(image_desired)
-Image.open(bottom)
+Image.open(bottom).save(results_folder_main + "/CCtmp0.png")
 
 #%%
 
@@ -768,14 +777,15 @@ text2 = create_image_with_text_orientation(image_desired[0],"Smoothed Desired Ir
 top = concatenate_images_tempfile_row([text1,text2])
 #create_white_image_with_dimensions2(wdith_plus_img,width_minus_img, image2_path)
 out = concatenate_images_tempfile_vertical([top,bottom])
-Image.open(out)
+Image.open(out).save(results_folder_main + "/CC_smooth_desired_both0.png")
+
 
 #create_white_image_with_dimensions2(wdith_plus_img,width_minus_img, image2_path)
 #create_image_with_text_orientation(row_files[1], rows_title[i], column_title_ratio,font_size_PIL,vertical=True)
 
 
 #%%
-Image.open(surface_img)
+Image.open(surface_img).save(results_folder_main + "/CCsurface_img1.png")
 
 
 #%%

@@ -9,6 +9,8 @@ import math
 from ...source import LightSource
 from ...target_grid import Grid
 import gc
+import warnings
+
 
 class Smoother:
     """
@@ -73,7 +75,8 @@ class Smoother:
         
         self.integrator = Cube([self.v_range,self.h_range])
         self.conv_points,self.weights = self.integrator.sample([self.v_num_conv_points,self.h_num_conv_points],residual_integration_method)
-        self.include_boundary = True
+        
+        #self.include_boundary = True
         self.use_eval_avg = use_eval_avg
         
         if residual_integration_method=="simpson":
@@ -173,7 +176,7 @@ class Smoother:
             dtype = self.dtype
         if self.use_eval_avg:
             gc.collect()
-            #print("Warning: integration might be slow for use_eval_avg - mabye use less self.num_integration_points_desired")
+            warnings.warn("Warning: using use_eval_avg=True in Smoother.calc_none_smooth_desired_irradiance_eval - this might be slow!")
             y,weights = self.integrator.sample(self.num_integration_points_desired,"sobol_pow2") 
             y = y.to(device=device,dtype=dtype)
             weights = weights.to(device=device,dtype=dtype)
@@ -384,7 +387,7 @@ class Smoother:
 
         #Power correction not 100% correct...sqrt is at the wrong place...
         if use_power_correction:
-            raise RuntimeError("power_correction is not implemented.")
+            raise NotImplementedError("power_correction is not implemented.")
             """    desired_irr_power = self.get_integral_over_distribution(desired_irr)
             outside_domain_desired_irr_power = self.total_power_desired-desired_irr_power
             smoothed_irradiance_power = self.get_integral_over_distribution(smoothed_irradiance)

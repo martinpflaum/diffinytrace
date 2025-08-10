@@ -126,7 +126,7 @@ class GaussianSmoother(Smoother):
                 sigma:float,\
                 device:torch.device=torch.get_default_device(),\
                 dtype:torch.dtype=torch.get_default_dtype(),\
-                num_integration_points_desired=[1000,1000],\
+                num_integration_points_desired=2**20,\
                 desired_irradiance_func=None,\
                 residual_integration_method="midpoint",\
                 total_power_desired=1.0,
@@ -184,7 +184,7 @@ class GaussianSmootherSquare(GaussianSmoother):
                 sigma:float,\
                 device=torch.get_default_device(),\
                 dtype=torch.get_default_dtype(),\
-                num_integration_points_desired=[1000,1000],\
+                num_integration_points_desired=2**20,\
                 desired_irradiance_func=None,\
                 residual_integration_method="midpoint",\
                 total_power_desired=1.0,
