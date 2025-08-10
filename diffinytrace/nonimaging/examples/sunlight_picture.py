@@ -48,7 +48,7 @@ def create_lens(\
     method_ray_tracing="sobol_pow2",
     num_conv_points=301, #number of gaussians used in one dimension - so 301x301 gaussian measurement functions used in this case
     residual_integration_method="midpoint", #integration method used for calulating the final error- should be sobol or midpoint, doenst really make much of a difference
-    num_integration_points_desired=[1000,1000],
+    num_integration_points_desired=2**21,
     minimization_method='L-BFGS-B',
     post_process_lens = True,
     total_power=1.0, #TODO CHANGE NAMING CONVETION TO TOTAL_FLUX. you really dont need to change this option it's just has influence on the final plots of the irradiance. total_power is the energy per second in Watts!

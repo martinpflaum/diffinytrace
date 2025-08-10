@@ -2,5 +2,6 @@ __pycache__
 build
 _build
 examples/results_NV1
+examples/results/results_NV1
 examples/*.html
 examples/results/collimated_compare/collimated2.html

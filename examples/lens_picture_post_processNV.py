@@ -35,7 +35,7 @@ def create_folder(folder_path):
 
 device = "cuda:0"
 image_file_name = "image_vertical.jpg"
-results_folder_main = "results_NV1"#.2"
+results_folder_main = "results/results_NV1"#.2"
 create_folder(results_folder_main)
 
 
@@ -787,9 +787,9 @@ etendue = True
 for results_index in range(2):
     create_all_plots_from_run(etendue,results_index)
 #%%
-etendue = False
-for results_index in range(2):
-    create_all_plots_from_run(etendue,results_index)
+#etendue = False
+#for results_index in range(2):
+#    create_all_plots_from_run(etendue,results_index)
 
 #%%
 results_desired_irr_smoothing = load_results(1,True)
@@ -1083,3 +1083,4 @@ def make_video():
 make_video()
 
 temp_dir.cleanup()"""
+# %%

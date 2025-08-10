@@ -22,7 +22,7 @@ class Smoother:
                 h_num_conv_points:int,
                 device=torch.get_default_device(),
                 dtype=torch.get_default_dtype(),
-                num_integration_points_desired=[1000,1000],
+                num_integration_points_desired=2**20, #---change to power of 2
                 desired_irradiance_func=None,
                 residual_integration_method="midpoint",
                 total_power_desired=1.0,
@@ -174,7 +174,7 @@ class Smoother:
         if self.use_eval_avg:
             gc.collect()
             #print("Warning: integration might be slow for use_eval_avg - mabye use less self.num_integration_points_desired")
-            y,weights = self.integrator.sample(self.num_integration_points_desired,"midpoint") 
+            y,weights = self.integrator.sample(self.num_integration_points_desired,"sobol_pow2") 
             y = y.to(device=device,dtype=dtype)
             weights = weights.to(device=device,dtype=dtype)
             
@@ -242,7 +242,7 @@ class Smoother:
         if self.__desired_irradiance_func is None:
             raise RuntimeError("Smoother Error: desired_irradiance_func is None. Specify it in the constructor or set it manually!")
             
-        y,weights = self.integrator.sample(self.num_integration_points_desired,"midpoint") #---maybe change to midpoint???
+        y,weights = self.integrator.sample(self.num_integration_points_desired,"sobol_pow2") #---sobol is good
         y = y.to(device=device,dtype=dtype)
         
         weights = weights.to(device=device,dtype=dtype)
