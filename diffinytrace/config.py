@@ -1,6 +1,17 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "set_show_iteration_count",
+    "get_show_iteration_count",
+    "set_tolerance",
+    "get_tolerance",
+    "set_max_iterations",
+    "get_max_iterations",
+    "set_damping_factor",
+    "get_damping_factor",
+    "restore_default_settings"
+]
 
 # Default settings for ray intersection parameters
 tolerance = 1e-6  # Default tolerance for ray intersection

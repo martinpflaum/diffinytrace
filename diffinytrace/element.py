@@ -1,6 +1,31 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "is_valid_square_circle",
+    "OpticalSystem",
+    "SequentialOpticalSystem",
+    "OpticalElement",
+    "OpticalSurface",
+    "LensSurfaceTransmissionEnter",
+    "LensSurfaceTransmissionLeave",
+    "LensSurfaceSide",
+    "Lens",
+    "Mirror",
+    "Detector",
+    "trace_to_detector",
+    "set_unused_params_to_zero",
+    "get_unused_params_mask",
+    "set_used_params_bounds_to_constant",
+    "FresnelOpticalSurface",
+    "FresnelVirtualLensSurfaceTransmissionEnter",
+    "FresnelVirtualLensSurfaceTransmissionLeave",
+    "FresnelVirtualLens",
+    "compute_reflected_directions",
+    "get_refracted_directions",
+    "set_unused_bspline_coeff_to_nearest"
+]
+
 import torch
 import torch.nn as nn
 from .plotting import Plotable

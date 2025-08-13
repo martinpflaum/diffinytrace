@@ -1,6 +1,12 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "plot",
+    "intensity",
+    "height",
+    "surface"
+]
 
 import matplotlib.pyplot as plt
 from torch import linspace,meshgrid,zeros,no_grad,is_tensor

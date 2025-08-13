@@ -2,6 +2,10 @@
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
 
+__all__ = [
+    "RefractiveIndex",
+    "materials"
+]
 
 import torch.nn as nn
 import torch

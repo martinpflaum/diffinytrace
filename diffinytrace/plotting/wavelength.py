@@ -1,8 +1,12 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "PlotableWavelength",
+    "add_colour_bar",
+    "plot"
+]
 
-#%%
 import matplotlib.pyplot as plt
 import numpy as np
 import torch

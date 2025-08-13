@@ -1,6 +1,15 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "ray_paths_one_bin",
+    "ray_paths",
+    "surface",
+    "get_optical_system_layout",
+    "_plot_surface",
+    "_plot_surface_recursively",
+    "plot"
+]
 
 import pandas as pd
 import torch

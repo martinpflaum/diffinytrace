@@ -1,28 +1,6 @@
 import torch
 import copy
 import gc
-def get_all_sigmas_refined(_ns_start,_orders,_sigma_final,_num_refinements_plus):
-    from ... import bspline_n_after_refinement
-    n_current = _ns_start[0]
-    order_k = _orders[0]
-    all_n = [n_current]
-    for k in range(_num_refinements_plus):
-        n_current = bspline_n_after_refinement(n_current,order_k)
-        all_n+=[n_current]
-
-
-    sigma_current = _sigma_final
-
-    all_sigma_rev = [sigma_current]
-    for _k in range(_num_refinements_plus-1):
-        k = _num_refinements_plus-_k
-        ratio = ((all_n[k-1])/(all_n[k]))
-        sigma_current = sigma_current*(1.0/ratio)
-        all_sigma_rev += [sigma_current]
-
-    all_sigma = all_sigma_rev[::-1] 
-    return all_sigma
-#= 'image_vertical.jpg'
 
 def create_lens(\
     input_file_name, #the image file

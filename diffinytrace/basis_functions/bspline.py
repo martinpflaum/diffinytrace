@@ -1,6 +1,15 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "cox_de_boor_recursion",
+    "basis_1d",
+    "basis_2d",
+    "surface_2d",
+    "insert_knot1D_single",
+    "insert_knots1D",
+    "refine2D"
+]
 
 import matplotlib.pyplot as plt
 import torch

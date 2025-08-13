@@ -1,14 +1,16 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "Spectrum",
+    "VisibleSunlight_am15g"
+]
 
 import torch
 import torch.nn as nn
 import numpy as np
 import pvlib
 from .plotting.wavelength import PlotableWavelength
-
-
 
 class Spectrum(nn.Module,PlotableWavelength):
     """

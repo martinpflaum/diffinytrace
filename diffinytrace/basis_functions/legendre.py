@@ -1,6 +1,12 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "precompute_legendre_polynomials",
+    "legendre_2d_basis",
+    "get_num_coeff"
+]
+
 import torch
 
 def precompute_legendre_polynomials(degree, x):

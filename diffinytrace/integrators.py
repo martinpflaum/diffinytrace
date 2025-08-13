@@ -1,6 +1,7 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = ["Integrator", "Cube"]
 
 import torch
 import numpy as np
@@ -33,50 +34,9 @@ class Integrator():
     
 
     def get_volume(self):
-        #TODO change this to Volume
         raise NotImplementedError("get_volume() not implemented")
 
-    """
-        raise NotImplementedError("get_volume() not implemented")
-
-    def in_domain(self,x):
-        raise NotImplementedError("in_domain() not implemented")
-    """
-
-"""class Compose(Integrator):
-    def __init__(self,integrator_list):
-        super().__init__()
-        self.integrator_list = integrator_list
-
-    def sample(self,num_points,method):
-        if not ((method == "sobol_pow2")or (method == "sobol") or (method == "monte_carlo")):
-            raise RuntimeError("Only sobol_pow2,sobol or monte_carlo sampling supported for VisibleSunlightSimple")
-
-        if isinstance(method,str):
-            method = [method for k in range(len(self.integrator_list))]
-        out_x = []
-        out_weights = []
-        for k,elem in enumerate(self.integrator_list):
-            x,weights = elem.sample(num_points,method[k])
-            out_x.append(x.reshape(num_points,-1))
-            out_weights.append(weights.reshape(-1,1))
-        out_x = torch.cat(out_x,dim=-1)
-        out_weights = torch.prod(torch.cat(out_weights,dim=-1),dim=-1)
-        return out_x,out_weights
-
-    def get_volume(self):
-        out = 1.0
-        for elem in self.integrator_list:
-            out = out*elem.get_volume()
-        return out
-
-    def in_bounds(self,x):
-        out = torch.ones(x.shape[0],device=x.device,dtype=torch.bool).float()
-        for elem in self.integrator_list:
-            out = out*(elem.in_bounds(x).float())
-        out = out==1.0
-        return out
-"""  
+     
 class Cube(Integrator):
     def __init__(self,bounds):
         """
@@ -133,6 +93,7 @@ class Cube(Integrator):
         
         volume = torch.prod(self.bounds[:,1]-self.bounds[:,0])
         return volume
+    
     def _sample_midpoint(self, num_points):
         """
         Sample points and weights using the midpoint rule.
@@ -144,7 +105,6 @@ class Cube(Integrator):
         sampled_points (torch.Tensor): Tensor of sampled points.
         weights (torch.Tensor): Tensor of weights associated with each point.
         """
-        #TODO add runtime error
         # Ensure num_points matches the number of dimensions in bounds
         num_points = np.array(num_points)
         if len(num_points) != self.bounds.shape[0]:

@@ -16,6 +16,7 @@ __all__ = [
     "plotting",
     "basis_functions",
     "nonimaging",
+    "gaussian_smoother",
     "optimize",
     "integrators",
     "export",
@@ -86,6 +87,8 @@ torch.set_default_dtype(torch.float64)
 from . import source
 from . import transforms
 from . import target_grid
+from . import gaussian_smoother
+
 from . import utils
 #from . import refractive_index
 from . import plotting

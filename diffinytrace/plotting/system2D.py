@@ -1,6 +1,16 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
+__all__ = [
+    "annotate_position_simple",
+    "annotate_position",
+    "annotated_arrow",
+    "layout",
+    "ray_paths",
+    "_plot_surface",
+    "_plot_surface_recursively",
+    "plot"
+]
 
 import torch
 import matplotlib.pyplot as plt

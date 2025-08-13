@@ -77,6 +77,14 @@ Examples:
         plt.plot(x,L_x)
     ```
 """
+
+__all__ = [
+    "bspline",
+    "legendre",
+    "zernike",
+    "chebyshev"
+]
+
 from . import bspline
 from . import legendre
 from . import zernike

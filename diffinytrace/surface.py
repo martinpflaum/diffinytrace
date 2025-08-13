@@ -1,7 +1,15 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
-#%%
+__all__ = [
+    "Surface",
+    "Plane",
+    "Aspheric",
+    "Bspline",
+    "Legendre",
+    # "Zernike"  # Uncomment if you implement Zernike
+]
+
 import torch
 import torch.nn as nn
 import numpy as np
