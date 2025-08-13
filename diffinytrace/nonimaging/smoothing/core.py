@@ -232,7 +232,7 @@ class Smoother:
             device (torch.device, optional): Device to use for calculations.
             dtype (torch.dtype, optional): Data type to use for calculations.
         Returns:
-            None
+            None 
         """
         
         #sqrt_integration_points = int(math.sqrt(float(self.num_integration_points)))
