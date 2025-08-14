@@ -38,7 +38,7 @@ def smoothed_irradiance(optical_system:SequentialOpticalSystem,
     """
     x,weights,y,wl = trace_to_detector(optical_system,sequence,source,detector,num_rays,device,method_ray_tracing=method_ray_tracing)
     Qval = source.get_flux(x.detach())
-    smoothed_irradiance = smoother.get_smooth_irradiance(y.detach(),Qval*weights)
+    smoothed_irradiance = smoother.smooth_irradiance(y.detach(),Qval*weights)
     return smoothed_irradiance    
 
 def binned_irradiance(optical_system:SequentialOpticalSystem,
