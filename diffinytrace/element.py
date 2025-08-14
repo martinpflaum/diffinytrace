@@ -26,6 +26,7 @@ __all__ = [
     "set_unused_bspline_coeff_to_nearest"
 ]
 
+from typing import List,Dict,Tuple
 import torch
 import torch.nn as nn
 from .plotting import Plotable
@@ -59,7 +60,10 @@ import matplotlib.colors as mcolors
 """
     
 
-def is_valid_square_circle(transform,O,aperture_radius,is_square):
+def is_valid_square_circle(transform:Transform,
+                           O:torch.Tensor,
+                           aperture_radius:float,
+                           is_square:bool)->torch.Tensor:
     r"""
     Checks whether points lie within a circular or square aperture after transformation.
 
@@ -93,7 +97,7 @@ class OpticalSystem(nn.Module,Plotable):
     Attributes:
         modules_dict (nn.ModuleDict): Dictionary of named optical modules.
     """
-    def __init__(self, modules_dict):
+    def __init__(self, modules_dict:Dict):
         nn.Module.__init__(self)
         Plotable.__init__(self)
         self.modules_dict = nn.ModuleDict(modules_dict)    
@@ -106,10 +110,10 @@ class OpticalSystem(nn.Module,Plotable):
         out = [[self.modules_dict[key],key] for key in self.modules_dict.keys()]
         return out
         
-    def get_plot_points2D(self,resolution):
+    def get_plot_points2D(self,resolution:int):
         return []
     
-    def get_plot_points3D(self,resolution):
+    def get_plot_points3D(self,resolution:int):
         return []
 
         
@@ -122,12 +126,12 @@ class SequentialOpticalSystem(OpticalSystem):
     Attributes:
         n_func_enviroment (Callable): Function returning refractive index of the surrounding medium.
     """ 
-    def __init__(self,modules_dict,n_func_enviroment=materials["AIR"]):
+    def __init__(self,modules_dict:Dict,n_func_enviroment=materials["AIR"]):
         OpticalSystem.__init__(self,modules_dict)
         self.n_func_enviroment = n_func_enviroment #Edit wavelength dependent
         
 
-    def forward(self,x,mapping_sequence):
+    def forward(self,x,mapping_sequence:List[str]):
         """
         Propagates rays through the defined sequence of modules.
 
@@ -158,7 +162,7 @@ class OpticalElement(PhysicalObject,Plotable):
         PhysicalObject.__init__(self)
         Plotable.__init__(self,fill_color=fill_color,outline_color=outline_color,is_volume=is_volume)
         
-    def forward(self,O2, D2, wl, n_func_enviroment, meta_data):
+    def forward(self,O2:torch.Tensor, D2:torch.Tensor, wl:torch.Tensor, n_func_enviroment, meta_data):
         """
         Propagates rays through the optical element.
 
@@ -192,7 +196,13 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         transform (Transform): Local-to-global transformation.
         integrator (Integrator): Integration object (Disc or Cube) for parametric sampling.
     """
-    def __init__(self,transform:Transform,surface,aperture_radius,is_square=False,fill_color="white", outline_color="black"):
+    def __init__(self,
+                 transform:Transform,
+                 surface,
+                 aperture_radius:float,
+                 is_square:bool=False,
+                 fill_color:str="white", 
+                 outline_color:str="black"):
         """
         Initializes the optical surface.
 
@@ -273,7 +283,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
             
 
 
-    def get_plot_points2D(self,resolution):
+    def get_plot_points2D(self,resolution:int)->List[Tuple[torch.Tensor]]:
         y = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
         x = torch.zeros_like(y)
         O = torch.zeros((resolution,2))
@@ -288,7 +298,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         z = points[:,2]
         return [(z,y)]
 
-    def get_plot_points3D(self,resolution):
+    def get_plot_points3D(self,resolution:int)->List[Tuple[torch.Tensor]]:
         _x = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
         _y = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
         mesh = torch.meshgrid(_x,_y)
@@ -315,7 +325,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         z = points[:,2].reshape(_x.shape[0],_x.shape[0])
         return [(x,y,z)]
 
-    def get_CAD_points(self,resolution):
+    def get_CAD_points(self,resolution:int)->List[Tuple[torch.Tensor]]:
         """
         Generates a 3D surface point grid for CAD conversion.
 
@@ -346,7 +356,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         z = points[:,2].reshape(_x.shape[0],_x.shape[0])
         return (x,y,z)
 
-    def get_CAD_face(self,resolution,tol=0.001,smoothing = None,minDeg: int = 1,maxDeg: int = 3):
+    def get_CAD_face(self,resolution:int,tol:float=0.001,smoothing = None,minDeg: int = 1,maxDeg: int = 3):
         """
         Converts the surface into a CAD face using B-spline approximation.
 
@@ -375,7 +385,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         face1 = cq.Face.makeSplineApprox(surface1_points,smoothing=smoothing,minDeg=minDeg,maxDeg=maxDeg,tol=tol)
         return face1
     
-    def parametric_sample(self,num_points,method="sobol")-> tuple[torch.Tensor, torch.Tensor]:
+    def parametric_sample(self,num_points:int,method:str="sobol")-> tuple[torch.Tensor, torch.Tensor]:
         """
         Samples parametric positions on the aperture using the integrator.
 
@@ -388,7 +398,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         """
         return self.integrator.sample(num_points,method)
 
-    def parametric_surface(self,parametric_pos)->torch.Tensor:
+    def parametric_surface(self,parametric_pos:torch.Tensor)->torch.Tensor:
         """
         Maps 2D parametric coordinates to 3D global coordinates using the surface height and transform.
 
@@ -483,8 +493,8 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
             Transform: The local-to-global transformation object.
         """
         return self.transform
-    
-def get_refracted_directions(D, N, n1, n2):
+
+def get_refracted_directions(D: torch.Tensor, N: torch.Tensor, n1: torch.Tensor|float, n2: torch.Tensor|float) -> torch.Tensor:
     r"""
     Computes refracted ray directions using Snell's law.
 
@@ -528,7 +538,7 @@ def get_refracted_directions(D, N, n1, n2):
     return out
 
 class LensSurfaceTransmissionEnter(OpticalSurface):
-    def __init__(self,transform,surface,aperture_radius,n_func,is_square=False):
+    def __init__(self,transform:Transform,surface,aperture_radius:float,n_func,is_square:bool=False):
         super().__init__(transform,surface,aperture_radius,is_square,'#dae8fc',"#6c8ebf")
         self.n_func = n_func
 
@@ -552,8 +562,9 @@ class LensSurfaceTransmissionEnter(OpticalSurface):
         meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"], meta_data["valid"] = PL, OPL, ray_paths, valid
         return O2,D2,wl,n_func_enviroment,meta_data
 
+
 class LensSurfaceTransmissionLeave(OpticalSurface):
-    def __init__(self,transform,surface,aperture_radius,n_func,is_square=False):
+    def __init__(self,transform:Transform,surface,aperture_radius:float,n_func,is_square:bool=False):
         super().__init__(transform,surface,aperture_radius,is_square,'#dae8fc',"#6c8ebf")
         self.n_func = n_func
 
@@ -602,13 +613,13 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
         self.integrator = Cube([[0.0,1.0],[0.0,1.0]])
 
               
-    def parametric_sample(self, num_points, method="sobol"):
+    def parametric_sample(self, num_points:int, method:str="sobol"):
         if (method != "sobol") or (method != "monte_carlo") or (method != "midpoint"):
             raise RuntimeError("Only sobol,monte_carlo and midpoint supported for LensSurfaceSide parametric_sample")
         
         return self.integrator.sample(num_points, method)
 
-    def parametric_surface(self, parametric_pos):
+    def parametric_surface(self, parametric_pos:torch.Tensor) -> torch.Tensor:
         device = parametric_pos.device
         dtype = parametric_pos.dtype
 
@@ -636,7 +647,7 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
         out = parameterize_height(*parameterize_circle(t),param_height)
         return out
 
-    def get_plot_points2D(self,resolution):
+    def get_plot_points2D(self,resolution:int):
         """
         Returns 2D slices through the surface (z-y plane) for plotting.
 
@@ -677,8 +688,8 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
         y2[0] = _y1[1]
         y2[1] = _y2[1]
         return [(z1,y1),(z2,y2)]
-    
-    def get_plot_points3D(self,resolution):
+
+    def get_plot_points3D(self,resolution:int):
         """
         Returns 3D grid of surface points for visualization.
 
@@ -780,7 +791,7 @@ class Lens(OpticalElement):
         aperture_radius (float): Radius (or half-width) of aperture.
         is_square (bool): Whether the aperture is square.
     """
-    def __init__(self,transform,lens_thickness,surface1,surface2,n_func,aperture_radius,is_square=False):
+    def __init__(self,transform:Transform,lens_thickness:float,surface1,surface2,n_func,aperture_radius:float,is_square=False):
         OpticalElement.__init__(self,'#dae8fc',"#6c8ebf",True)
         
         self.n_func = n_func 
@@ -796,7 +807,7 @@ class Lens(OpticalElement):
         self.aperture_radius = aperture_radius
         self.is_square = is_square
 
-    def get_plot_points2D(self,resolution):
+    def get_plot_points2D(self,resolution:int):
         def inverse_points(input):
             z,y = input
             z = torch.tensor(np.array(np.array(z)[::-1]))
@@ -826,7 +837,7 @@ class Lens(OpticalElement):
         """
         return out
     
-    def get_plot_points3D(self,resolution):
+    def get_plot_points3D(self,resolution:int):
         out = []
         out += self.surface1.get_plot_points3D(resolution)
         out += self.surface2.get_plot_points3D(resolution)
@@ -843,7 +854,7 @@ class Lens(OpticalElement):
     def get_plotable_childs(self):
         return []
     
-    def forward(self,O1,D1,wl,n_func_enviroment,meta_data):
+    def forward(self,O1:torch.Tensor,D1:torch.Tensor,wl:torch.Tensor,n_func_enviroment,meta_data):
         """
         Simulates light passing through the lens.
 
@@ -863,8 +874,8 @@ class Lens(OpticalElement):
     def get_transform(self):
         return self.surface2.transform
 
-    
-def compute_reflected_directions(D, N):
+
+def compute_reflected_directions(D:torch.Tensor, N:torch.Tensor) -> torch.Tensor:
     r"""
     Computes reflected ray directions using the reflection law.
 
@@ -976,7 +987,13 @@ class Detector(OpticalSurface):
 
     
 
-def trace_to_detector(optical_system:SequentialOpticalSystem,sequence,source,detector:Detector,num_rays=200000,device=torch.get_default_device(),method_ray_tracing="sobol"):
+def trace_to_detector(optical_system:SequentialOpticalSystem,
+                      sequence:List,
+                      source,
+                      detector:Detector,
+                      num_rays:int,
+                      device=torch.get_default_device(),
+                      method_ray_tracing:str="sobol_pow2"):
     r"""
     Traces rays through a system to a detector and returns the impact coordinates.
 
@@ -1004,7 +1021,12 @@ def trace_to_detector(optical_system:SequentialOpticalSystem,sequence,source,det
 
 
 
-def set_unused_params_to_zero(optical_system:SequentialOpticalSystem,sequence,source,params,num_rays=200000,method_ray_tracing="sobol"):
+def set_unused_params_to_zero(optical_system:SequentialOpticalSystem,
+                              sequence,
+                              source,
+                              params,
+                              num_rays=200000,
+                              method_ray_tracing="sobol"):
     """
     Sets unused parameters (those with zero gradient across ray paths) to zero.
 
@@ -1190,7 +1212,7 @@ class FresnelVirtualLens(OpticalElement):
         self.aperture_radius = aperture_radius
         self.is_square = is_square
 
-    def get_plot_points2D(self,resolution):
+    def get_plot_points2D(self,resolution:int):
         def inverse_points(input):
             z,y = input
             z = torch.tensor(np.array(np.array(z)[::-1]))
@@ -1236,8 +1258,8 @@ class FresnelVirtualLens(OpticalElement):
 
     def get_plotable_childs(self):
         return []
-    
-    def forward(self,O1,D1,wl,n_func_enviroment,meta_data):
+
+    def forward(self,O1:torch.Tensor,D1:torch.Tensor,wl:torch.Tensor,n_func_enviroment,meta_data):
         out = self.surface1(O1,D1,wl,n_func_enviroment,meta_data)
         return self.surface2(*out)
 

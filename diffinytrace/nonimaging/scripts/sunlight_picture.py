@@ -14,27 +14,18 @@ def create_lens(\
     detector_distance = 150., #distance from lens to detector in [mm]
     lens_distance = 1.0,
     num_refinements = 5, #!number of refinements is also very portant but performance critical 
-    sigma_final = 1.0, #!sigma final is a very important option since this says what the maximal expected resolution would be sigma final should be in relation to the number of rays traced
+    sigma = 1.0, #!sigma final is a very important option since this says what the maximal expected resolution would be sigma final should be in relation to the number of rays traced
     image_padding = 0.2, #image padding is important to have a well defined optical system
     etendue = True,
     bspline_orders = [3,3], #this option determines how smooth the lens surface is and thus also influences how smooth the irradiance is.
     bspline_ns_start = [4,4], #number of elements in x and y direction. bspline_ns_start = [4,4] is probably the best option always!
-    use_sigma_refinement = True, #use_sigma_refinement=True will be the best option probably always!
     use_desired_irradiance_smoothing = True, #use_desired_irradiance_smoothing=True will be the best option probably always!
-    use_power_correction = False,
     num_rays=2**16, #!this option performance critical. if sigma_final is low this option should be high.
-    method_ray_tracing="sobol_pow2",
-    num_conv_points=300, #number of gaussians used in one dimension - so 301x301 gaussian measurement functions used in this case
-    residual_integration_method="midpoint", #integration method used for calulating the final error- should be sobol or midpoint, doenst really make much of a difference
+    grid_size=300, #number of gaussians used in one dimension - so 301x301 gaussian measurement functions used in this case
     num_integration_points_desired=2**21,
     minimization_method='L-BFGS-B',
-    post_process_lens = True,
     total_power=1.0, #TODO CHANGE NAMING CONVETION TO TOTAL_FLUX. you really dont need to change this option it's just has influence on the final plots of the irradiance. total_power is the energy per second in Watts!
-    save_lens_history = False,
-    save_history = False,
-    save_irradiance_results=False,
-    num_rays_save_irradiance = None,
-    html_plot_file_name=""):
+    ):#html_plot_file_name=""
     r"""
     This function creates a lens from an image file and optimizes it using ray tracing.
     
@@ -60,7 +51,7 @@ def create_lens(\
         use_power_correction (bool): Whether to use power correction or not.
         num_rays (int): The number of rays to trace.
         method_ray_tracing (str): The method used for ray tracing ('sobol_pow2' or 'sobol').
-        num_conv_points (int): The number of Gaussian measurement functions used in one dimension.
+        grid_size (int): The number of Gaussian measurement functions used in one dimension.
         residual_integration_method (str): The integration method used for calculating the final error ('sobol' or 'midpoint').
         num_integration_points_desired (list): The number of integration points for desired irradiance calculation.
         minimization_method (str): The method used for minimization ('L-BFGS-B').
@@ -94,17 +85,11 @@ def create_lens(\
     from ... import minimize
     from ... import set_unused_bspline_coeff_to_nearest
     from ... import export
-    from ..import smoothing
+    from ... import gaussian_smoother
 
 
     if (image_padding==0.0):
         raise ValueError("Please don't set image_padding to 0.0.")
-
-    if num_rays_save_irradiance is None:
-        num_rays_save_irradiance = num_rays
-
-    if (not use_desired_irradiance_smoothing) and use_sigma_refinement:
-        raise ValueError("if use_sigma_refinement==True,use_desired_irradiance_smoothing must be enabled!")
 
     ns_start = copy.deepcopy(bspline_ns_start)
     orders = copy.deepcopy(bspline_orders)
@@ -135,11 +120,11 @@ def create_lens(\
     system = SequentialOpticalSystem({"source":light_source,"lens":lens1,"detector":detector},air_material)
     sequence = ["source","lens","detector"]
     system.to(device)
-    irr_func = utils.irradiance_importer.create_irradiance_from_image_square(input_file_name,image_padding,0.,aperture_radius_detector,shape=[num_conv_points,num_conv_points])
+    irr_func = utils.irradiance_importer.create_irradiance_from_image_square(input_file_name,image_padding,0.,aperture_radius_detector,shape=[grid_size,grid_size])
     #plotting.quantity2D.plot(irr_func,"Desired Irradiance Distribution",cmap="grey",x_range=[-aperture_radius_detector,aperture_radius_detector])
     
     def get_desired_irradiance_raw():
-        resolution = num_conv_points
+        resolution = grid_size
         x_range = [-aperture_radius_detector,aperture_radius_detector]
         y_range = x_range
         _y = torch.linspace(*x_range,resolution)
@@ -157,14 +142,7 @@ def create_lens(\
         return val
     
     desired_irradiance_raw =  get_desired_irradiance_raw()
-
-    sigmas = None
-    if use_sigma_refinement:
-        sigmas = get_all_sigmas_refined(ns_start,orders,sigma_final,num_refinements+1)
-    else:
-        sigmas = [sigma_final for _ in range(num_refinements)]
     
-    print("using sigmas",sigmas)
     
     def create_lens_copy():
         lens1_copy = copy.deepcopy(lens1)
@@ -175,7 +153,7 @@ def create_lens(\
         
         return lens1_copy
     
-    def create_html_plot(prefix):
+    """def create_html_plot(prefix):
         from ...plotting.system3D import plot
         x,_ = light_source.sample(15)
         x = x.to("cuda")
@@ -187,22 +165,22 @@ def create_lens(\
         lens_copy._transform1 = transforms.Offset([0.,0.,0.]) 
         lens_copy._transform2.parent_transform = lens_copy._transform1
         plot(lens_copy,html_file_name=_html_plot_file_name+prefix+"_lens.html",show=False)
-        
-    create_html_plot("initial")
+    """    
+    #create_html_plot("initial")
     
-    def create_smoother(sigma):
-        return smoothing.GaussianSmootherSquare(aperture_radius_detector,\
-                                                                       num_conv_points=num_conv_points,\
+    def create_smoother(sigma)->gaussian_smoother.GaussianSmoother:
+        return gaussian_smoother.GaussianSmootherSquare(aperture_radius_detector,\
+                                                                       grid_size=grid_size,\
                                                                         sigma=sigma,\
                                                                         device=device,\
                                                                         num_integration_points_desired=num_integration_points_desired,\
                                                                         desired_irradiance_func=irr_func,\
                                                                         residual_integration_method=residual_integration_method,\
                                                                         total_power_desired=total_power,
-                                                                        num_eval_points = num_conv_points,use_eval_avg=False)
+                                                                        num_eval_points = grid_size,use_eval_avg=False)
 
-    final_smoother = create_smoother(sigmas[-1])
-    
+    smoother:gaussian_smoother.GaussianSmoother = create_smoother(sigma)
+
     def run_ray_tracer_smooth(smoother):
         import matplotlib.pyplot as plt
         with torch.no_grad():
@@ -220,8 +198,7 @@ def create_lens(\
             out = out.detach().cpu().numpy()
             return out
 
-    smoother = create_smoother(sigmas[0])
-
+    """
     initial_smooth_irradiance = None
     initial_binned_irradiance = None
     initial_desired_smooth_irradiance = None
@@ -237,7 +214,7 @@ def create_lens(\
         initial_desired_smooth_irradiance = smoother.desired_smooth_irradiance.detach().cpu().numpy()
         initial_desired_none_smooth_irradiance_opti = smoother.desired_none_smooth_irradiance_opti.detach().cpu().numpy()
         initial_desired_none_smooth_irradiance_eval = smoother.desired_none_smooth_irradiance_eval.detach().cpu().numpy()
-
+    """
 
     def convergence_callback_func(smoother:smoothing.Smoother,convergence_list:list,power_irr_smooth_list:list,power_desired_irr_list:list):
         def return_func():
@@ -348,31 +325,29 @@ def create_lens(\
     else:
         results_minimize = run_minimization_loop_classical()
 
-    if post_process_lens:
+    """if post_process_lens:
         set_unused_bspline_coeff_to_nearest(system,sequence,light_source,bspline_surface1,num_rays=num_rays,method_ray_tracing=method_ray_tracing)
 
     if output_step_file_name is not None:
         if output_step_file_name != "":
             export_resolution = 256 #has no influence because we are using bsplines!
             export.cad.export_lens(output_step_file_name,lens1,export_resolution)
-    
-    
+    """
 
 
-    final_lens = create_lens_copy()
+
+    #final_lens = create_lens_copy()
     
     gc.collect()
-    create_html_plot("final")
+    # create_html_plot("final")
     gc.collect()
     
     def get_final_irr_results():
         out = {}
-        out["smooth_irradiance"] = run_ray_tracer_smooth(final_smoother)
-        out["binned_irradiance_eval"] = run_ray_tracer_none_smooth_eval(final_smoother)
-        out["binned_irradiance"] = out["binned_irradiance_eval"]
-        out["desired_smooth_irradiance"] = final_smoother.desired_smooth_irradiance.detach().cpu().numpy()
-        out["desired_none_smooth_irradiance_opti"] = final_smoother.desired_none_smooth_irradiance_opti.detach().cpu().numpy()
-        out["desired_none_smooth_irradiance_eval"] = final_smoother.desired_none_smooth_irradiance_eval.detach().cpu().numpy()
+        out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
+        out["binned_irradiance"] = run_ray_tracer_none_smooth_eval(smoother)
+        out["desired_smooth_irradiance"] = smoother.desired_smooth_irradiance.detach().cpu().numpy()
+        out["desired_none_smooth_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
         return out
 
     def get_initial_irr_results():
@@ -404,7 +379,7 @@ def create_lens(\
         out["num_integration_points_desired"] = num_integration_points_desired
         out["bspline_orders"] = bspline_orders
         out["bspline_ns_start"] = bspline_ns_start
-        out["num_conv_points"] = num_conv_points
+        out["grid_size"] = grid_size
         out["use_sigma_refinement"] = use_sigma_refinement
         out["use_desired_irradiance_smoothing"] = use_desired_irradiance_smoothing
         out["etendue"] = etendue

@@ -48,7 +48,7 @@ class Transform(SemiFunctionalModule):
         raise NotImplementedError("params_list not implemented")
 
     @staticmethod
-    def functional(O,*params):
+    def functional(O,*params)->torch.Tensor:
         """
         Apply transformation in functional style. This is global to local.
         
@@ -59,7 +59,7 @@ class Transform(SemiFunctionalModule):
         """
         raise NotImplementedError("functional not implemented")
     
-    def get_transformation_matrix(self,device=None,dtype=None):
+    def get_transformation_matrix(self,device=None,dtype=None)->torch.Tensor:
         """
         Return the 4x4 transformation matrix.
         
@@ -78,7 +78,7 @@ class Transform(SemiFunctionalModule):
         """
         return self
     
-    def to_global_dir(self,direction):
+    def to_global_dir(self,direction:torch.Tensor) -> torch.Tensor:
         """
         Transform direction to global space.
         Args:
@@ -91,7 +91,7 @@ class Transform(SemiFunctionalModule):
         out = direction@R.T
         return out
 
-    def to_local_dir(self,direction):
+    def to_local_dir(self,direction:torch.Tensor) -> torch.Tensor:
         """
         Transform direction to local space.
         Args:
@@ -105,7 +105,7 @@ class Transform(SemiFunctionalModule):
         out = direction@R_inv.T
         return out
 
-    def to_global_pos(self,position):
+    def to_global_pos(self,position:torch.Tensor) -> torch.Tensor:
         """
         Transform position to global space.
         Args:
@@ -120,8 +120,8 @@ class Transform(SemiFunctionalModule):
         _out = v@M.T
         out = _out[:,[0,1,2]] 
         return out
-    
-    def to_local_pos(self,position):
+
+    def to_local_pos(self,position:torch.Tensor) -> torch.Tensor:
         """
         Transform position to local space.
         Args:
@@ -147,10 +147,10 @@ class Identity(Transform):
         return []
 
     @staticmethod
-    def functional(O):
+    def functional(O:torch.Tensor) -> torch.Tensor:
         return O
 
-    def get_transformation_matrix(self,device=None,dtype=None):
+    def get_transformation_matrix(self,device=None,dtype=None) -> torch.Tensor:
         out = torch.eye(4,device=device,dtype=dtype)
         return out 
 
@@ -171,8 +171,8 @@ class Compose(Transform):
         for elem in self.transform_list:
             out += elem.get_functional_param_args()
         return out
-    
-    def get_transformation_matrix(self,device=None,dtype=None):
+
+    def get_transformation_matrix(self,device=None,dtype=None) -> torch.Tensor:
         out = torch.eye(4,device=device,dtype=dtype)
         for elem in self.transform_list:
             tmp = elem.get_transformation_matrix(device,dtype)
@@ -223,11 +223,11 @@ class Offset(Transform):
     def get_functional_param_args(self):
         return [self.pos]+self.parent_transform.get_functional_param_args()
 
-    def functional(self,O,pos,*parent_param_args):
+    def functional(self,O:torch.Tensor,pos:torch.Tensor,*parent_param_args)->torch.Tensor:
         O = self.parent_transform.functional(O,*parent_param_args)
         return O-pos
 
-    def get_transformation_matrix(self,device=None,dtype=None):
+    def get_transformation_matrix(self,device=None,dtype=None) -> torch.Tensor:
         if device is None:
             device = self.pos.device
         if dtype is None:
@@ -293,12 +293,12 @@ class Distance(Transform):
             unit_vec = unit_vec.to(self.distance.device)
         return [self.distance,unit_vec]+self.parent_transform.get_functional_param_args()
 
-    def functional(self,O,distance,unit_vec,*parent_param_args):
+    def functional(self,O:torch.Tensor,distance:torch.Tensor,unit_vec:torch.Tensor,*parent_param_args)->torch.Tensor:
         O = self.parent_transform.functional(O,*parent_param_args)
         O = O-distance*unit_vec
         return O
-    
-    def get_transformation_matrix(self,device=None,dtype=None):
+
+    def get_transformation_matrix(self,device=None,dtype=None)->torch.Tensor:
         if device is None:
             device = self.distance.device
         if dtype is None:
@@ -311,7 +311,7 @@ class Distance(Transform):
         out = parent_transform_matrix@this_matrix
         return out 
 
-def rotation_matrix_x(angle):
+def rotation_matrix_x(angle:torch.Tensor) -> torch.Tensor:
     """
     Construct a 3x3 rotation matrix around the X-axis.
 
@@ -337,7 +337,7 @@ def rotation_matrix_x(angle):
 
     return rot_x
 
-def rotation_matrix_y(angle):
+def rotation_matrix_y(angle:torch.Tensor) -> torch.Tensor:
     """
     Construct a 3x3 rotation matrix around the Y-axis.
 
@@ -363,7 +363,7 @@ def rotation_matrix_y(angle):
 
     return rot_y
 
-def rotation_matrix_z(angle):
+def rotation_matrix_z(angle:torch.Tensor) -> torch.Tensor:
     """
     Construct a 3x3 rotation matrix around the Z-axis.
 
@@ -431,8 +431,8 @@ class Rotation(Transform):
     def get_functional_param_args(self):
         return [self.angle]+self.parent_transform.get_functional_param_args()
 
-    
-    def functional(self,O,angle,*parent_param_args):
+
+    def functional(self,O:torch.Tensor,angle:torch.Tensor,*parent_param_args)->torch.Tensor:
         #R = rotate_3d(angle_x, angle_y, angle_z)
         O = self.parent_transform.functional(O,*parent_param_args)
         R = None
@@ -445,7 +445,7 @@ class Rotation(Transform):
     
         return O@R.T
 
-    def get_transformation_matrix(self,device=None,dtype=None):
+    def get_transformation_matrix(self,device=None,dtype=None) -> torch.Tensor:
         if device is None:
             device = self.angle.device
         if dtype is None:

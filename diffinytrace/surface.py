@@ -283,7 +283,7 @@ class Bspline(Surface):
     The functional method returns the z-coordinate of the input points.
     """
     
-    def __init__(self,aperture_radius,orders,ns):
+    def __init__(self,aperture_radius:float,orders,ns):
         super().__init__()
         #orders is order!!!
         #order = degree + 1
@@ -296,8 +296,8 @@ class Bspline(Surface):
         self.Us = [U1,U2]
         self.ns = ns
         self.orders = orders
-        print("orders",self.orders)
-        print("ns",self.ns)
+        #print("orders",self.orders)
+        #print("ns",self.ns)
         self.coeff = make_parameter_from_input(torch.zeros((self.ns)))
         self.aperture_radius = torch.tensor(aperture_radius)    
 

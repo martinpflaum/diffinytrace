@@ -96,12 +96,70 @@ def plot(val,title="",x_range=None,y_range=None,cmap="jet",subtitle="",title_fon
 
 
 def intensity(val,title="",x_range=None,y_range=None,cmap="jet",interpolation="none",xlabel="x [mm]",ylabel="y [mm]",norm=None,show=True,vmin: float | None = None,vmax: float | None = None,**kwargs):
+    """
+    Plots a 2D intensity map using matplotlib.
+
+    Args:
+        val (callable or np.ndarray or torch.Tensor): The intensity data to plot. If callable, should accept a 2D array of coordinates.
+        title (str, optional): Title of the plot.
+        x_range (tuple, optional): Range of x-axis.
+        y_range (tuple, optional): Range of y-axis.
+        cmap (str, optional): Colormap to use. Defaults to "jet".
+        interpolation (str, optional): Interpolation method for imshow. Defaults to "none".
+        xlabel (str, optional): Label for x-axis. Defaults to "x [mm]".
+        ylabel (str, optional): Label for y-axis. Defaults to "y [mm]".
+        norm (matplotlib.colors.Normalize, optional): Normalization for color scale.
+        show (bool, optional): Whether to show the plot. Defaults to True.
+        vmin (float, optional): Minimum value for color normalization.
+        vmax (float, optional): Maximum value for color normalization.
+        **kwargs: Additional keyword arguments for matplotlib's imshow.
+
+    Returns:
+        None
+    """
     plot(val,f"{title} [$W/mm^2$]",x_range,y_range,cmap=cmap,interpolation=interpolation,xlabel=xlabel,ylabel=ylabel,norm=norm,show=show,vmin=vmin,vmax=vmax,**kwargs)
 
 def height(val,title="",x_range=None,y_range=None,cmap="cool",interpolation="none",xlabel="x [mm]",ylabel="y [mm]",norm=None,show=True,vmin: float | None = None,vmax: float | None = None,**kwargs):
+    """
+    Plots a 2D height map using matplotlib.
+
+    Args:
+        val (callable or np.ndarray or torch.Tensor): The height data to plot. If callable, should accept a 2D array of coordinates.
+        title (str, optional): Title of the plot.
+        x_range (tuple, optional): Range of x-axis.
+        y_range (tuple, optional): Range of y-axis.
+        cmap (str, optional): Colormap to use. Defaults to "cool".
+        interpolation (str, optional): Interpolation method for imshow. Defaults to "none".
+        xlabel (str, optional): Label for x-axis. Defaults to "x [mm]".
+        ylabel (str, optional): Label for y-axis. Defaults to "y [mm]".
+        norm (matplotlib.colors.Normalize, optional): Normalization for color scale.
+        show (bool, optional): Whether to show the plot. Defaults to True.
+        vmin (float, optional): Minimum value for color normalization.
+        vmax (float, optional): Maximum value for color normalization.
+        **kwargs: Additional keyword arguments for matplotlib's imshow.
+
+    Returns:
+        None
+    """
     plot(val,f"Height z [$mm$] of {title}",x_range,y_range,cmap=cmap,interpolation=interpolation,xlabel=xlabel,ylabel=ylabel,norm=norm,show=show,vmin=vmin,vmax=vmax,**kwargs)
     
 def surface(surface,name,aperture_radius,resolution=256,is_square=True,norm=None,show=True,**kwargs):
+    """
+    Plots the surface height map of an optical surface using matplotlib.
+
+    Args:
+        surface: The surface object with a .functional method and .get_functional_param_args().
+        name (str): Name or label for the plot.
+        aperture_radius (float): Radius of the aperture for the plot.
+        resolution (int, optional): Number of points per axis for the grid. Defaults to 256.
+        is_square (bool, optional): If True, plots a square grid; if False, masks points outside the aperture radius. Defaults to True.
+        norm (matplotlib.colors.Normalize, optional): Normalization for color scale.
+        show (bool, optional): Whether to show the plot. Defaults to True.
+        **kwargs: Additional keyword arguments for matplotlib's imshow.
+
+    Returns:
+        None
+    """
     surface = deepcopy(surface)
     surface = surface.cpu()
     x_range = (-aperture_radius,aperture_radius)

@@ -8,10 +8,18 @@ __all__ = [
 
 import torch
 import numpy as np
+from typing import List
 from ..source import LightSource
 from ..element import trace_to_detector,SequentialOpticalSystem,Detector
 
-def smoothed_irradiance(optical_system:SequentialOpticalSystem,sequence,source:LightSource,detector:Detector,smoother,num_rays=100000,device=torch.get_default_device(),method_ray_tracing="sobol")->torch.Tensor:
+def smoothed_irradiance(optical_system:SequentialOpticalSystem,
+                        sequence:List,
+                        source:LightSource,
+                        detector:Detector,
+                        smoother,
+                        num_rays:int,
+                        device=torch.get_default_device(),
+                        method_ray_tracing:str="sobol_pow2")->torch.Tensor:
     """
     Calculate the smoothed irradiance on the detector using ray tracing.
     
@@ -33,7 +41,14 @@ def smoothed_irradiance(optical_system:SequentialOpticalSystem,sequence,source:L
     smoothed_irradiance = smoother.get_smooth_irradiance(y.detach(),Qval*weights)
     return smoothed_irradiance    
 
-def binned_irradiance(optical_system:SequentialOpticalSystem,sequence,source:LightSource,detector:Detector,grid,num_rays=100000,device=torch.get_default_device(),method_ray_tracing="sobol")->torch.Tensor:
+def binned_irradiance(optical_system:SequentialOpticalSystem,
+                      sequence:List,
+                      source:LightSource,
+                      detector:Detector,
+                      grid,
+                      num_rays:int,
+                      device=torch.get_default_device(),
+                      method_ray_tracing:str="sobol_pow2")->torch.Tensor:
     """
     Calculate the binned irradiance on the detector using ray tracing.
     
@@ -50,9 +65,12 @@ def binned_irradiance(optical_system:SequentialOpticalSystem,sequence,source:Lig
     Returns:
         torch.Tensor: The binned irradiance on the detector.
     """
-    x,weights,y,wl = trace_to_detector(optical_system,sequence,source,detector,num_rays,device,method_ray_tracing=method_ray_tracing)
-    Qval = source.get_flux(x.detach())
-    irradiance = grid.sum(y,Qval*weights)/grid.get_pixel_area()
+    irradiance = None
+    with torch.no_grad():
+        x,weights,y,wl = trace_to_detector(optical_system,sequence,source,detector,num_rays,device,method_ray_tracing=method_ray_tracing)
+        Qval = source.get_flux(x.detach())
+        irradiance = grid.sum(y,Qval*weights)/grid.get_pixel_area()
+    #irradiance = irradiance.reshape(grid.x_)
     return irradiance
 
 

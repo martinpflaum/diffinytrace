@@ -144,7 +144,11 @@ class Grid():
         k = self.get_k(local_points)
         return old_matrix.reshape(-1)[k].reshape(local_points.shape[0],*old_matrix.shape[2:]) 
         
-    def sum(self,local_points,values,old_matrix = None,round_to_bounds=False):
+    def sum(self, 
+            local_points:torch.Tensor,
+            values:torch.Tensor, 
+            old_matrix = None, 
+            round_to_bounds:bool = False):
         """
         Sums values over the grid based on point locations.
 
