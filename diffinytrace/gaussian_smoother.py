@@ -158,9 +158,10 @@ def calc_smooth_desired_irradiance(desired_irradiance_fun:Callable,
             out.append(tmp)
             del split_points, split_weights, tmp
 
-    out = torch.mean(torch.stack(out), dim=0)
+    out = torch.sum(torch.stack(out), dim=0)
     del points, weights, splitted_points, splitted_weights
     gc.collect()
+    #print("smoothed desired sum",out.sum())
     return out
     
 
@@ -213,11 +214,12 @@ class GaussianSmoother():
 
         self.grid = Grid(x_range,y_range,x_grid_size,y_grid_size)
         centers = self.grid.get_pixel_centers().reshape(-1,2)
-        self.discrete_desired_irradiance:torch.Tensor = desired_irradiance_fun(centers)
-        
-        
+        self.discrete_desired_irradiance:torch.Tensor = desired_irradiance_fun(centers).reshape(y_grid_size,x_grid_size)
+        integrated_desired_irradiance = self.integrate_values(self.discrete_desired_irradiance)
+        self.discrete_desired_irradiance = self.discrete_desired_irradiance / integrated_desired_irradiance
+        new_desired_irradiance_fun = lambda points: desired_irradiance_fun(points) / integrated_desired_irradiance
     
-        self.smoothed_desired_irradiance:torch.Tensor = calc_smooth_desired_irradiance(desired_irradiance_fun,
+        self.smoothed_desired_irradiance:torch.Tensor = calc_smooth_desired_irradiance(new_desired_irradiance_fun,
                                    x_range,y_range,
                                    x_grid_size,
                                    y_grid_size,
@@ -267,6 +269,7 @@ class GaussianSmoother():
         integrator = Cube([self.x_range, self.y_range])
         _, weights = integrator.sample([self.x_grid_size, self.y_grid_size], "midpoint")
         weights = weights.to(device=vals.device, dtype=vals.dtype)
+        vals = vals.reshape(-1)
         return (vals * weights).sum()
 
 
@@ -342,7 +345,7 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
         raycounting = torch.mean(torch.stack(raycounting_list),dim=0).detach().cpu()
         
         smoother.last_raycounting = raycounting
-        residual = raycounting.reshape(-1)-smoother.discrete_desired_irradiance.reshape(-1)
+        residual = raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1)
         
         L2_error = torch.sqrt(smoother.integrate_values(residual**2))
         #RMSE = torch.sum((residual**2))
@@ -392,10 +395,15 @@ def make_merit_function(optical_system:SequentialOpticalSystem,
         smooth_irradiance = smoother.smooth_irradiance(y,Qval*weights)
         residual = None
 
+        smoother.smoothed_desired_irradiance = smoother.smoothed_desired_irradiance.to(device=device)
+        smoother.discrete_desired_irradiance = smoother.discrete_desired_irradiance.to(device=device)
+        
         if use_desired_irradiance_smoothing:
-            residual = smooth_irradiance.reshape(-1)-smoother.smoothed_desired_irradiance.reshape(-1).to(device=device)
+            #print("sums 1: ",smooth_irradiance.sum()," 2: ",smoother.smoothed_desired_irradiance.sum())
+            residual = smooth_irradiance.reshape(-1)-smoother.smoothed_desired_irradiance.reshape(-1)#.to(device=device)
         else:
-            residual = smooth_irradiance.reshape(-1)-smoother.discrete_desired_irradiance.reshape(-1).to(device=device)
+            #print("sums 1: ",smooth_irradiance.sum()," 2: ",smoother.discrete_desired_irradiance.sum())
+            residual = smooth_irradiance.reshape(-1)-smoother.discrete_desired_irradiance.reshape(-1)#.to(device=device)
 
         return torch.sqrt(smoother.integrate_values(residual**2))
 
