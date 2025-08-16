@@ -207,6 +207,7 @@ class GaussianSmoother():
                  smoothed_num_splits:int,
                  dtype=torch.get_default_dtype(),
                  device=torch.get_default_device()):
+        
         self.x_grid_size,self.y_grid_size = x_grid_size,y_grid_size
         self.sigma = sigma
         self.include_boundary = False
@@ -345,7 +346,7 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
             raycounting_list.append(tmp)
         raycounting = torch.mean(torch.stack(raycounting_list),dim=0).detach().cpu()
         
-        smoother.last_raycounting = raycounting
+        smoother.last_raycounting = raycounting.detach().cpu()
         residual = raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1)
         
         L2_error = torch.sqrt(smoother.integrate_values(residual**2))
@@ -394,6 +395,8 @@ def make_merit_function(optical_system:SequentialOpticalSystem,
             raise RuntimeError("Using desired irradiance smoothing but smoothed_desired_irradiance was not provided!--calc_smooth_desired_irradiance")
         
         smoothed_irradiance = smoother.smoothed_irradiance(y,Qval*weights)
+        
+        smoother.last_smoothed_irradiance = smoothed_irradiance.detach().cpu()
         residual = None
 
         smoother.smoothed_desired_irradiance = smoother.smoothed_desired_irradiance.to(device=device)

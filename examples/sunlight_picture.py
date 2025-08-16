@@ -157,7 +157,7 @@ def create_lens(
                                     smoothed_num_splits=10,
                                     device=device)
     
-    def run_ray_tracer_smooth(smoother):
+    """def run_ray_tracer_smooth(smoother):
         with torch.no_grad():
             out = render.smoothed_irradiance(system,sequence,light_source,detector,smoother,num_rays=num_rays,device=device,method_ray_tracing=method_ray_tracing)
             out = out.detach().cpu().numpy()
@@ -172,7 +172,7 @@ def create_lens(
             out = render.binned_irradiance(system,sequence,light_source,detector,grid,device=device,num_rays=num_rays_save_irradiance,method_ray_tracing=method_ray_tracing)
             out = out.detach().cpu().numpy()
             return out
-
+    """
     """
     initial_smooth_irradiance = None
     initial_binned_irradiance = None
@@ -190,16 +190,7 @@ def create_lens(
         initial_discrete_desired_irradiance = smoother.discrete_desired_irradiance.detach().cpu().numpy()
         initial_desired_none_smooth_irradiance_eval = smoother.desired_none_smooth_irradiance_eval.detach().cpu().numpy()
     """
-
-    def convergence_callback_func(smoother:gaussian_smoother.GaussianSmoother,convergence_list:list):
-        def return_func():
-            convergence_list.append(smoother.last_eval_merit_val)
-        
-        return return_func 
-
-    def minimization_call(smoother:gaussian_smoother.GaussianSmootherSquare,k):
-
-        merit_func = lambda smoother: gaussian_smoother.make_merit_function(system,
+    merit_func = gaussian_smoother.make_merit_function(system,
                         sequence,
                         light_source,
                         detector,
@@ -209,18 +200,27 @@ def create_lens(
                         use_desired_irradiance_smoothing=use_desired_irradiance_smoothing,
                         device=device)
 
-        eval_func = lambda smoother: gaussian_smoother.make_evaluation_function(system,
+    eval_func = gaussian_smoother.make_evaluation_function(system,
                         sequence,
                         light_source,
                         detector,
                         smoother,
-                        num_splits=10,
-                        num_rays_per_split=1000000,
-                        method_ray_tracing="monte_carlo",
+                        #num_splits=10,
+                        #num_rays_per_split=1000000,
+                        #method_ray_tracing="monte_carlo",
                         device=device)
 
+
+    def minimization_call(k):
+
         convergence_list = []
-        out = minimize(merit_func(smoother),system.parameters(),callback=convergence_callback_func(smoother,convergence_list,power_irr_smooth_list,power_desired_irr_list),method=minimization_method,save_history=save_history,call_before_minimize=True)
+        def make_convergence_callback():
+            def return_func():
+                convergence_list.append(eval_func().detach().cpu().numpy())
+            
+            return return_func 
+
+        out = minimize(merit_func,system.parameters(),callback=make_convergence_callback(),method=minimization_method,save_history=True,call_before_minimize=True)
         
         out["sigma"] = smoother.sigma
         out["coeff_shape"] = bspline_surface1.coeff.shape
@@ -230,17 +230,18 @@ def create_lens(
             
         out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
         out["discrete_desired_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
-            
-        out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
-        out["binned_irradiance_eval"] = run_ray_tracer_none_smooth_eval(smoother)
-       
+
+        merit_func()
+        eval_func()
+        out["smooth_irradiance"] = smoother.last_smoothed_irradiance.detach().cpu().numpy()
+        out["binned_irradiance_eval"] = smoother.last_raycounting.detach().cpu().numpy()
+
         #if save_lens_history:
         #    out["lens"] = create_lens_copy() 
         return out   
         
     def run_minimization_loop_classical():
         results_minimize = [] 
-        print("run_minimization_loop_classical")
         for k in range(num_refinements):
             print("BEGIN: opti after refine: coeff shape:",bspline_surface1.coeff.shape)
             results_minimize += [minimization_call(smoother,k)]    
@@ -273,13 +274,15 @@ def create_lens(
     
     def get_final_irr_results():
         out = {}
-        out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
-        out["binned_irradiance"] = run_ray_tracer_none_smooth_eval(smoother)
+        merit_func()
+        eval_func()
+        out["smooth_irradiance"] = smoother.last_smoothed_irradiance.detach().cpu().numpy()
+        out["binned_irradiance"] = smoother.last_raycounting.detach().cpu().numpy()
         out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
         out["desired_none_smooth_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
         return out
 
-    def get_initial_irr_results():
+    """def get_initial_irr_results():
         out = {}
         out["smooth_irradiance"] = initial_smooth_irradiance
         out["binned_irradiance"] = initial_binned_irradiance
@@ -288,7 +291,7 @@ def create_lens(
         out["discrete_desired_irradiance"] = initial_discrete_desired_irradiance
         out["desired_none_smooth_irradiance_eval"] = initial_desired_none_smooth_irradiance_eval
         return out
-    
+    """
     def get_settings():
         out={}
         out["aperture_radius_detector"] = aperture_radius_detector
@@ -313,12 +316,12 @@ def create_lens(
     out = {}
     out["results_minimize"] = results_minimize
     
-    if save_lens_history:
-        out["final_lens"] = final_lens
+    #if save_lens_history:
+    #    out["final_lens"] = final_lens
     
     out["settings"] = get_settings()
-    if save_irradiance_results:
-        out["initial_irr_results"] = get_initial_irr_results()
-        out["final_irr_results"] = get_final_irr_results()
+    #if save_irradiance_results:
+    #    out["initial_irr_results"] = get_initial_irr_results()
+    out["final_irr_results"] = get_final_irr_results()
         
     return out
