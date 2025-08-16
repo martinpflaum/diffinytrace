@@ -271,14 +271,32 @@ results_classical_e["results_minimize"][-1].keys()
 #%%
 aperture_radius_detector = results_classical_e["settings"]["aperture_radius_detector"]
 #%%
+
+max_num_column=3
+font_size_PIL=40
+cbar_labelsize=20
+cbar_title_fontsize=20
+column_title_ratio=0.2
+
 discrete_desired_irradiance = results_classical_e["results_minimize"][-1]["discrete_desired_irradiance"]
 smoothed_desired_irradiance = results_ours_e["results_minimize"][-1]["smoothed_desired_irradiance"]
-dit.plotting.quantity2D.plot(smoothed_desired_irradiance,"Smoothed Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
-plt.savefig(results_folder_out + "/smoothed_desired_irradiance.png")
+#dit.plotting.quantity2D.plot(smoothed_desired_irradiance,"Smoothed Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
+#plt.savefig(results_folder_out + "/smoothed_desired_irradiance.png")
+#dit.plotting.quantity2D.plot(discrete_desired_irradiance,"Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
+#plt.savefig(results_folder_out + "/discrete_desired_irradiance.png")
 
+vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max())
+vmin = min(discrete_desired_irradiance.min(),smoothed_desired_irradiance.min())
 
-dit.plotting.quantity2D.plot(discrete_desired_irradiance,"Desired Irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
-plt.savefig(results_folder_out + "/discrete_desired_irradiance.png")
+image_desired = make_row([discrete_desired_irradiance,smoothed_desired_irradiance],[-aperture_radius_detector,aperture_radius_detector,-aperture_radius_detector,aperture_radius_detector],"gray",cbar_labelsize,"[W/mm²]",cbar_title_fontsize,show_x_axis_first=True,vmin=vmin,vmax=vmax)
+#tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
+bottom = concatenate_images_tempfile_row(image_desired)
+text1 = create_image_with_text_orientation(image_desired[0],"Desired Irradiance", column_title_ratio,font_size_PIL,vertical=False)
+text2 = create_image_with_text_orientation(image_desired[0],"Smoothed Desired Irr.", column_title_ratio,font_size_PIL,vertical=False)
+top = concatenate_images_tempfile_row([text1,text2])
+out = concatenate_images_tempfile_vertical([top,bottom])
+Image.open(out).save(results_folder_out + "/smooth_desired_both0.png")
+
 
 # %%
 classical_binned_irradiance = results_classical_e["final_irr_results"]["binned_irradiance"]
@@ -306,19 +324,15 @@ cbar_labelsize=16
 cbar_title_fontsize=20
 fontsize=cbar_title_fontsize
 
-classical_row = [classical_binned_irradiance[::-1], classical_smooth_irradiance[::-1], classical_lens_offset]
-ours_row = [ours_binned_irradiance[::-1], ours_smooth_irradiance[::-1], ours_lens_offset]
+irr_classical_row = [classical_binned_irradiance, classical_smooth_irradiance]
+irr_ours_row = [ours_binned_irradiance, ours_smooth_irradiance]
 
-irr_vmin = min(classical_row[0].min(), ours_row[0].min(),classical_row[1].min(), ours_row[1].min())
-irr_vmax = max(classical_row[0].max(), ours_row[0].max(),classical_row[1].max(), ours_row[1].max())
+irr_vmin = min(irr_classical_row[0].min(), irr_ours_row[0].min(),irr_classical_row[1].min(), irr_ours_row[1].min())
+irr_vmax = max(irr_classical_row[0].max(), irr_ours_row[0].max(),irr_classical_row[1].max(), irr_ours_row[1].max())
+irr_vmax = 0.0015
+surf_vmin = min(ours_lens_offset.min(), classical_lens_offset.min())
+surf_vmax = max(ours_lens_offset.max(), classical_lens_offset.max())
 
-surf_vmin = min(classical_row[2].min(), ours_row[2].min())
-surf_vmax = max(classical_row[2].max(), ours_row[2].max())
-
-columns_vmin = [irr_vmin, irr_vmin, surf_vmin]
-columns_vmax = [irr_vmax, irr_vmax, surf_vmax]
-
-rows = [classical_row, ours_row]
 
 irr_extent = [
     -aperture_radius_detector, aperture_radius_detector,
@@ -327,15 +341,6 @@ irr_extent = [
 
 surf_extent = [-aperture_radius_lens, aperture_radius_lens,-aperture_radius_lens,aperture_radius_lens]
 
-extent_columns = [irr_extent,irr_extent, surf_extent]
-
-irr_cmap_columns = "gray"
-surf_cmap_columns = "jet"
-
-cmap_columns = [irr_cmap_columns, irr_cmap_columns, surf_cmap_columns]
-
-irr_cbar_title = "[W/mm²]"
-surf_cbar_title = "mm"
 
 # Titles corresponding to `irrs`
 column_title1 = "Irradiance RC"
@@ -350,5 +355,52 @@ row_title2 = "Ours"
 row_titles = [row_title1, row_title2]
 
 
+from image_grid_maker import (make_row,
+                              concatenate_images_tempfile_vertical,
+                              create_image_with_text_orientation,
+                              concatenate_images_tempfile_row,
+                              create_white_image_with_dimensions)
 
-#%%
+surf_cmap = "coolwarm"
+irr_cmap = "gray"
+
+surf_cmap_title = "[mm]"
+irr_cmap_title = "[W/mm²]"
+
+surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface1 = surface1[0]
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = surface2[0]
+tmp = make_row(irr_ours_row+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
+
+row1 = make_row(irr_classical_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+#tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
+baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
+
+row1 = [baseline_text]+row1
+row2 = [ours_text]+row2
+row1 = concatenate_images_tempfile_row(row1)
+row2 = concatenate_images_tempfile_row(row2)
+
+culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC", column_title_ratio,font_size_PIL,vertical=False)
+culomn2 = create_image_with_text_orientation(tmp[0],"Smoothed Irr.", column_title_ratio,font_size_PIL,vertical=False)
+corner = create_white_image_with_dimensions(baseline_text,culomn1)
+row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2])
+
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
+
+
+xout = [out,surface_img]
+xout = concatenate_images_tempfile_row(xout)
+
+#file_name_out = results_folder_main + f"/final_plot2.png"
+file_name_out = results_folder_out + f"/final_plot.png"
+image = Image.open(xout)
+image.save(file_name_out)
+# %%
+image
+# %%

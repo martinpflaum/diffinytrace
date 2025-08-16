@@ -9,14 +9,22 @@ import os
 import pickle
 import gc
 
-def save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar,show_x_axis):
+def save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar,show_x_axis,cbar_extend=""):
     # Create the plot
     fig, ax = plt.subplots()
     matrix = matrix[::-1]
     cax = ax.imshow(matrix, cmap=cmap,vmin=vmin,vmax=vmax,extent=extent)
     #ax.axis('off')  # Remove the axes
     if plot_colorbar:
-        cbar = plt.colorbar(cax,shrink=0.65,aspect=9)  # Add a colorbar for reference
+        cbar = None
+        if cbar_extend == "max":
+            cbar = plt.colorbar(cax, shrink=0.65, aspect=9, extend='max')  # Add a colorbar for reference
+        elif cbar_extend == "both":
+            cbar = plt.colorbar(cax, shrink=0.65, aspect=9, extend='both')  # Add a colorbar for reference
+        elif cbar_extend == "min":
+            cbar = plt.colorbar(cax, shrink=0.65, aspect=9, extend='min')  # Add a colorbar for reference
+        else:
+            cbar = plt.colorbar(cax, shrink=0.65, aspect=9)
         cbar.ax.tick_params(labelsize=cbar_labelsize)
         cbar.ax.set_title(cbar_title, fontsize=cbar_title_fontsize, pad=10,loc="left")  # Set label above
         offset_text = cbar.ax.yaxis.offsetText
@@ -74,26 +82,36 @@ def make_row(matrices,extent,cmap,cbar_labelsize,cbar_title,cbar_title_fontsize,
     matrices = [np.array(matrix) for matrix in matrices]
     _vmin,_vmax = get_row_vmin_vmax(matrices)
 
+    cbar_extend = "none"
     if vmin is None:
         vmin = _vmin
     if vmax is None:
         vmax = _vmax
-        
+    else:
+        if vmax < _vmax:
+            if vmin > _vmin:
+                cbar_extend = "both"
+            else:
+                cbar_extend = "max"
+        elif vmin > _vmin:
+            cbar_extend = "min"
+        else:
+            cbar_extend = "none"
     file_names = []
     for i,matrix in enumerate(matrices):
         if len(matrices)-1 == i:
             if i ==0:
-                file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=show_x_axis_first)
+                file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=show_x_axis_first,cbar_extend=cbar_extend)
                 file_names.append(file_name)
             else:
-                file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=False)
+                file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=False,cbar_extend=cbar_extend)
                 file_names.append(file_name)
         elif show_x_axis_first and i ==0:
-            file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = False,show_x_axis=True)
+            file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = False,show_x_axis=True,cbar_extend=cbar_extend)
             file_names.append(file_name)
 
         else:
-            file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = False,show_x_axis=False)
+            file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = False,show_x_axis=False,cbar_extend=cbar_extend)
             file_names.append(file_name)
         
     return file_names    
