@@ -15,7 +15,6 @@ __all__ = [
     "utils",
     "plotting",
     "basis_functions",
-    "nonimaging",
     "gaussian_smoother",
     "optimize",
     "integrators",
@@ -93,7 +92,6 @@ from . import utils
 #from . import refractive_index
 from . import plotting
 from . import basis_functions
-from . import nonimaging
 from . import optimize
 from . import integrators
 from . import export

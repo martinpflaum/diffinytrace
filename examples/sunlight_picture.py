@@ -8,35 +8,41 @@ import copy
 import gc
 from typing import List,Tuple,Optional
 
+from diffinytrace import (
+    source, transforms, Bspline, Plane, Lens, Detector, SequentialOpticalSystem,
+    utils, plotting, target_grid, render, minimize, set_unused_bspline_coeff_to_nearest,
+    export, gaussian_smoother
+)
+import diffinytrace as dit
 #output_step_file_name, #this file should end with .step
 #html_plot_file_name=""
     
 def create_lens(
-    input_file_name,
-    lens_material,
-    air_material,
+    image_file_name:str,
+    lens_material:dit.RefractiveIndex,
+    air_material:dit.RefractiveIndex,
     device,
-    aperture_radius_source=21.,
-    aperture_radius_lens=25.,
-    lens_thickness=5.,
-    detector_distance=150.,
-    lens_distance=1.0,
-    num_refinements=5,
-    sigma=1.0,
-    image_padding=0.2,
-    bspline_orders=[3, 3],
-    bspline_ns_start=[4, 4],
-    use_desired_irradiance_smoothing=True,
-    num_rays=2**16,
-    grid_size=300,
-    minimization_method='L-BFGS-B',
+    aperture_radius_source:float=21.,
+    aperture_radius_lens:float=25.,
+    lens_thickness:float=5.,
+    detector_distance:float=150.,
+    lens_distance:float=1.0,
+    num_refinements:int=5,
+    sigma:float=1.0,
+    image_padding:float=0.2,
+    bspline_orders:List[int]=[3, 3],
+    bspline_ns_start:List[int]=[4, 4],
+    use_desired_irradiance_smoothing:bool=True,
+    num_rays:int=2**16,
+    grid_size:int=300,
+    minimization_method:str='L-BFGS-B',
     ):
 
     r"""
     Creates and optimizes a lens system to match a desired irradiance distribution from an input image.
 
     Args:
-        input_file_name (str): Path to the image file representing the desired irradiance.
+        image_file_name (str): Path to the image file representing the desired irradiance.
         lens_material: Material of the lens.
         air_material: Material for air (should be dit.materials["NONE"]).
         device: Device for computation ('cpu' or 'cuda:0').
@@ -63,23 +69,6 @@ def create_lens(
 
     smoothed_num_integration_points = copy.deepcopy(smoothed_num_integration_points)
     num_rays = copy.deepcopy(num_rays)
-    
-    from ... import source
-    from ... import transforms
-    from ... import Bspline
-    from ... import Plane
-    from ... import Lens
-    from ... import Detector
-    from ... import SequentialOpticalSystem
-    from ... import utils
-    from ... import plotting
-    from ... import target_grid
-    from ... import render
-    from ... import minimize
-    from ... import set_unused_bspline_coeff_to_nearest
-    from ... import export
-    from ... import gaussian_smoother
-
 
     if (image_padding==0.0):
         raise ValueError("Please don't set image_padding to 0.0.")
@@ -112,7 +101,7 @@ def create_lens(
     system = SequentialOpticalSystem({"source":light_source,"lens":lens1,"detector":detector},air_material)
     sequence = ["source","lens","detector"]
     system.to(device)
-    irr_func = utils.irradiance_importer.create_irradiance_from_image_square(input_file_name,image_padding,0.,aperture_radius_detector,shape=[grid_size,grid_size])
+    irr_func = utils.irradiance_importer.create_irradiance_from_image_square(image_file_name,image_padding,0.,aperture_radius_detector,shape=[grid_size,grid_size])
     #plotting.quantity2D.plot(irr_func,"Desired Irradiance Distribution",cmap="grey",x_range=[-aperture_radius_detector,aperture_radius_detector])
     
     def get_desired_irradiance_raw():

@@ -1,5 +1,5 @@
 import diffinytrace as dit
-from diffinytrace.nonimaging.scripts.sunlight_picture import create_lens
+from examples.sunlight_picture import create_lens
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
