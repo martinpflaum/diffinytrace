@@ -204,7 +204,7 @@ def create_lens(
                         light_source,
                         detector,
                         smoother,
-                        num_splits=10,
+                        num_splits=20,
                         num_rays_per_split=500000,
                         #method_ray_tracing="monte_carlo",
                         device=device)
@@ -230,6 +230,7 @@ def create_lens(
         out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
         out["discrete_desired_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
 
+        
         print("last_merit",merit_func(),out["history"]["fun_vals"][-1])
         print("last_error",eval_func(),convergence_list[-1])
 
@@ -327,20 +328,30 @@ def create_lens(
         O[:,0] = x
         O[:,1] = y
         z = None
-                
-        with torch.no_grad():
-            z = surface.explicit(O.to(device=device))
-            
-        if not lens.is_square:
-            z[O[:,[0,1]].norm(dim=-1)>aperture_radius] = float("nan")
+        O = O.detach().to(device=device)
+        O.requires_grad_(True)  # Enable gradients
+
+        z = surface.explicit(O)
+
+        dz_dx, dz_dy = None, None
+        if torch.is_tensor(z) and z.requires_grad:
+            dz = torch.autograd.grad(
+                z, O,
+                grad_outputs=torch.ones_like(z)
+            )[0]
+            dz_dx = dz[:, 0].reshape(resolution, resolution).cpu().detach().numpy()
+            dz_dy = dz[:, 1].reshape(resolution, resolution).cpu().detach().numpy()    
 
         z = z.cpu().detach().reshape(resolution,resolution).numpy()
         z = z.T
-        return z
+        dz_dx = dz_dx.T
+        dz_dy = dz_dy.T
+        return z,dz_dx,dz_dy
 
     out = {}
     out["results_minimize"] = results_minimize
-    out["lens_offset"] = get_surface_data(lens1,256)
+    z,dz_dx,dz_dy = get_surface_data(lens1,256)
+    out["lens_offset"] = {"z": z, "dz_dx": dz_dx, "dz_dy": dz_dy}
     #if save_lens_history:
     #    out["final_lens"] = final_lens
     

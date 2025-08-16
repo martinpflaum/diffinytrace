@@ -40,8 +40,6 @@ results_folder_out = "results/server_lens_picture_plots/"
 create_folder(results_folder_out)
 
 
-# %%
-
 import torch
 all_main_subfolders = ["results_classical","results_desired_irr_smoothing"]
 
@@ -75,7 +73,6 @@ title_all["Relative Surface Profile"] = f"Surface Profile"
 keys1 = ["Irradiance MC showcase","Irr. Smooth", "Relative Surface Profile"]
 
 
-# %%
 def create_2d4x4_plots():
     results_classical = load_results(0)
     results_desired_irr_smoothing = load_results(1)
@@ -265,12 +262,18 @@ def create_2d4x4_plots():
     create_convergence_plot_default("Convergence of Error","convergence","Error", file_name_out_error)
 
 create_2d4x4_plots()
-# %%
+
 results_classical_e["results_minimize"][-1].keys()
 
-#%%
 aperture_radius_detector = results_classical_e["settings"]["aperture_radius_detector"]
-#%%
+
+
+from image_grid_maker import (make_row,
+                              concatenate_images_tempfile_vertical,
+                              create_image_with_text_orientation,
+                              concatenate_images_tempfile_row,
+                              create_white_image_with_dimensions)
+
 
 max_num_column=3
 font_size_PIL=40
@@ -291,14 +294,12 @@ vmin = min(discrete_desired_irradiance.min(),smoothed_desired_irradiance.min())
 image_desired = make_row([discrete_desired_irradiance,smoothed_desired_irradiance],[-aperture_radius_detector,aperture_radius_detector,-aperture_radius_detector,aperture_radius_detector],"gray",cbar_labelsize,"[W/mm²]",cbar_title_fontsize,show_x_axis_first=True,vmin=vmin,vmax=vmax)
 #tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
 bottom = concatenate_images_tempfile_row(image_desired)
-text1 = create_image_with_text_orientation(image_desired[0],"Desired Irradiance", column_title_ratio,font_size_PIL,vertical=False)
-text2 = create_image_with_text_orientation(image_desired[0],"Smoothed Desired Irr.", column_title_ratio,font_size_PIL,vertical=False)
+text1 = create_image_with_text_orientation(image_desired[0],"Desired Irradiance", 0.12,30,vertical=False)
+text2 = create_image_with_text_orientation(image_desired[0],"Smoothed Desired Irr.", 0.12,30,vertical=False)
 top = concatenate_images_tempfile_row([text1,text2])
 out = concatenate_images_tempfile_vertical([top,bottom])
 Image.open(out).save(results_folder_out + "/smooth_desired_both0.png")
 
-
-# %%
 classical_binned_irradiance = results_classical_e["final_irr_results"]["binned_irradiance"]
 classical_smooth_irradiance = results_classical_e["final_irr_results"]["smooth_irradiance"]
 
@@ -306,15 +307,14 @@ ours_binned_irradiance = results_ours_e["final_irr_results"]["binned_irradiance"
 ours_smooth_irradiance = results_ours_e["final_irr_results"]["smooth_irradiance"]
 
 
-ours_lens_offset = results_ours_e["lens_offset"]
-classical_lens_offset = results_classical_e["lens_offset"]
+ours_lens_offset = results_ours_e["lens_offset"]["z"]
+classical_lens_offset = results_classical_e["lens_offset"]["z"]
 
 
 dit.plotting.quantity2D.plot(ours_binned_irradiance,"ours_binned_irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
 
-# %%
 aperture_radius_lens = results_classical_e["settings"]["aperture_radius_lens"]
-#%%
+
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import torch
@@ -354,12 +354,6 @@ row_title2 = "Ours"
 
 row_titles = [row_title1, row_title2]
 
-
-from image_grid_maker import (make_row,
-                              concatenate_images_tempfile_vertical,
-                              create_image_with_text_orientation,
-                              concatenate_images_tempfile_row,
-                              create_white_image_with_dimensions)
 
 surf_cmap = "coolwarm"
 irr_cmap = "gray"
@@ -402,5 +396,50 @@ file_name_out = results_folder_out + f"/final_plot.png"
 image = Image.open(xout)
 image.save(file_name_out)
 # %%
-image
+ours_lens_offset_dx = results_ours_e["lens_offset"]["dz_dx"]
+ours_lens_offset_dy = results_ours_e["lens_offset"]["dz_dy"]
+
+classical_lens_offset_dx = results_classical_e["lens_offset"]["dz_dx"]
+classical_lens_offset_dy = results_classical_e["lens_offset"]["dz_dy"]
+
+#%%
+
+dit.plotting.quantity2D.plot(ours_lens_offset_dy.T,"Ours Lens Offset Y Diff [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
+
+# %%
+dit.plotting.quantity2D.plot(ours_lens_offset_dx.T,"Ours Lens Offset Y Diff [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
+
+# %%
+from matplotlib.colors import LogNorm
+ours_size_grad = np.sqrt(ours_lens_offset_dx**2+ours_lens_offset_dy**2)
+ours_size_grad = ours_size_grad.T #remove later
+
+dit.plotting.quantity2D.plot(ours_size_grad,"Ours Lens Offset Size Grad [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
+# %%
+classical_size_grad = np.sqrt(classical_lens_offset_dx**2+classical_lens_offset_dy**2)
+classical_size_grad = classical_size_grad.T #remove later
+
+
+surf_grad_cmap_title = "[1]"
+surf_grad_cmap = "jet"
+
+surf_grad_vmin = 0
+surf_grad_vmax = 0.15#max(np.max(classical_size_grad),np.max(ours_size_grad))
+
+surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface1 = surface1[0]
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = surface2[0]
+tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
+
+
+xout = [out,surface_img,surface_grad_img]
+xout = concatenate_images_tempfile_row(xout)
+
+#file_name_out = results_folder_main + f"/final_plot2.png"
+file_name_out = results_folder_out + f"/final_plotB.png"
+image = Image.open(xout)
+image.save(file_name_out)
 # %%
