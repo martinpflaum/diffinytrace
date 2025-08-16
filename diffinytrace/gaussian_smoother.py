@@ -229,7 +229,7 @@ class GaussianSmoother():
                                    dtype=dtype,
                                    device=device)
     
-    def smooth_irradiance(self,points:torch.Tensor,ray_multi:torch.Tensor)->torch.Tensor:
+    def smoothed_irradiance(self,points:torch.Tensor,ray_multi:torch.Tensor)->torch.Tensor:
         """
         Computes the smoothed irradiance at given points using a Gaussian kernel.
 
@@ -242,7 +242,7 @@ class GaussianSmoother():
         """
         return gaussian_func2D(points,self.x_range,self.y_range,self.x_grid_size,self.y_grid_size,self.sigma,ray_multi,include_boundary=self.include_boundary)
 
-    def none_smooth_irradiance(self,points:torch.Tensor,ray_multi:torch.Tensor)->torch.Tensor:
+    def none_smoothed_irradiance(self,points:torch.Tensor,ray_multi:torch.Tensor)->torch.Tensor:
         """
         Computes the non-smoothed irradiance at given points by summing ray contributions in each grid cell.
 
@@ -309,6 +309,7 @@ class GaussianSmootherSquare(GaussianSmoother):
                          smoothed_num_splits=smoothed_num_splits,
                          dtype=dtype,
                          device=device)
+
 
 def make_evaluation_function(optical_system:SequentialOpticalSystem,
                         sequence:List,
@@ -392,18 +393,18 @@ def make_merit_function(optical_system:SequentialOpticalSystem,
         if smoother.smoothed_desired_irradiance is None and use_desired_irradiance_smoothing == True:
             raise RuntimeError("Using desired irradiance smoothing but smoothed_desired_irradiance was not provided!--calc_smooth_desired_irradiance")
         
-        smooth_irradiance = smoother.smooth_irradiance(y,Qval*weights)
+        smoothed_irradiance = smoother.smoothed_irradiance(y,Qval*weights)
         residual = None
 
         smoother.smoothed_desired_irradiance = smoother.smoothed_desired_irradiance.to(device=device)
         smoother.discrete_desired_irradiance = smoother.discrete_desired_irradiance.to(device=device)
         
         if use_desired_irradiance_smoothing:
-            #print("sums 1: ",smooth_irradiance.sum()," 2: ",smoother.smoothed_desired_irradiance.sum())
-            residual = smooth_irradiance.reshape(-1)-smoother.smoothed_desired_irradiance.reshape(-1)#.to(device=device)
+            #print("sums 1: ",smoothed_irradiance.sum()," 2: ",smoother.smoothed_desired_irradiance.sum())
+            residual = smoothed_irradiance.reshape(-1)-smoother.smoothed_desired_irradiance.reshape(-1)#.to(device=device)
         else:
-            #print("sums 1: ",smooth_irradiance.sum()," 2: ",smoother.discrete_desired_irradiance.sum())
-            residual = smooth_irradiance.reshape(-1)-smoother.discrete_desired_irradiance.reshape(-1)#.to(device=device)
+            #print("sums 1: ",smoothed_irradiance.sum()," 2: ",smoother.discrete_desired_irradiance.sum())
+            residual = smoothed_irradiance.reshape(-1)-smoother.discrete_desired_irradiance.reshape(-1)#.to(device=device)
 
         return torch.sqrt(smoother.integrate_values(residual**2))
 

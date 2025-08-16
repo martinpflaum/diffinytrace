@@ -1,74 +1,67 @@
+# Copyright (c) 2025 Martin Pflaum
+# This file is part of the diffinytrace project, licensed under the MIT License.
+
+__all__ = ["create_lens"]
+
 import torch
 import copy
 import gc
+from typing import List,Tuple,Optional
 
-def create_lens(\
-    input_file_name, #the image file
-    output_step_file_name, #this file should end with .step
-    lens_material, 
-    air_material, #this should be dit.materials["NONE"], since probaly a lot refractive indices are measurent in reference to air
-    device, #device should be cpu or cuda:0 for gpu
-    aperture_radius_source = 21., #TODO EDIT THIS this is the half diameter in [mm]
-    aperture_radius_lens = 25., #TODO EDIT THIS this is the half diameter in [mm]
-    lens_thickness = 5., #thickness of lens in [mm]
-    detector_distance = 150., #distance from lens to detector in [mm]
-    lens_distance = 1.0,
-    num_refinements = 5, #!number of refinements is also very portant but performance critical 
-    sigma = 1.0, #!sigma final is a very important option since this says what the maximal expected resolution would be sigma final should be in relation to the number of rays traced
-    image_padding = 0.2, #image padding is important to have a well defined optical system
-    etendue = True,
-    bspline_orders = [3,3], #this option determines how smooth the lens surface is and thus also influences how smooth the irradiance is.
-    bspline_ns_start = [4,4], #number of elements in x and y direction. bspline_ns_start = [4,4] is probably the best option always!
-    use_desired_irradiance_smoothing = True, #use_desired_irradiance_smoothing=True will be the best option probably always!
-    num_rays=2**16, #!this option performance critical. if sigma_final is low this option should be high.
-    grid_size=300, #number of gaussians used in one dimension - so 301x301 gaussian measurement functions used in this case
-    num_integration_points_desired=2**21,
+#output_step_file_name, #this file should end with .step
+#html_plot_file_name=""
+    
+def create_lens(
+    input_file_name,
+    lens_material,
+    air_material,
+    device,
+    aperture_radius_source=21.,
+    aperture_radius_lens=25.,
+    lens_thickness=5.,
+    detector_distance=150.,
+    lens_distance=1.0,
+    num_refinements=5,
+    sigma=1.0,
+    image_padding=0.2,
+    bspline_orders=[3, 3],
+    bspline_ns_start=[4, 4],
+    use_desired_irradiance_smoothing=True,
+    num_rays=2**16,
+    grid_size=300,
     minimization_method='L-BFGS-B',
-    total_power=1.0, #TODO CHANGE NAMING CONVETION TO TOTAL_FLUX. you really dont need to change this option it's just has influence on the final plots of the irradiance. total_power is the energy per second in Watts!
-    ):#html_plot_file_name=""
+    ):
+
     r"""
-    This function creates a lens from an image file and optimizes it using ray tracing.
-    
+    Creates and optimizes a lens system to match a desired irradiance distribution from an input image.
+
     Args:
-        input_file_name (str): The path to the image file.
-        output_step_file_name (str): The path to save the lens as a STEP file.
-        lens_material (str): The material of the lens.
-        air_material (str): The material of the air.
-        device (torch.device): The device to use for computation (CPU or GPU).
-        aperture_radius_source (float): The radius of the source aperture in mm.
-        aperture_radius_lens (float): The radius of the lens aperture in mm.
-        lens_thickness (float): The thickness of the lens in mm.
-        detector_distance (float): The distance from the lens to the detector in mm.
-        lens_distance (float): The distance from the light source to the lens in mm.
-        num_refinements (int): The number of refinements for the B-spline surface.
-        sigma_final (float): The final sigma value for Gaussian smoothing.
-        image_padding (float): The padding for the image.
-        etendue (bool): Whether to use etendue or not.
-        bspline_orders (list): The orders of the B-spline surface.
-        bspline_ns_start (list): The initial number of elements in x and y direction for B-spline surface.
-        use_sigma_refinement (bool): Whether to use sigma refinement or not.
-        use_desired_irradiance_smoothing (bool): Whether to use desired irradiance smoothing or not.
-        use_power_correction (bool): Whether to use power correction or not.
-        num_rays (int): The number of rays to trace.
-        method_ray_tracing (str): The method used for ray tracing ('sobol_pow2' or 'sobol').
-        grid_size (int): The number of Gaussian measurement functions used in one dimension.
-        residual_integration_method (str): The integration method used for calculating the final error ('sobol' or 'midpoint').
-        num_integration_points_desired (list): The number of integration points for desired irradiance calculation.
-        minimization_method (str): The method used for minimization ('L-BFGS-B').
-        post_process_lens (bool): Whether to post-process the lens or not.
-        total_power (float): The total power of the light source in Watts.
-        save_lens_history (bool): Whether to save lens history or not.
-        save_history (bool): Whether to save optimization history or not.
-        save_irradiance_results (bool): Whether to save irradiance results or not.
-        num_rays_save_irradiance (int): The number of rays to save for irradiance results.
-        html_plot_file_name (str): The name of the HTML file to save the plot.
-    
+        input_file_name (str): Path to the image file representing the desired irradiance.
+        lens_material: Material of the lens.
+        air_material: Material for air (should be dit.materials["NONE"]).
+        device: Device for computation ('cpu' or 'cuda:0').
+        aperture_radius_source (float, optional): Half diameter of the source aperture in mm. Defaults to 21.
+        aperture_radius_lens (float, optional): Half diameter of the lens aperture in mm. Defaults to 25.
+        lens_thickness (float, optional): Thickness of the lens in mm. Defaults to 5.
+        detector_distance (float, optional): Distance from lens to detector in mm. Defaults to 150.
+        lens_distance (float, optional): Distance from source to lens in mm. Defaults to 1.0.
+        num_refinements (int, optional): Number of refinement steps for optimization. Defaults to 5.
+        sigma (float, optional): Standard deviation for Gaussian smoothing. Controls expected resolution. Defaults to 1.0.
+        image_padding (float, optional): Padding around the image for the detector aperture. Defaults to 0.2.
+        bspline_orders (list, optional): B-spline orders for lens surface smoothing [order_x, order_y]. Defaults to [3, 3].
+        bspline_ns_start (list, optional): Initial number of B-spline elements in x and y directions. Defaults to [4, 4].
+        use_desired_irradiance_smoothing (bool, optional): Whether to use smoothing for desired irradiance. Defaults to True.
+        num_rays (int, optional): Number of rays to trace for simulation. Defaults to 2**16.
+        grid_size (int, optional): Number of grid points per dimension for Gaussian measurement functions. Defaults to 300.
+        minimization_method (str, optional): Optimization method for minimization. Defaults to 'L-BFGS-B'.
+
     Returns:
-        dict: A dictionary containing the results of the optimization and irradiance calculations.
+        dict: Results containing optimization history, settings, and irradiance maps.
     """
+
     gc.collect()
 
-    num_integration_points_desired = copy.deepcopy(num_integration_points_desired)
+    smoothed_num_integration_points = copy.deepcopy(smoothed_num_integration_points)
     num_rays = copy.deepcopy(num_rays)
     
     from ... import source
@@ -98,10 +91,9 @@ def create_lens(\
     light_transform.pos.requires_grad = False
 
     light_source = None
-    if etendue:
-        light_source = source.VisibleSunlightSimpleMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=total_power)
-    else:
-        light_source = source.CollimatedMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=total_power,is_square=True)
+    
+    light_source = source.VisibleSunlightSimpleMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=1.0)
+    #light_source = source.CollimatedMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=total_power,is_square=True)
 
     lens_transform = transforms.Distance(lens_distance,parent_transform=light_transform)
 
@@ -168,21 +160,15 @@ def create_lens(\
     """    
     #create_html_plot("initial")
     
-    def create_smoother(sigma)->gaussian_smoother.GaussianSmoother:
-        return gaussian_smoother.GaussianSmootherSquare(aperture_radius_detector,\
-                                                                       grid_size=grid_size,\
-                                                                        sigma=sigma,\
-                                                                        device=device,\
-                                                                        num_integration_points_desired=num_integration_points_desired,\
-                                                                        desired_irradiance_func=irr_func,\
-                                                                        residual_integration_method=residual_integration_method,\
-                                                                        total_power_desired=total_power,
-                                                                        num_eval_points = grid_size,use_eval_avg=False)
-
-    smoother:gaussian_smoother.GaussianSmoother = create_smoother(sigma)
-
+    smoother = gaussian_smoother.GaussianSmootherSquare(aperture_radius_detector,
+                                    grid_size=grid_size,
+                                    sigma=sigma,
+                                    desired_irradiance_fun=irr_func,
+                                    smoothed_num_integration_points=2**21,
+                                    smoothed_num_splits=10,
+                                    device=device)
+    
     def run_ray_tracer_smooth(smoother):
-        import matplotlib.pyplot as plt
         with torch.no_grad():
             out = render.smoothed_irradiance(system,sequence,light_source,detector,smoother,num_rays=num_rays,device=device,method_ray_tracing=method_ray_tracing)
             out = out.detach().cpu().numpy()
@@ -201,8 +187,8 @@ def create_lens(\
     """
     initial_smooth_irradiance = None
     initial_binned_irradiance = None
-    initial_desired_smooth_irradiance = None
-    initial_desired_none_smooth_irradiance_opti = None
+    initial_smoothed_desired_irradiance = None
+    initial_discrete_desired_irradiance = None
     initial_desired_none_smooth_irradiance_eval = None
     initial_binned_irradiance_eval = None
     
@@ -211,105 +197,63 @@ def create_lens(\
         initial_binned_irradiance_eval = run_ray_tracer_none_smooth_eval(smoother)
         initial_binned_irradiance = initial_binned_irradiance_eval
         
-        initial_desired_smooth_irradiance = smoother.desired_smooth_irradiance.detach().cpu().numpy()
-        initial_desired_none_smooth_irradiance_opti = smoother.desired_none_smooth_irradiance_opti.detach().cpu().numpy()
+        initial_smoothed_desired_irradiance = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
+        initial_discrete_desired_irradiance = smoother.discrete_desired_irradiance.detach().cpu().numpy()
         initial_desired_none_smooth_irradiance_eval = smoother.desired_none_smooth_irradiance_eval.detach().cpu().numpy()
     """
 
-    def convergence_callback_func(smoother:smoothing.Smoother,convergence_list:list,power_irr_smooth_list:list,power_desired_irr_list:list):
+    def convergence_callback_func(smoother:gaussian_smoother.GaussianSmoother,convergence_list:list):
         def return_func():
-            power_irr_smooth_list.append(smoother.last_smoothed_irradiance_power)
-            power_desired_irr_list.append(smoother.last_desired_irr_power)
             convergence_list.append(smoother.last_eval_merit_val)
         
         return return_func 
 
-    def minimization_call(smoother:smoothing.GaussianSmootherSquare,k):
-        merit_func = lambda smoother:smoothing.create_merit_function(system,
-                                                                     sequence,
-                                                                     light_source,
-                                                                     detector,
-                                                                     num_rays,
-                                                                     smoother,
-                                                                     device,
-                                                                     method_ray_tracing=method_ray_tracing,
-                                                                     use_desired_irradiance_smoothing=use_desired_irradiance_smoothing,
-                                                                     use_power_correction=use_power_correction,
-                                                                     save_last_eval=save_history)
-        if save_history:
-            convergence_list = []
-            power_irr_smooth_list = []
-            power_desired_irr_list = []
-            out = minimize(merit_func(smoother),system.parameters(),callback=convergence_callback_func(smoother,convergence_list,power_irr_smooth_list,power_desired_irr_list),method=minimization_method,save_history=save_history,call_before_minimize=True)
-            out["sigma"] = smoother.sigma
-            out["coeff_shape"] = bspline_surface1.coeff.shape
-            out["loop_number"] = k
+    def minimization_call(smoother:gaussian_smoother.GaussianSmootherSquare,k):
+
+        merit_func = lambda smoother: gaussian_smoother.make_merit_function(system,
+                        sequence,
+                        light_source,
+                        detector,
+                        smoother,
+                        num_rays,
+                        method_ray_tracing="sobol_pow2",
+                        use_desired_irradiance_smoothing=use_desired_irradiance_smoothing,
+                        device=device)
+
+        eval_func = lambda smoother: gaussian_smoother.make_evaluation_function(system,
+                        sequence,
+                        light_source,
+                        detector,
+                        smoother,
+                        num_splits=10,
+                        num_rays_per_split=1000000,
+                        method_ray_tracing="monte_carlo",
+                        device=device)
+
+        convergence_list = []
+        out = minimize(merit_func(smoother),system.parameters(),callback=convergence_callback_func(smoother,convergence_list,power_irr_smooth_list,power_desired_irr_list),method=minimization_method,save_history=save_history,call_before_minimize=True)
         
-            out["history"]["convergence"] = convergence_list
-            out["history"]["power_irr_smooth_list"] = power_irr_smooth_list
-            out["history"]["power_desired_irr_list"] = power_desired_irr_list
-
-            if save_irradiance_results:
-                out["desired_smooth_irradiance"] = smoother.desired_smooth_irradiance.detach().cpu().numpy()
-                out["desired_none_smooth_irradiance_opti"] = smoother.desired_none_smooth_irradiance_opti.detach().cpu().numpy()
-                out["desired_none_smooth_irradiance_eval"] = smoother.desired_none_smooth_irradiance_eval.detach().cpu().numpy()
-
-                out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
-                out["binned_irradiance_eval"] = run_ray_tracer_none_smooth_eval(smoother)
-                out["binned_irradiance"] = out["binned_irradiance_eval"]
-
-            if save_lens_history:
-                out["lens"] = create_lens_copy() 
-            return out   
-        else:
-            out = minimize(merit_func(smoother),system.parameters(),method=minimization_method)
-            out["sigma"] = smoother.sigma
-            out["coeff_shape"] = bspline_surface1.coeff.shape
-            out["loop_number"] = k
-            if save_irradiance_results:
-                out["desired_smooth_irradiance"] = smoother.desired_smooth_irradiance.detach().cpu().numpy()
-                out["desired_none_smooth_irradiance_opti"] = smoother.desired_none_smooth_irradiance_opti.detach().cpu().numpy()
-                out["desired_none_smooth_irradiance_eval"] = smoother.desired_none_smooth_irradiance_eval.detach().cpu().numpy() 
-
-                
-                out["desired_irradiance_smooth"] = smoother.desired_smooth_irradiance
-    
-                out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
-                out["binned_irradiance_eval"] = run_ray_tracer_none_smooth_eval(smoother)
-                out["binned_irradiance"] = out["binned_irradiance_eval"]
-                
-            if save_lens_history:
-                out["lens"] = create_lens_copy()
-           
-            return out
-
-    def run_minimization_loop_sigma_refinement():
-        results_minimize = [] 
-        print("run_minimization_loop_sigma_refinement")
+        out["sigma"] = smoother.sigma
+        out["coeff_shape"] = bspline_surface1.coeff.shape
+        out["loop_number"] = k
         
-        for k in range(num_refinements):
-            print("BEGIN: opti after refine: coeff shape:",bspline_surface1.coeff.shape)
-            smoother.sigma = sigmas[k]        
-            results_minimize += [minimization_call(smoother,k)]    
-            print("END")
-            smoother.sigma = sigmas[k+1]        
+        out["history"]["convergence"] = convergence_list
             
-            print("BEGIN: opti after sigma finer: coeff shape:",bspline_surface1.coeff.shape)
-            results_minimize += [minimization_call(smoother,k)]    
-            bspline_surface1.refine()
-            print("END")
-        print("BEGIN: opti after refine: coeff shape:",bspline_surface1.coeff.shape)
-        results_minimize += [minimization_call(smoother,num_refinements)]    
-        print("END")
-        print("FINISHED MINIMIZATION")
-        return results_minimize
-
+        out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
+        out["discrete_desired_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
+            
+        out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
+        out["binned_irradiance_eval"] = run_ray_tracer_none_smooth_eval(smoother)
+       
+        #if save_lens_history:
+        #    out["lens"] = create_lens_copy() 
+        return out   
+        
     def run_minimization_loop_classical():
         results_minimize = [] 
         print("run_minimization_loop_classical")
         for k in range(num_refinements):
             print("BEGIN: opti after refine: coeff shape:",bspline_surface1.coeff.shape)
-            smoother.sigma = sigmas[k]        
             results_minimize += [minimization_call(smoother,k)]    
             print("END")
             bspline_surface1.refine()
@@ -319,11 +263,7 @@ def create_lens(\
         return results_minimize
 
     gc.collect()
-    results_minimize = None
-    if use_sigma_refinement:
-        results_minimize = run_minimization_loop_sigma_refinement()
-    else:
-        results_minimize = run_minimization_loop_classical()
+    results_minimize = run_minimization_loop_classical()
 
     """if post_process_lens:
         set_unused_bspline_coeff_to_nearest(system,sequence,light_source,bspline_surface1,num_rays=num_rays,method_ray_tracing=method_ray_tracing)
@@ -346,7 +286,7 @@ def create_lens(\
         out = {}
         out["smooth_irradiance"] = run_ray_tracer_smooth(smoother)
         out["binned_irradiance"] = run_ray_tracer_none_smooth_eval(smoother)
-        out["desired_smooth_irradiance"] = smoother.desired_smooth_irradiance.detach().cpu().numpy()
+        out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
         out["desired_none_smooth_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
         return out
 
@@ -355,8 +295,8 @@ def create_lens(\
         out["smooth_irradiance"] = initial_smooth_irradiance
         out["binned_irradiance"] = initial_binned_irradiance
         out["binned_irradiance_eval"] = initial_binned_irradiance_eval
-        out["desired_smooth_irradiance"] = initial_desired_smooth_irradiance
-        out["desired_none_smooth_irradiance_opti"] = initial_desired_none_smooth_irradiance_opti
+        out["smoothed_desired_irradiance"] = initial_smoothed_desired_irradiance
+        out["discrete_desired_irradiance"] = initial_discrete_desired_irradiance
         out["desired_none_smooth_irradiance_eval"] = initial_desired_none_smooth_irradiance_eval
         return out
     
@@ -367,23 +307,18 @@ def create_lens(\
         out["aperture_radius_source"] = aperture_radius_source
         out["num_refinements"] = num_refinements
         out["image_padding"] = image_padding
-        out["sigma_final"] = sigma_final
+        out["sigma_final"] = sigma
         out["lens_distance"] = lens_distance
         out["lens_thickness"] = lens_thickness
         out["detector_distance"] = detector_distance
         out["desired_irradiance_raw"] = desired_irradiance_raw
-        out["residual_integration_method"] = residual_integration_method 
         out["minimization_method"] = minimization_method
         out["num_rays_opti"] = num_rays
-        out["total_power_preset"] = total_power
-        out["num_integration_points_desired"] = num_integration_points_desired
+        out["smoothed_num_integration_points"] = smoothed_num_integration_points
         out["bspline_orders"] = bspline_orders
         out["bspline_ns_start"] = bspline_ns_start
         out["grid_size"] = grid_size
-        out["use_sigma_refinement"] = use_sigma_refinement
         out["use_desired_irradiance_smoothing"] = use_desired_irradiance_smoothing
-        out["etendue"] = etendue
-        out["use_power_correction"] = use_power_correction
         return out
     
     out = {}

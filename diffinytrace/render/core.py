@@ -38,7 +38,7 @@ def smoothed_irradiance(optical_system:SequentialOpticalSystem,
     """
     x,weights,y,wl = trace_to_detector(optical_system,sequence,source,detector,num_rays,device,method_ray_tracing=method_ray_tracing)
     Qval = source.get_flux(x.detach())
-    smoothed_irradiance = smoother.smooth_irradiance(y.detach(),Qval*weights)
+    smoothed_irradiance = smoother.smoothed_irradiance(y.detach(),Qval*weights)
     return smoothed_irradiance    
 
 def binned_irradiance(optical_system:SequentialOpticalSystem,
@@ -74,10 +74,4 @@ def binned_irradiance(optical_system:SequentialOpticalSystem,
     return irradiance
 
 
-"""
-def smoothed_RGB(optical_system,sequence,source:LightSource,detector,num_rays,rgb_renderer,device,method_ray_tracing="sobol"):
-    x,weights,y,wl = trace_to_detector(optical_system,sequence,source,detector,num_rays,device,method_ray_tracing=method_ray_tracing)
-    Qval = source.get_flux(x.detach())
-    out = rgb_renderer.get_smooth_colour_RGB(y.detach(),Qval*weights,wl)
-    return out    
-"""
+#TODO: Here a versions are missing which split the irradiance calculation
