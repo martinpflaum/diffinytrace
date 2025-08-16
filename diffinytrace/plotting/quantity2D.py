@@ -71,7 +71,6 @@ def plot(val,title="",x_range=None,y_range=None,cmap="jet",subtitle="",title_fon
         if is_tensor(val):
             val = val.detach().cpu().numpy()
     
-    #TODO test Flip y axis!!
     val = val[::-1]
     
     plt.cla()   # Clear axis

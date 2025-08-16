@@ -22,13 +22,13 @@ def create_lens(
     lens_material:dit.RefractiveIndex,
     air_material:dit.RefractiveIndex,
     device,
+    sigma:float,
     aperture_radius_source:float=21.,
     aperture_radius_lens:float=25.,
     lens_thickness:float=5.,
     detector_distance:float=150.,
     lens_distance:float=1.0,
     num_refinements:int=5,
-    sigma:float=1.0,
     image_padding:float=0.2,
     bspline_orders:List[int]=[3, 3],
     bspline_ns_start:List[int]=[4, 4],
@@ -152,7 +152,7 @@ def create_lens(
                                     grid_size=grid_size,
                                     sigma=sigma,
                                     desired_irradiance_fun=irr_func,
-                                    smoothed_num_integration_points=2**21,
+                                    smoothed_num_integration_points=2**22,
                                     smoothed_num_splits=10,
                                     device=device)
     
@@ -230,8 +230,9 @@ def create_lens(
         out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
         out["discrete_desired_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
 
-        merit_func()
-        eval_func()
+        print("last_merit",merit_func(),out["history"]["fun_vals"][-1])
+        print("last_error",eval_func(),convergence_list[-1])
+
         out["smooth_irradiance"] = smoother.last_smoothed_irradiance.detach().cpu().numpy()
         out["binned_irradiance_eval"] = smoother.last_raycounting.detach().cpu().numpy()
 

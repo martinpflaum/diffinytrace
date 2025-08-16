@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import tempfile
 from PIL import Image
+from typing import Tuple, List, NamedTuple, Optional
 
 import os
 import pickle
@@ -61,7 +62,7 @@ def save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_ti
     
     return temp_path
 
-def get_row_vmin_vmax(matrices):
+def get_list_vmin_vmax(matrices):
     _vmin = np.inf
     _vmax = -np.inf
     matrices = [np.array(matrix) for matrix in matrices]
@@ -70,18 +71,26 @@ def get_row_vmin_vmax(matrices):
         _vmax = max(_vmax,(matrix).max())
     return _vmin,_vmax
 
-def make_row(matrices,extent,cmap,cbar_labelsize,cbar_title,cbar_title_fontsize,show_x_axis_first,vmin=None,vmax=None):
-    matrices = [np.array(matrix) for matrix in matrices]
-    _vmin,_vmax = get_row_vmin_vmax(matrices)
+def make_row(matrices,
+             extent,
+             cmap,
+             cbar_labelsize,
+             cbar_title,
+             cbar_title_fontsize,
+             show_x_axis_first,
+             column_vmin,
+             column_vmax):
+    
 
-    if vmin is None:
-        vmin = _vmin
-    if vmax is None:
-        vmax = _vmax
+    matrices = [np.array(matrix) for matrix in matrices]
         
     file_names = []
     for i,matrix in enumerate(matrices):
+        vmin = column_vmin[i]
+        vmax = column_vmax[i]
+                
         if len(matrices)-1 == i:
+            
             if i ==0:
                 file_name = save_matrix_plot_to_temp(matrix,extent,cmap,vmin,vmax,cbar_labelsize,cbar_title,cbar_title_fontsize,plot_colorbar = True,show_x_axis=show_x_axis_first)
                 file_names.append(file_name)
@@ -267,13 +276,42 @@ def create_white_image_with_dimensions(image1_path, image2_path):
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
         white_image.save(temp_file.name)
         return temp_file.name
+
+def image_from_grid(image_grid:List[List[np.ndarray]],
+                    rows_extent:List[Tuple[float, float, float, float]],
+                    rows_cmap:List[str],
+                    rows_title:List[str],
+                    columns_title:List[str],
+                    cbar_titles:List[str],
+                    font_size_PIL:int,
+                    cbar_labelsize:int,
+                    cbar_title_fontsize:int,
+                    columns_vmin:Optional[List[float]] = None,
+                    columns_vmax:Optional[List[float]] = None,
+                    column_title_ratio:float = 0.2):
+
     
-def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,cbar_titles,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=None,rows_vmax=None,column_title_ratio=0.2):
-    if rows_vmin is None:
-        rows_vmin = [None for elem in image_grid]
-    if rows_vmax is None:
-        rows_vmax = [None for elem in image_grid]
-    
+
+    if columns_vmin is None:
+        columns_vmin = []
+
+        for xi in range(len(image_grid[0])):
+            vmin = np.inf
+            for yi in range(len(image_grid)):
+                vmin = min(vmin, image_grid[yi][xi].min())
+
+            columns_vmin.append(vmin)
+
+    if columns_vmax is None:
+        columns_vmax = []
+
+        for xi in range(len(image_grid[0])):
+            vmax = -np.inf
+            for yi in range(len(image_grid)):
+                vmax = max(vmax, image_grid[yi][xi].max())
+
+            columns_vmax.append(vmax)
+
     out = []
     last_extents = None
     show_x_axis_first_all = [False for elem in image_grid]
@@ -296,7 +334,7 @@ def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,c
         #    all_same = True
         #    for k in range():
 
-        row_files = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=show_x_axis_first,vmin=rows_vmin[i],vmax=rows_vmax[i])
+        row_files = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=show_x_axis_first,vmin=columns_vmin,vmax=columns_vmax)
         image_column_text = create_image_with_text_orientation(row_files[1], rows_title[i], column_title_ratio,font_size_PIL,vertical=True)
         if i==0:
             images_row_text = []
@@ -323,61 +361,3 @@ def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,c
     
     return concatenate_images_tempfile_vertical(out)
 
-
-#chang vidx to columns
-def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,columns_title,cbar_titles,max_num_column,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=None,rows_vmax=None,column_title_ratio=0.2):
-    num_x = len(image_grid[0])
-    num_splits = int(np.ceil(num_x/float(max_num_column)))
-    
-    rows_vmin_idx_dict = {}
-    rows_vmax_idx_dict = {}
-
-        
-    for i,row in enumerate(image_grid):
-        idx = rows_vidx[i]
-        vmin,vmax = get_row_vmin_vmax(row)
-        if not idx in rows_vmin_idx_dict.keys():
-            rows_vmin_idx_dict[idx] = vmin 
-        else:
-            rows_vmin_idx_dict[idx] = min(vmin,rows_vmin_idx_dict[idx]) 
-            
-        if not idx in rows_vmax_idx_dict.keys():
-            rows_vmax_idx_dict[idx] = vmax 
-        else:
-            rows_vmax_idx_dict[idx] = max(vmax,rows_vmax_idx_dict[idx]) 
-
-    if rows_vmin is None:
-        rows_vmin = []
-        for i,row in enumerate(image_grid):
-            idx = rows_vidx[i]
-            vmin = rows_vmin_idx_dict[idx]
-            vmax = rows_vmax_idx_dict[idx]
-            rows_vmin.append(vmin)
-            #rows_vmax.append(vmax)
-        
-    if rows_vmax is None:
-        rows_vmax = []
-
-        for i,row in enumerate(image_grid):
-            idx = rows_vidx[i]
-            vmin = rows_vmin_idx_dict[idx]
-            vmax = rows_vmax_idx_dict[idx]
-            #rows_vmin.append(vmin)
-            rows_vmax.append(vmax)
-
-    print("rows vmin:", rows_vmin, "rows vmax:", rows_vmax)
-    num_x_perbrow = int(np.ceil(num_x/float(num_splits)))
-    image_grids = []
-    for i in range(num_splits):
-        split = []
-        for row in image_grid:
-            split.append(row[num_x_perbrow*i:num_x_perbrow*(i+1)])
-
-        image_grids.append(split)
-
-    out = []
-    for i,split in enumerate(image_grids):
-        
-        tmp = _image_from_grid(split,rows_extent,rows_cmap,rows_title,columns_title[num_x_perbrow*i:num_x_perbrow*(i+1)],cbar_titles,font_size_PIL,cbar_labelsize,cbar_title_fontsize,rows_vmin=rows_vmin,rows_vmax=rows_vmax,column_title_ratio=column_title_ratio)
-        out.append(tmp)
-    return out

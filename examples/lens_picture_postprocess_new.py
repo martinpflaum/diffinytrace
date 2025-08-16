@@ -267,6 +267,7 @@ def create_2d4x4_plots():
 create_2d4x4_plots()
 # %%
 results_classical_e["results_minimize"][-1].keys()
+
 #%%
 aperture_radius_detector = results_classical_e["settings"]["aperture_radius_detector"]
 #%%
@@ -280,3 +281,74 @@ dit.plotting.quantity2D.plot(discrete_desired_irradiance,"Desired Irradiance [W/
 plt.savefig(results_folder_out + "/discrete_desired_irradiance.png")
 
 # %%
+classical_binned_irradiance = results_classical_e["final_irr_results"]["binned_irradiance"]
+classical_smooth_irradiance = results_classical_e["final_irr_results"]["smooth_irradiance"]
+
+ours_binned_irradiance = results_ours_e["final_irr_results"]["binned_irradiance"]
+ours_smooth_irradiance = results_ours_e["final_irr_results"]["smooth_irradiance"]
+
+
+ours_lens_offset = results_ours_e["lens_offset"]
+classical_lens_offset = results_classical_e["lens_offset"]
+
+
+dit.plotting.quantity2D.plot(ours_binned_irradiance,"ours_binned_irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
+
+# %%
+aperture_radius_lens = results_classical_e["settings"]["aperture_radius_lens"]
+#%%
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import torch
+
+font_multi = 1.3
+cbar_labelsize=16
+cbar_title_fontsize=20
+fontsize=cbar_title_fontsize
+
+classical_row = [classical_binned_irradiance[::-1], classical_smooth_irradiance[::-1], classical_lens_offset]
+ours_row = [ours_binned_irradiance[::-1], ours_smooth_irradiance[::-1], ours_lens_offset]
+
+irr_vmin = min(classical_row[0].min(), ours_row[0].min(),classical_row[1].min(), ours_row[1].min())
+irr_vmax = max(classical_row[0].max(), ours_row[0].max(),classical_row[1].max(), ours_row[1].max())
+
+surf_vmin = min(classical_row[2].min(), ours_row[2].min())
+surf_vmax = max(classical_row[2].max(), ours_row[2].max())
+
+columns_vmin = [irr_vmin, irr_vmin, surf_vmin]
+columns_vmax = [irr_vmax, irr_vmax, surf_vmax]
+
+rows = [classical_row, ours_row]
+
+irr_extent = [
+    -aperture_radius_detector, aperture_radius_detector,
+    -aperture_radius_detector, aperture_radius_detector
+]
+
+surf_extent = [-aperture_radius_lens, aperture_radius_lens,-aperture_radius_lens,aperture_radius_lens]
+
+extent_columns = [irr_extent,irr_extent, surf_extent]
+
+irr_cmap_columns = "gray"
+surf_cmap_columns = "jet"
+
+cmap_columns = [irr_cmap_columns, irr_cmap_columns, surf_cmap_columns]
+
+irr_cbar_title = "[W/mm²]"
+surf_cbar_title = "mm"
+
+# Titles corresponding to `irrs`
+column_title1 = "Irradiance RC"
+column_title2 = "Smoothed Irradiance"
+column_title3 = "Surface Profile"
+
+column_titles = [column_title1, column_title2, column_title3]
+
+row_title1 = "Partially Smoothed"
+row_title2 = "Ours"
+
+row_titles = [row_title1, row_title2]
+
+
+
+#%%

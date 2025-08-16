@@ -155,8 +155,9 @@ def calc_smooth_desired_irradiance(desired_irradiance_fun:Callable,
             split_weights = splitted_weights[k].to(device=device,dtype=dtype)
             tmp = gaussian_func2D(split_points,x_range,y_range,x_grid_size,y_grid_size,sigma=sigma,val_multi=desired_irradiance_fun(split_points)*split_weights)
             #print("tmp.shape",tmp.shape)
-            out.append(tmp)
-            del split_points, split_weights, tmp
+            out.append(tmp.detach())
+            #del split_points, split_weights
+            gc.collect()
 
     out = torch.sum(torch.stack(out), dim=0)
     del points, weights, splitted_points, splitted_weights
