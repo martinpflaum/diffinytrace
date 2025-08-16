@@ -318,7 +318,7 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
                         detector,
                         smoother:GaussianSmoother,
                         num_splits:int=10,
-                        num_rays_per_split:int=1000000,
+                        num_rays_per_split:int=100000,
                         method_ray_tracing="monte_carlo",
                         device=torch.get_default_device())->Callable:
     """

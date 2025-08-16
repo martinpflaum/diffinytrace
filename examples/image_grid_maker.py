@@ -324,29 +324,34 @@ def _image_from_grid(image_grid,rows_extent,rows_cmap,rows_title,columns_title,c
     return concatenate_images_tempfile_vertical(out)
 
 
-def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,columns_title,cbar_titles,max_num_column,font_size_PIL,cbar_labelsize,cbar_title_fontsize,column_title_ratio=0.2):
+def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,columns_title,cbar_titles,max_num_column,font_size_PIL,cbar_labelsize,cbar_title_fontsize,vmin=None,vmax=None,column_title_ratio=0.2):
     num_x = len(image_grid[0])
     num_splits = int(np.ceil(num_x/float(max_num_column)))
     
     rows_vmin_idx_dict = {}
     rows_vmax_idx_dict = {}
 
+    if not vmin is None and vmax is None:
+        rows_vmin_idx_dict = {i:vmin for i in rows_vidx}
+        rows_vmax_idx_dict = {i:vmax for i in rows_vidx}
+    else:
 
-    
-    for i,row in enumerate(image_grid):
-        idx = rows_vidx[i]
-        vmin,vmax = get_row_vmin_vmax(row)
-        if not idx in rows_vmin_idx_dict.keys():
-            rows_vmin_idx_dict[idx] = vmin 
-        else:
-            rows_vmin_idx_dict[idx] = min(vmin,rows_vmin_idx_dict[idx]) 
         
-        if not idx in rows_vmax_idx_dict.keys():
-            rows_vmax_idx_dict[idx] = vmax 
-        else:
-            rows_vmax_idx_dict[idx] = min(vmax,rows_vmax_idx_dict[idx]) 
-           
+        for i,row in enumerate(image_grid):
+            idx = rows_vidx[i]
+            vmin,vmax = get_row_vmin_vmax(row)
+            if not idx in rows_vmin_idx_dict.keys():
+                rows_vmin_idx_dict[idx] = vmin 
+            else:
+                rows_vmin_idx_dict[idx] = min(vmin,rows_vmin_idx_dict[idx]) 
+            
+            if not idx in rows_vmax_idx_dict.keys():
+                rows_vmax_idx_dict[idx] = vmax 
+            else:
+                rows_vmax_idx_dict[idx] = max(vmax,rows_vmax_idx_dict[idx]) 
 
+    print("Row min/max values:",rows_vmin_idx_dict, rows_vmax_idx_dict)
+    
     rows_vmin = []
     rows_vmax = []
 

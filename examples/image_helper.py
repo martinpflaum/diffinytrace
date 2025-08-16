@@ -366,7 +366,7 @@ def image_from_grid(image_grid,rows_extent,rows_vidx,rows_cmap,rows_title,column
         if not idx in rows_vmax_idx_dict.keys():
             rows_vmax_idx_dict[idx] = vmax 
         else:
-            rows_vmax_idx_dict[idx] = min(vmax,rows_vmax_idx_dict[idx]) 
+            rows_vmax_idx_dict[idx] = max(vmax,rows_vmax_idx_dict[idx]) 
            
 
     rows_vmin = []

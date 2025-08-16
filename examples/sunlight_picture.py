@@ -67,7 +67,6 @@ def create_lens(
 
     gc.collect()
 
-    smoothed_num_integration_points = copy.deepcopy(smoothed_num_integration_points)
     num_rays = copy.deepcopy(num_rays)
 
     if (image_padding==0.0):
@@ -205,8 +204,8 @@ def create_lens(
                         light_source,
                         detector,
                         smoother,
-                        #num_splits=10,
-                        #num_rays_per_split=1000000,
+                        num_splits=10,
+                        num_rays_per_split=500000,
                         #method_ray_tracing="monte_carlo",
                         device=device)
 
@@ -244,11 +243,11 @@ def create_lens(
         results_minimize = [] 
         for k in range(num_refinements):
             print("BEGIN: opti after refine: coeff shape:",bspline_surface1.coeff.shape)
-            results_minimize += [minimization_call(smoother,k)]    
+            results_minimize += [minimization_call(k)]    
             print("END")
             bspline_surface1.refine()
         print("BEGIN: opti after refine: coeff shape:",bspline_surface1.coeff.shape)
-        results_minimize += [minimization_call(smoother,num_refinements)]    
+        results_minimize += [minimization_call(num_refinements)]    
         print("END")
         return results_minimize
 
@@ -306,16 +305,41 @@ def create_lens(
         out["desired_irradiance_raw"] = desired_irradiance_raw
         out["minimization_method"] = minimization_method
         out["num_rays_opti"] = num_rays
-        out["smoothed_num_integration_points"] = smoothed_num_integration_points
         out["bspline_orders"] = bspline_orders
         out["bspline_ns_start"] = bspline_ns_start
         out["grid_size"] = grid_size
         out["use_desired_irradiance_smoothing"] = use_desired_irradiance_smoothing
         return out
     
+
+    def get_surface_data(lens,resolution):
+        aperture_radius = lens.aperture_radius
+        surface = lens.surface2.surface
+
+        _x = torch.linspace(-aperture_radius,aperture_radius,resolution)
+        _y = torch.linspace(-aperture_radius,aperture_radius,resolution)
+        mesh = torch.meshgrid(_x,_y)
+        x = mesh[0].reshape(-1)
+        y = mesh[1].reshape(-1)
+        O = torch.zeros((x.shape[0],2))        
+                
+        O[:,0] = x
+        O[:,1] = y
+        z = None
+                
+        with torch.no_grad():
+            z = surface.explicit(O.to(device=device))
+            
+        if not lens.is_square:
+            z[O[:,[0,1]].norm(dim=-1)>aperture_radius] = float("nan")
+
+        z = z.cpu().detach().reshape(resolution,resolution).numpy()
+        z = z.T
+        return z
+
     out = {}
     out["results_minimize"] = results_minimize
-    
+    out["lens_offset"] = get_surface_data(lens1,256)
     #if save_lens_history:
     #    out["final_lens"] = final_lens
     

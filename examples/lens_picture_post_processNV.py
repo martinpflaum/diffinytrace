@@ -441,7 +441,7 @@ for i,row in enumerate(image_grid):
     if not idx in rows_vmax_idx_dict.keys():
         rows_vmax_idx_dict[idx] = vmax 
     else:
-        rows_vmax_idx_dict[idx] = min(vmax,rows_vmax_idx_dict[idx]) 
+        rows_vmax_idx_dict[idx] = max(vmax,rows_vmax_idx_dict[idx]) 
            
 
 rows_vmin = []
