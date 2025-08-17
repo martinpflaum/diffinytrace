@@ -288,4 +288,32 @@ for k in range(num_cols):
     plt.savefig(results_folder+f"radiant_exitance_desired_irr_sep{k}.png", dpi=400, bbox_inches='tight')
     plt.show()
 
+plt.figure(figsize=(10,4))
+#results_folder = "results/collimated_compare/"
+try:
+    os.mkdir("results")
+except:
+    pass
+try:
+    os.mkdir(results_folder)
+except:
+    pass
+baseline_conv = [result["convergence_list"][-1] for result in baseline_results]
+our_conv = [result["convergence_list"][-1] for result in our_results]
+sigmas = [result["sigma"] for result in our_results]
+ax = plt.gca()
+ax.grid(True, which='major', linestyle='-', linewidth=0.5)  # Minor grid lines (finer)
+ax.grid(True, which='minor', linestyle='-', linewidth=0.5)  # Minor grid lines (finer)
+ax.set_xlabel("$\\sigma$ [mm]")
+ax.set_ylabel("Error")
+plt.plot(sigmas,baseline_conv,label="Partially Smoothed")
+plt.plot(sigmas,our_conv,label="Ours")
+plt.title("Relationship Between Error and the Kernel Width")
+plt.legend()
+plt.savefig(results_folder+"relationshipVA.png", dpi=400, bbox_inches='tight')
+
+
+idx = torch.arange(len(baseline_results)//4)*5
+idx = [0,5,10,15,19]
+
 # %%

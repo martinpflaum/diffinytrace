@@ -6,9 +6,7 @@ Package
 
    diffinytrace.basis_functions
    diffinytrace.export
-   diffinytrace.nonimaging
    diffinytrace.plotting
-   diffinytrace.render
    diffinytrace.utils
 
 Config
@@ -31,6 +29,14 @@ Element
 ---------------------------
 
 .. automodule:: diffinytrace.element
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Gaussian Smoother
+--------------------------------------
+
+.. automodule:: diffinytrace.gaussian_smoother
    :members:
    :undoc-members:
    :show-inheritance:
@@ -71,6 +77,14 @@ Refractive Index
 -------------------------------------
 
 .. automodule:: diffinytrace.refractive_index
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Render
+--------------------------
+
+.. automodule:: diffinytrace.render
    :members:
    :undoc-members:
    :show-inheritance:

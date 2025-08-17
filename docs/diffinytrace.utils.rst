@@ -17,14 +17,6 @@ Irradiance Importer
    :undoc-members:
    :show-inheritance:
 
-Sympy Helper
----------------------------------------
-
-.. automodule:: diffinytrace.utils.sympy_helper
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module Contents
 ---------------
 

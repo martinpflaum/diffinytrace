@@ -5,4 +5,5 @@ Examples
     bspline
     collimated_compare
     comparison_smoothing
-    lens_picture
+    diffinytrace_server_collimated_compare
+    diffinytrace_server_lens_picture
