@@ -7,7 +7,7 @@ import torch
 import copy
 import gc
 from typing import List,Tuple,Optional
-
+import tqdm
 from diffinytrace import (
     source, transforms, Bspline, Plane, Lens, Detector, SequentialOpticalSystem,
     utils, plotting, target_grid, render, minimize, set_unused_bspline_coeff_to_nearest,
@@ -359,5 +359,13 @@ def create_lens(
     #if save_irradiance_results:
     #    out["initial_irr_results"] = get_initial_irr_results()
     out["final_irr_results"] = get_final_irr_results()
-        
+
+    target_grid_high_res = target_grid.GridSquare(aperture_radius_detector,grid_size=grid_size*4)
+    raycounting_list = []
+    for k in tqdm.tqdm(range(1000)):
+        tmp = render.binned_irradiance(optical_system=system,sequence=sequence,source=light_source,detector=detector,grid=target_grid_high_res,num_rays=1000000,method_ray_tracing="monte_carlo",device=device)
+        tmp = tmp.detach().cpu()
+        raycounting_list.append(tmp)
+    raycounting = torch.mean(torch.stack(raycounting_list),dim=0).detach().cpu()
+    out["high_res_irradiance"] = raycounting
     return out
