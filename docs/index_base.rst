@@ -15,4 +15,5 @@ Base
    surface
    target_grid
    transforms
-
+   render
+   gaussian_smoother
