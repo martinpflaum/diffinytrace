@@ -535,3 +535,155 @@ image
 # %%
 300*4
 # %%
+
+"""
+********************* no clamp
+High res irradiance final plot
+
+"""
+
+irr_vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max(),high_res_irradiance_ours.max(),high_res_irradiance_classical.max())
+irr_vmin = 0
+
+
+column_title_ratio = 0.3
+font_size_PIL = 37
+
+irr_ours_row2 = irr_ours_row+[high_res_irradiance_ours]
+irr_classical_row2 = irr_classical_row+[high_res_irradiance_classical]
+
+surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface1 = surface1[0]
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = surface2[0]
+tmp = make_row(irr_ours_row2+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
+
+row1 = make_row(irr_classical_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+
+
+#tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
+baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
+
+row1 = [baseline_text]+row1
+row2 = [ours_text]+row2
+#(²)
+row1 = concatenate_images_tempfile_row(row1)
+row2 = concatenate_images_tempfile_row(row2)
+
+
+culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(10M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
+culomn2 = create_image_with_text_orientation(tmp[0],"Smoothed Irr.\n(1M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
+culomn3 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(1B rays, 1200² pixels)", column_title_ratio,font_size_PIL,vertical=False)
+corner = create_white_image_with_dimensions(baseline_text,culomn1)
+
+row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2,culomn3])
+
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
+
+
+xout = [out,surface_img]
+xout = concatenate_images_tempfile_row(xout)
+
+file_name_out = results_folder_out + f"/final_plot_highrescoclamp.png"
+image = Image.open(xout)
+image.save(file_name_out)
+image
+# %%
+
+"""
+High res irradiance final plot B no clamp
+
+"""
+
+
+
+surf_grad_cmap_title = "[1]"
+surf_grad_cmap = "jet"
+
+surf_grad_vmin = 0
+surf_grad_vmax = 0.15#max(np.max(classical_size_grad),np.max(ours_size_grad))
+
+surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface1 = surface1[0]
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = surface2[0]
+tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
+
+
+xout = [out,surface_img,surface_grad_img]
+xout = concatenate_images_tempfile_row(xout)
+
+#file_name_out = results_folder_main + f"/final_plot2.png"
+file_name_out = results_folder_out + f"/final_plot_highresBnoclamp.png"
+image = Image.open(xout)
+image.save(file_name_out)
+# %%
+
+
+"""
+
+no clamp
+"""
+
+
+surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface1 = surface1[0]
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = surface2[0]
+tmp = make_row(irr_ours_row+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
+
+row1 = make_row(irr_classical_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+#tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
+baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
+
+row1 = [baseline_text]+row1
+row2 = [ours_text]+row2
+row1 = concatenate_images_tempfile_row(row1)
+row2 = concatenate_images_tempfile_row(row2)
+
+culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC", column_title_ratio,font_size_PIL,vertical=False)
+culomn2 = create_image_with_text_orientation(tmp[0],"Smoothed Irr.", column_title_ratio,font_size_PIL,vertical=False)
+corner = create_white_image_with_dimensions(baseline_text,culomn1)
+row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2])
+
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
+
+
+xout = [out,surface_img]
+xout = concatenate_images_tempfile_row(xout)
+
+#file_name_out = results_folder_main + f"/final_plot2.png"
+file_name_out = results_folder_out + f"/final_plot_noclamp.png"
+image = Image.open(xout)
+image.save(file_name_out)
+
+
+irr_vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max(),ours_binned_irradiance.max(),classical_binned_irradiance.max())
+
+surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface1 = surface1[0]
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = surface2[0]
+tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
+
+
+xout = [out,surface_img,surface_grad_img]
+xout = concatenate_images_tempfile_row(xout)
+
+#file_name_out = results_folder_main + f"/final_plot2.png"
+file_name_out = results_folder_out + f"/final_plotBnoclamp.png"
+image = Image.open(xout)
+image.save(file_name_out)
+# %%
