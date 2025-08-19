@@ -482,7 +482,7 @@ row1 = concatenate_images_tempfile_row(row1)
 row2 = concatenate_images_tempfile_row(row2)
 
 
-culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(1M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
+culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(10M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
 culomn2 = create_image_with_text_orientation(tmp[0],"Smoothed Irr.\n(1M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
 culomn3 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(1B rays, 1200² pixels)", column_title_ratio,font_size_PIL,vertical=False)
 corner = create_white_image_with_dimensions(baseline_text,culomn1)
