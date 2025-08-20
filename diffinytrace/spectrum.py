@@ -19,6 +19,7 @@ class Spectrum(nn.Module,PlotableWavelength):
     def __init__(self,func,bounds):
         """
         Initialize the Spectrum class.
+        
         Args:
             func (callable): A function that takes a wavelength and returns the spectrum value.
             bounds (tuple): A tuple containing the minimum and maximum wavelength.
@@ -31,6 +32,7 @@ class Spectrum(nn.Module,PlotableWavelength):
     def forward(self,wl):
         """
         Calculate the spectrum for given wavelengths.
+
         Args:
             wl (torch.Tensor or float): Wavelength in μm.
         Returns:

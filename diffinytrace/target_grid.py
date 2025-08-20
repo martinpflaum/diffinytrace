@@ -1,11 +1,3 @@
-# Copyright (c) 2025 Martin Pflaum
-# This file is part of the diffinytrace project, licensed under the MIT License.
-
-__all__ = [
-    "Grid",
-    "GridSquare"
-]
-
 """
 This module implements grid-based spatial aggregation for ray optics.
 
@@ -20,6 +12,16 @@ Example:
     >>> grid = Grid([0, 1], [0, 1], 10, 10)
     >>> area = grid.get_area()
 """
+
+# Copyright (c) 2025 Martin Pflaum
+# This file is part of the diffinytrace project, licensed under the MIT License.
+
+__all__ = [
+    "Grid",
+    "GridSquare"
+]
+
+
 
 import torch
 import torch.nn as nn

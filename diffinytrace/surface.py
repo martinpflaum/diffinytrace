@@ -95,6 +95,7 @@ class Surface(SemiFunctionalModule):
         >>>          material, aperture_radius)
         >>> dit.plotting.system2D.plot(lens)
     """
+
     @staticmethod
     def functional(O,*params_list):
         raise NotImplementedError("functional not implemented")

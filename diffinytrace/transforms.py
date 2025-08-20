@@ -198,13 +198,13 @@ class Offset(Transform):
 
     .. math::
 
-        M^{\\textit{offset}}(w_x, w_y, w_z) = 
-        \\begin{bmatrix}
-        1 & 0 & 0 & w_x \\\\
-        0 & 1 & 0 & w_y \\\\
-        0 & 0 & 1 & w_z \\\\
+        M^{offset}(w_x, w_y, w_z) = 
+        \begin{bmatrix}
+        1 & 0 & 0 & w_x \\
+        0 & 1 & 0 & w_y \\
+        0 & 0 & 1 & w_z \\
         0 & 0 & 0 & 1
-        \\end{bmatrix}
+        \end{bmatrix}
     
     Example:
         >>> import diffinytrace as dit
@@ -251,13 +251,13 @@ class Distance(Transform):
 
     .. math::
 
-        M^{\\textit{dist}}_z(d) = 
-        \\begin{bmatrix}
-        1 & 0 & 0 & 0 \\\\
-        0 & 1 & 0 & 0 \\\\
-        0 & 0 & 1 & d \\\\
+        M^{dist}_z(d) = 
+        \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 1 & d \\
         0 & 0 & 0 & 1
-        \\end{bmatrix},
+        \end{bmatrix},
 
     where \( d \) represents the distance of translation along the \( z \)-axis.
 
@@ -276,7 +276,7 @@ class Distance(Transform):
 
         .. math::
 
-            \\mathbf{x}_\\text{local} = \\mathbf{x}_\\text{parent} + d \\cdot \\mathbf{e}_i
+            \mathbf{x}_\text{local} = \mathbf{x}_\text{parent} + d \cdot \mathbf{e}_i
     """
     def __init__(self,distance,axis = 2,parent_transform=Identity()):
         super().__init__()
@@ -400,13 +400,13 @@ class Rotation(Transform):
 
     .. math::
 
-        M^{\\textit{rot}}_z(\\theta_z) = 
-        \\begin{bmatrix}
-        \\cos \\theta_z & -\\sin \\theta_z & 0 & 0 \\\\
-        \\sin \\theta_z & \\cos \\theta_z & 0 & 0 \\\\
-        0 & 0 & 1 & 0 \\\\
+        M^{rot}_z(\theta_z) = 
+        \begin{bmatrix}
+        \cos \theta_z & -\sin \theta_z & 0 & 0 \\
+        \sin \theta_z & \cos \theta_z & 0 & 0 \\
+        0 & 0 & 1 & 0 \\
         0 & 0 & 0 & 1
-        \\end{bmatrix}
+        \end{bmatrix}
 
     Args:
         angle (float or Tensor): Rotation angle in degrees.

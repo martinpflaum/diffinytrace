@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
-__all__ = ["Integrator", "Cube"]
+__all__ = ["Integrator", "Cube","Disc"]
 
 import torch
 import numpy as np
@@ -38,12 +38,36 @@ class Integrator():
 
      
 class Cube(Integrator):
+    """
+    Integrator for a multi-dimensional cube (hyperrectangle).
+
+    Args:
+        bounds (array-like): The bounds for each dimension of the cube. Should be a list or array of shape (n_dim, 2),
+            where each row specifies [lower_bound, upper_bound] for a dimension.
+
+    Methods:
+        sample(num_points, method="midpoint"):
+            Sample points and weights using the specified integration method.
+            Supported methods: 'simpson', 'midpoint', 'monte_carlo', 'sobol', 'sobol_pow2'.
+
+        in_bounds(x):
+            Check if the given points are within the cube bounds.
+
+        get_volume():
+            Return the volume of the cube.
+
+    Example:
+        >>> cube = dit.integrators.Cube([[0, 1], [0, 1]])
+        >>> points, weights = cube.sample([10, 10], method="midpoint")
+        >>> volume = cube.get_volume()
+        >>> all_in_bounds = cube.in_bounds(points)
+        >>> print("Sampled points:", points)
+        >>> print("Integration weights:", weights)
+        >>> print("Cube volume:", volume)
+        >>> print("All points in bounds:", all_in_bounds)
+    """
+    
     def __init__(self,bounds):
-        """
-        Initialize the Cube integrator with given bounds.
-        Args:
-            bounds (list or np.ndarray): Bounds of the cube in each dimension.
-        """
         super().__init__()
         bounds = np.array(bounds)
         if len(bounds.shape)==1:
@@ -54,11 +78,13 @@ class Cube(Integrator):
             raise ValueError("len(self.bounds.shape)==2 must hold true!")
     
     def sample(self,num_points,method="midpoint")-> tuple[torch.Tensor, torch.Tensor]:
-        """
+        r"""
         Sample points and weights using the specified method.
+        
         Args:
             num_points (int or list): Number of points in each dimension.
             method (str): The integration method to use. Options are 'simpson', 'midpoint', 'monte_carlo', 'sobol', and 'sobol_pow2'.
+        
         Returns:
             tuple: A tuple containing the sampled points and their corresponding weights.
         """
@@ -99,11 +125,11 @@ class Cube(Integrator):
         Sample points and weights using the midpoint rule.
 
         Args:
-        num_points (list or array): Number of points in each dimension.
+            num_points (list or array): Number of points in each dimension.
 
         Returns:
-        sampled_points (torch.Tensor): Tensor of sampled points.
-        weights (torch.Tensor): Tensor of weights associated with each point.
+            sampled_points (torch.Tensor): Tensor of sampled points.
+            weights (torch.Tensor): Tensor of weights associated with each point.
         """
         # Ensure num_points matches the number of dimensions in bounds
         num_points = np.array(num_points)
@@ -264,18 +290,30 @@ class Cube(Integrator):
 
 
 class Disc(Integrator):
+    """
+    Integrator for a 2D disc (circle).
+
+    Args:
+        radius (float): The radius of the disc.
+
+    Example:
+        >>> disc = dit.integrators.Disc(1.0)
+        >>> points, weights = disc.sample(2**4, method="sobol_pow2")
+        >>> volume = disc.get_volume()
+        >>> all_in_bounds = disc.in_bounds(points)
+        >>> print("Sampled points:", points)
+        >>> print("Integration weights:", weights)
+        >>> print("Disc area:", volume)
+        >>> print("All points in bounds:", all_in_bounds)
+    """
+
     def __init__(self,radius):
-        """
-        Initialize the Disc integrator with a given radius.
-        Args:
-            radius (float): Radius of the disc.
-        """
-        
         self.radius = float(radius)
     
     def sample(self,num_points,method="sobol")-> tuple[torch.Tensor, torch.Tensor]:
         """
         Sample points and weights using the specified method.
+        
         Args:
             num_points (int or list): Number of points in each dimension.
             method (str): The integration method to use. Options are 'simpson', 'midpoint', 'monte_carlo', 'sobol', and 'sobol_pow2'.
@@ -387,8 +425,10 @@ class Disc(Integrator):
        
     def in_bounds(self,x):
         """Check if points are within the disc.
+        
         Args:
             x (torch.Tensor): Points to check.
+        
         Returns:
             torch.Tensor: Boolean tensor indicating if points are within the disc.
         """
@@ -398,6 +438,7 @@ class Disc(Integrator):
     
     def get_volume(self):
         """Calculate the volume of the disc.
+        
         Returns:
             float: Volume of the disc.
         """

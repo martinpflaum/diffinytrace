@@ -1,24 +1,3 @@
-# Copyright (c) 2025 Martin Pflaum
-# This file is part of the diffinytrace project, licensed under the MIT License.
-
-__all__ = [
-    "make_bounds_from_param",
-    "make_parameter_from_input",
-    "pack_tensors",
-    "unpack_tensors",
-    "apply_vec_to_params",
-    "set_full_if_nan",
-    "ParameterFunHelper",
-    "create_fun_and_gradient",
-    "remove_bounds",
-    "get_bounds",
-    "get_scipy_constraint",
-    "create_callback",
-    "minimize",
-    "copy_bounds_to_attr_name",
-    "set_bounds_from_params_mask"
-]
-
 r"""
 Optimization Utilities for PyTorch-SciPy Integration
 ====================================================
@@ -117,6 +96,26 @@ In our library, we implemented three ways to define constraints:
    optimization procedure.
 """
 
+# Copyright (c) 2025 Martin Pflaum
+# This file is part of the diffinytrace project, licensed under the MIT License.
+
+__all__ = [
+    "make_bounds_from_param",
+    "make_parameter_from_input",
+    "pack_tensors",
+    "unpack_tensors",
+    "apply_vec_to_params",
+    "set_full_if_nan",
+    "ParameterFunHelper",
+    "create_fun_and_gradient",
+    "remove_bounds",
+    "get_bounds",
+    "get_scipy_constraint",
+    "create_callback",
+    "minimize",
+    "copy_bounds_to_attr_name",
+    "set_bounds_from_params_mask"
+]
 
 import scipy
 import scipy.optimize
@@ -125,6 +124,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import copy
+from typing import Callable, List, Tuple, Optional
 
 def make_bounds_from_param(param):
     """
@@ -561,9 +561,18 @@ def global_dual_annealing(fun,
     return result
 """
 
-    
 
-def minimize(fun, params, constraints=[], method=None, tol=1e-9,callback=None, options=None,nan_fallback = float("inf"),bounds_attr_name="bounds",save_history=False,call_before_minimize=False):
+def minimize(fun, 
+             params, 
+             constraints:List=[], 
+             method=None, 
+             tol:float=1e-9,
+             callback:Callable=lambda:None, 
+             options:Optional[dict]=None,
+             nan_fallback:float=float("inf"),
+             bounds_attr_name:str="bounds",
+             save_history:bool=False,
+             call_before_minimize:bool=False)->dict:
     """
     Minimizes a function using SciPy's `minimize`, supporting bounds and constraints.
 

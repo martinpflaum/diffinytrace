@@ -13,7 +13,10 @@ __all__ = [
 
 import matplotlib.pyplot as plt
 import torch
-def cox_de_boor_recursion(U,k,n,xis,k_curr):
+from typing import Tuple,List,Callable,Optional
+
+
+def cox_de_boor_recursion(U: torch.Tensor, k: int, n: int, xis: torch.Tensor, k_curr: int) -> torch.Tensor:
     r"""Cox-de Boor recursion for B-spline basis functions.
     
     Args:
@@ -57,15 +60,56 @@ def cox_de_boor_recursion(U,k,n,xis,k_curr):
     
     return out
 
-def basis_1d(points,U,k,n,val_range):
-    #TODO REMOVE n 
+def basis_1d(points:torch.Tensor,
+             U:torch.Tensor,
+             k:int,
+             n:int,
+             val_range:tuple[float,float])->torch.Tensor:
+    """
+    Compute 1D B-spline basis functions at given points.
+
+    Args:
+        points (torch.Tensor): Points where the basis functions are evaluated.
+        U (torch.Tensor): Knot vector.
+        k (int): Order of the B-spline.
+        n (int): Number of control points.
+        val_range (tuple[float, float]): Range of the target interval (e.g., (0.0, 1.0)).
+
+    Returns:
+        torch.Tensor: B-spline basis function values at the evaluation points.
+
+    Raises:
+        RuntimeError: If the knot vector does not start at 0.0 or end at 1.0.
+
+    Example:
+        >>> import torch
+        >>> import matplotlib.pyplot as plt
+        >>> from diffinytrace.basis_functions import bspline
+        >>> U = torch.tensor([0., 0.2, 0.4, 0.6, 0.8, 1])
+        >>> n = 3
+        >>> k = 3  # This is order 3
+        >>> print(U[0], U[-1])
+        >>> xis = torch.linspace(0, 1, 100)
+        >>> xN = bspline.basis_1d(xis, U, k, n, [0., 1.])
+        >>> num_points = xN.shape[0]
+        >>> tmp = xN.reshape(num_points, -1, 1) * xN.reshape(num_points, 1, -1)
+        >>> for yin in xN.T:
+        ...     plt.plot(xis, yin)
+        >>> plt.gca().set_aspect('equal')
+    """
+    
     if U[0] != 0.0 or U[-1]!=1.0:
         raise RuntimeError("Knots should always between 0.0 and 1.0 and also contain these values!")
     points = (points-val_range[0])/(val_range[1]-val_range[0])#points are now between 0. and 1.0
     k_curr = k
     return cox_de_boor_recursion(U,k,n,points,k_curr-1)
 
-def basis_2d(points,Us,orders,ns,x_range,y_range):
+def basis_2d(points:torch.Tensor,
+             Us:List[torch.Tensor],
+             orders:List[int],
+             ns:List[int],
+             x_range:tuple,
+             y_range:tuple):
     """Compute the 2D B-spline basis functions for given points.
     
     Args:
@@ -129,8 +173,36 @@ def basis_2d(points,Us,orders,ns,x_range,y_range):
     return N2D
 
 
-def surface_2d(points, Us, orders, ns, x_range, y_range, control_points):
-    #TODO maybe test more...
+def surface_2d(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], ns: List[int], x_range: tuple, y_range: tuple, control_points: torch.Tensor) -> torch.Tensor:
+    """
+    Evaluate a 2D B-spline surface at given points using provided knot vectors, orders, and control points.
+
+    Args:
+        points (torch.Tensor): Points where the surface is evaluated, shape [num_points, 2].
+        Us (List[torch.Tensor]): Knot vectors for x and y directions [U_x, U_y].
+        orders (List[int]): Orders of the B-spline in x and y directions [order_x, order_y].
+        ns (List[int]): Number of control points in x and y directions [n_x, n_y].
+        x_range (tuple): Range of the target plane in the x direction (min, max).
+        y_range (tuple): Range of the target plane in the y direction (min, max).
+        control_points (torch.Tensor): Control points, shape [n_x, n_y, ...] or [n_x*n_y, ...].
+
+    Returns:
+        torch.Tensor: Evaluated surface points at the input locations.
+
+    Raises:
+        RuntimeError: If the input points are not in local coordinates or have an incorrect shape.
+
+    Example:
+        >>> import torch
+        >>> from diffinytrace.basis_functions import bspline
+        >>> n_x, n_y = 4, 4
+        >>> control_points = torch.randn((n_x, n_y, 2))
+        >>> k_x, k_y = 3, 3
+        >>> U_x = torch.linspace(0, 1, n_x + k_x)
+        >>> U_y = torch.linspace(0, 1, n_y + k_y)
+        >>> points = torch.rand((100, 2))
+        >>> surface = bspline.surface_2d(points, [U_x, U_y], [k_x, k_y], [n_x, n_y], (0.0, 1.0), (0.0, 1.0), control_points)
+    """
     if len(points.shape) != 2 or points.shape[1] != 2:
         raise RuntimeError("The points must be in local coordinates and of shape [#points,2]")
     device = points.device
@@ -204,7 +276,48 @@ def surface_2d(points, Us, orders, ns, x_range, y_range, control_points):
 
 
 
-def insert_knot1D_single(U,korder,new_knot,control_points,dim=0):
+def insert_knot1D_single(U: torch.Tensor, 
+                         korder: int, 
+                         new_knot: torch.Tensor, 
+                         control_points: torch.Tensor, 
+                         dim: int=0) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Insert a single knot into a 1D B-spline knot vector and update control points.
+
+    Args:
+        U (torch.Tensor): Original knot vector.
+        korder (int): Order of the B-spline.
+        new_knot (torch.Tensor or float): Knot value to insert.
+        control_points (torch.Tensor): Control points (shape: [n, ...]).
+        dim (int, optional): Dimension along which to insert the knot (default: 0).
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]: (Updated knot vector, updated control points).
+
+    Example:
+        >>> import torch
+        >>> import numpy as np
+        >>> import matplotlib.pyplot as plt
+        >>> n = 4
+        >>> control_points = torch.randn((n, 2))  # Random control points
+        >>> k = 4  # Quadratic B-spline
+        >>> U = torch.tensor([0.0] * (k - 1) + list(np.linspace(0, 1.0, n + k - 2 * (k - 1))) + [1.0] * (k - 1))
+        >>> U = U.float()
+        >>> print(U.shape[0] - k == n, n >= k)
+        >>> for m in range(100):
+        ...     U_new, new_control_points = bspline.insert_knot1D_single(U, k, torch.rand((1)), control_points)
+        ...     print("new_control_points", new_control_points)
+        ...     print("control_points", control_points)
+        ...     xis = torch.linspace(0, 1, 1000)
+        ...     xN1 = bspline.basis_1d(xis, U, k, 3, [0, 1.])
+        ...     out1 = xN1 @ control_points
+        ...     xN2 = bspline.basis_1d(xis, U_new, k, 4, [0, 1.])
+        ...     out2 = xN2 @ new_control_points
+        ...     plt.plot(out1[:, 0], out1[:, 1], linewidth=5.0)
+        ...     plt.plot(out2[:, 0], out2[:, 1], "--")
+        ...     torch.mean((out1 - out2) ** 2)
+    """
+    
     device = control_points.device
     dtype = control_points.dtype
     if dim != 0:
@@ -231,13 +344,40 @@ def insert_knot1D_single(U,korder,new_knot,control_points,dim=0):
     return U_new,control_points_new
 
 
-def insert_knots1D(U,korder,new_knot_list,control_points,dim=0):
+def insert_knots1D(U, korder, new_knot_list, control_points, dim=0):
+    """
+    Insert multiple knots into a 1D B-spline knot vector and update control points.
+
+    Args:
+        U (torch.Tensor): Original knot vector.
+        korder (int): Order of the B-spline.
+        new_knot_list (Iterable): List or tensor of knot values to insert.
+        control_points (torch.Tensor): Control points.
+        dim (int, optional): Dimension along which to insert the knots (default: 0).
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]: (Updated knot vector, updated control points).
+    """
     for new_knot in new_knot_list:
         U,control_points = insert_knot1D_single(U,korder,new_knot,control_points,dim=dim)
     return U,control_points
 
 
-def refine2D(Us,orders,coeff=None):
+def refine2D(Us, orders, coeff=None):
+    """
+    Refine 2D B-spline knot vectors by inserting midpoints between existing knots.
+    Optionally updates coefficients (control points) accordingly.
+
+    Args:
+        Us (list[torch.Tensor]): List of knot vectors [U1, U2] for x and y directions.
+        orders (list[int]): List of orders [order_x, order_y] for x and y directions.
+        coeff (torch.Tensor, optional): Coefficient tensor (control points) to update.
+
+    Returns:
+        Tuple[list[torch.Tensor], torch.Tensor] or Tuple[torch.Tensor, torch.Tensor]:
+            If coeff is provided, returns ([U1_new, U2_new], coeff_new).
+            Otherwise, returns (U1_new, U2_new).
+    """
     U1,U2 = Us
     U1_unique = torch.unique(U1)
     dU1 = U1_unique[1]-U1_unique[0]

@@ -18,6 +18,7 @@ import torch
 import torch.nn as nn
 from .utils.autograd import grad
 from .config import get_max_iterations,get_tolerance,get_damping_factor,get_show_iteration_count
+from typing import List,Tuple,Callable,Optional
 
 class SemiFunctionalModule(nn.Module):
     r"""
@@ -30,14 +31,21 @@ class SemiFunctionalModule(nn.Module):
     def __init__(self):
         super().__init__()
 
-    def get_functional_param_args(self):
-        raise NotImplementedError("params_list not implemented")
-
     @staticmethod
-    def functional(O,*params):
+    def functional(O:torch.Tensor,*params):
+        r"""
+        This method provides the implicit surface description. It is a static method.
+        Diffinytrace constructs a function `s(R, p)` on the fly to describe the surface,
+        allowing better control over derivative calculations.
+        """
         raise NotImplementedError("functional not implemented")
 
-def cat_semi_functionals(functional_modules):
+    def get_functional_param_args(self):
+        
+        raise NotImplementedError("params_list not implemented")
+
+
+def cat_semi_functionals(functional_modules:List[SemiFunctionalModule])->Callable:
     r"""
     Recursively chains a list of `SemiFunctionalModule`s into a single composite function.
 
@@ -61,7 +69,7 @@ def cat_semi_functionals(functional_modules):
         return other_funs(current_func(O,*params[:num_params]),*params[num_params:])
     return fun_out
 
-def get_functional_param_args(semi_functional_module_list):
+def get_functional_param_args(semi_functional_module_list:List[SemiFunctionalModule])->List:
     r"""
     Collects all functional parameters from a list of semi-functional modules.
 
@@ -77,7 +85,7 @@ def get_functional_param_args(semi_functional_module_list):
     return out
 
 
-def construct_surface_and_normal_func(semi_functional_module_list):
+def construct_surface_and_normal_func(semi_functional_module_list:List[SemiFunctionalModule]) -> Callable:
     r"""
     Constructs a function to evaluate both the surface value and its gradient
     (normal direction) with respect to the ray origin `O`.
@@ -87,7 +95,7 @@ def construct_surface_and_normal_func(semi_functional_module_list):
     Returns a callable:
 
     .. math::
-        (O, p_1, ..., p_n) \\mapsto ( s(O), \\frac{\\partial s}{\\partial O} )
+        (O, p_1, ..., p_n) \mapsto ( s(O), \frac{\partial s}{\partial O} )
 
     Args:
         semi_functional_module_list (list[SemiFunctionalModule]): List of modules.
@@ -110,7 +118,7 @@ def construct_surface_and_normal_func(semi_functional_module_list):
         return sval,dsdval
     return s_dsd
 
-def construct_surface_and_normal_func_with_params(semi_functional_module_list):
+def construct_surface_and_normal_func_with_params(semi_functional_module_list:List[SemiFunctionalModule]) -> Tuple[Callable, List]:
     r"""
     Constructs both the surface function and a list of its functional parameters.
 
@@ -144,8 +152,13 @@ class CustomAutogradRule_t(torch.autograd.Function):
 
     This rule enables backpropagation through `t` with respect to `O`, `D`, and surface parameters.
     """
+
     @staticmethod
-    def forward(ctx,O,D,surface_and_normal_func,t_detached,*param_args):
+    def forward(ctx, 
+                O:torch.Tensor, 
+                D:torch.Tensor, 
+                surface_and_normal_func:Callable, 
+                t_detached:torch.Tensor, *param_args):
         """
         Stores inputs for backward pass and returns precomputed `t`.
 
@@ -164,7 +177,7 @@ class CustomAutogradRule_t(torch.autograd.Function):
         return t_detached
 
     @staticmethod
-    def backward(ctx, grad_outputs):
+    def backward(ctx, grad_outputs:torch.Tensor)->Tuple:
         """
         Computes gradients of intersection length `t` with respect to:
         - ray origin `O`
@@ -204,8 +217,12 @@ class CustomAutogradRule_t(torch.autograd.Function):
         jact_dtdO = v1.reshape(-1,1)*dsdR_val
         jact_dtdD = jact_dtdO*t.reshape(-1,1)
         return jact_dtdO,jact_dtdD,None,None,*jact_dtdp
-    
-def get_ray_intersection_length(O,D,surface_and_normal_func,param_args,t_init=None):
+
+def get_ray_intersection_length(O:torch.Tensor,
+                                D:torch.Tensor,
+                                surface_and_normal_func:Callable,
+                                param_args:List, 
+                                t_init:Optional[torch.Tensor]=None)->torch.Tensor:
     """
     Solves for the intersection length `t` such that:
 
