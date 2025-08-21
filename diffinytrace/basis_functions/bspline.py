@@ -1,3 +1,117 @@
+r"""
+B-splines are widely used to describe freeform surfaces because they allow
+local edits to the geometry. Another key property is that smoothness can be
+controlled via the spline degrees, which determine continuity and
+differentiability. A B-spline surface is defined by two *knot vectors*, a
+tensor-product of univariate B-spline *basis functions*, and a bi-directional
+net of *control points*.
+
+Notes:
+    **Knot vectors.**
+    A surface has two nondecreasing knot vectors :math:`U` and :math:`V`
+    (typically clamped at both ends):
+
+    .. math::
+
+       U = \{\underbrace{0,\dots,0}_{p+1},\, u_{p+1}, \dots, u_{n},\,
+            \underbrace{1,\dots,1}_{p+1}\}, \quad
+       V = \{\underbrace{0,\dots,0}_{q+1},\, v_{q+1}, \dots, v_{m},\,
+            \underbrace{1,\dots,1}_{q+1}\}.
+
+    Here :math:`p` and :math:`q` are the degrees in the :math:`u`- and
+    :math:`v`-directions, respectively. Elements of a knot vector are called
+    *knots*.
+
+    **Univariate B-spline basis (Cox-de Boor).**
+    For the :math:`u`-direction (analogously for :math:`v`), the basis
+    functions :math:`\{N_{i,p}\}` are defined recursively by
+
+    .. math::
+
+       N_{i,0}(u) =
+       \begin{cases}
+         1, & u_i \le u < u_{i+1},\\
+         0, & \text{otherwise,}
+       \end{cases}
+
+    .. math::
+
+       N_{i,p}(u) =
+       \frac{u - u_i}{u_{i+p} - u_i}\, N_{i,p-1}(u) \;+\;
+       \frac{u_{i+p+1} - u}{u_{i+p+1} - u_{i+1}}\, N_{i+1,p-1}(u).
+
+    For the :math:`v`-direction, the basis :math:`\{M_{j,q}\}` is defined by
+
+    .. math::
+
+       M_{j,0}(v) =
+       \begin{cases}
+         1, & v_j \le v < v_{j+1},\\
+         0, & \text{otherwise,}
+       \end{cases}
+
+    .. math::
+
+       M_{j,q}(v) =
+       \frac{v - v_j}{v_{j+q} - v_j}\, M_{j,q-1}(v) \;+\;
+       \frac{v_{j+q+1} - v}{v_{j+q+1} - v_{j+1}}\, M_{j+1,q-1}(v).
+
+    **Surface definition.**
+    With control points :math:`\mathbf{P}_{i,j}` (scalars, 2D, or 3D vectors),
+    the tensor-product B-spline surface is
+
+    .. math::
+
+       Z(u,v) = \sum_{i=0}^{n} \sum_{j=0}^{m}
+                 N_{i,p}(u)\, M_{j,q}(v)\, \mathbf{P}_{i,j}.
+
+    **Implementation details (this library).**
+    In our setup, :math:`\mathbf{P}_{i,j}` are scalars that parameterize a
+    height field. We use uniformly increasing (clamped) knot vectors and
+    assume :math:`u,v \in [0,1]`. To couple an explicit surface to the ray
+    tracer, we map physical coordinates :math:`\hat{x}_1,\hat{x}_2` to the
+    parametric domain via a scale :math:`h`:
+
+    .. math::
+
+       S(\hat{x}_1,\hat{x}_2) = Z\!\left(\frac{\hat{x}_1}{h},
+                                          \frac{\hat{x}_2}{h}\right).
+
+Examples:
+    Define a lens with a B-spline surface and plot it:
+
+    .. code-block:: python
+
+       import torch
+       import diffinytrace as dit
+
+       aperture_half = 30.0
+       aperture_radius = aperture_half
+       lens_thickness = 8.0
+       material = dit.materials["NBK7"]
+       transform = dit.transforms.Identity()
+
+       # degree [p, q] and control net size [n_u, n_v] (example values)
+       bspline = dit.Bspline(aperture_half, [3, 3], [8, 8])
+       plane = dit.Plane()
+
+       with torch.no_grad():
+           bspline.coeff.data = torch.randn_like(bspline.coeff.data) * 3.0
+
+       lens = dit.Lens(transform, lens_thickness, bspline, plane,
+                       material, aperture_radius)
+
+       dit.plotting.system3D.plot(lens, zticks=[0, 5])
+
+References:
+    1. Piegl, L., & Tiller, W. (1997). *The NURBS Book* (2nd ed.). Springer.
+    2. Hughes, T. J. R., Cottrell, J. A., & Bazilevs, Y. (2005/2006).
+       Isogeometric Analysis.
+    3. Giannelli, C., Jüttler, B., & Speleers, H. (2012).
+       THB-splines: The truncated basis for hierarchical splines.
+
+"""
+
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 

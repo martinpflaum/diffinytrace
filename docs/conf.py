@@ -45,9 +45,9 @@ for rst_filename in os.listdir(rst_files_directory):
     cond = cond or (rst_filename.startswith("index_base.") and rst_filename.endswith(".rst"))
     cond = cond or (rst_filename.startswith("examples.") and rst_filename.endswith(".rst"))
     cond = cond or (rst_filename.split(".")[0] in index_basecontent and rst_filename.endswith(".rst"))
+    neg_cond = rst_filename == "references.rst"
     
-    
-    if cond:
+    if cond and not neg_cond:
         print(f"Processing file: {rst_filename}")
         rst_file_path = os.path.join(rst_files_directory, rst_filename)
         
@@ -126,7 +126,8 @@ for rst_filename in os.listdir(rst_files_directory):
             rst_content,
             flags=re.DOTALL
         )
-        
+        _repl = ".. bibliography:: refs.bib\n   :style: plain"
+        rst_content = rst_content.replace(_repl,"")
         # Write the updated content back to the file
         with open(rst_file_path, "w", encoding="utf-8") as updated_rst_file:
             updated_rst_file.write(rst_content)

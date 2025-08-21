@@ -1,10 +1,13 @@
 Export
 ======
 
-.. toctree::
-   :maxdepth: 4
+Cad
+------------------------------
 
-   diffinytrace.export.cad
+.. automodule:: diffinytrace.export.cad
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 Module Contents
 ---------------

@@ -7,6 +7,5 @@ Render
    :show-inheritance:
 
 
-.. bibliography:: refs.bib
-   :style: plain
+
     

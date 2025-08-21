@@ -10,3 +10,4 @@ Examples
     tutorial_constrained_minimization
     tutorial_export_lens
     tutorial_system_with_rotation
+    _docs_examples

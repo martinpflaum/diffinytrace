@@ -7,6 +7,5 @@ Gaussian Smoother
    :show-inheritance:
 
 
-.. bibliography:: refs.bib
-   :style: plain
+
     

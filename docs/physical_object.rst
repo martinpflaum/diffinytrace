@@ -7,6 +7,5 @@ Physical Object
    :show-inheritance:
 
 
-.. bibliography:: refs.bib
-   :style: plain
+
     
