@@ -1,37 +1,40 @@
 r"""
-B-splines are widely used to describe freeform surfaces because they allow
-local edits to the geometry. Another key property is that smoothness can be
-controlled via the spline degrees, which determine continuity and
-differentiability. A B-spline surface is defined by two *knot vectors*, a
-tensor-product of univariate B-spline *basis functions*, and a bi-directional
-net of *control points*.
+B-spline surfaces for freeform geometry.
+
+B-splines are popular for describing freeform surfaces because they allow
+local changes to the geometry :cite:`THBray`. Their smoothness is controlled
+by the spline degrees, which determine continuity and differentiability
+:cite:`IGA`. A tensor-product B-spline surface is defined by two *knot vectors*,
+a grid of univariate B-spline *basis functions*, and a bi-directional net of
+*control points* :cite:`nurbs`. Below, we summarize the main components.
 
 Notes:
     **Knot vectors.**
-    A surface has two nondecreasing knot vectors :math:`U` and :math:`V`
-    (typically clamped at both ends):
+    A surface uses two (typically clamped) nondecreasing knot vectors
+    :math:`U` and :math:`V`:
 
     .. math::
 
        U = \{\underbrace{0,\dots,0}_{p+1},\, u_{p+1}, \dots, u_{n},\,
-            \underbrace{1,\dots,1}_{p+1}\}, \quad
+            \underbrace{1,\dots,1}_{p+1}\}, \qquad
        V = \{\underbrace{0,\dots,0}_{q+1},\, v_{q+1}, \dots, v_{m},\,
             \underbrace{1,\dots,1}_{q+1}\}.
 
     Here :math:`p` and :math:`q` are the degrees in the :math:`u`- and
-    :math:`v`-directions, respectively. Elements of a knot vector are called
-    *knots*.
+    :math:`v`-directions. A knot vector :math:`U=\{u_0,\dots,u_M\}` is a
+    nondecreasing sequence, i.e., :math:`u_i \le u_{i+1}`; each element is a
+    *knot*.
 
-    **Univariate B-spline basis (Cox-de Boor).**
-    For the :math:`u`-direction (analogously for :math:`v`), the basis
-    functions :math:`\{N_{i,p}\}` are defined recursively by
+    **Univariate B-spline basis (Cox–de Boor).**
+    In the :math:`u`-direction (analogously for :math:`v`), the basis
+    :math:`\{N_{i,p}\}` is defined recursively :cite:`nurbs`:
 
     .. math::
 
        N_{i,0}(u) =
        \begin{cases}
          1, & u_i \le u < u_{i+1},\\
-         0, & \text{otherwise,}
+         0, & \text{otherwise},
        \end{cases}
 
     .. math::
@@ -40,14 +43,14 @@ Notes:
        \frac{u - u_i}{u_{i+p} - u_i}\, N_{i,p-1}(u) \;+\;
        \frac{u_{i+p+1} - u}{u_{i+p+1} - u_{i+1}}\, N_{i+1,p-1}(u).
 
-    For the :math:`v`-direction, the basis :math:`\{M_{j,q}\}` is defined by
+    In the :math:`v`-direction, the basis :math:`\{M_{j,q}\}` is
 
     .. math::
 
        M_{j,0}(v) =
        \begin{cases}
          1, & v_j \le v < v_{j+1},\\
-         0, & \text{otherwise,}
+         0, & \text{otherwise},
        \end{cases}
 
     .. math::
@@ -56,26 +59,37 @@ Notes:
        \frac{v - v_j}{v_{j+q} - v_j}\, M_{j,q-1}(v) \;+\;
        \frac{v_{j+q+1} - v}{v_{j+q+1} - v_{j+1}}\, M_{j+1,q-1}(v).
 
+    **Control points.**
+    Control points :math:`\mathbf{P}_{i,j}` link the basis to geometry.
+    They can be scalars, 2D, or 3D vectors.
+
     **Surface definition.**
-    With control points :math:`\mathbf{P}_{i,j}` (scalars, 2D, or 3D vectors),
-    the tensor-product B-spline surface is
+    The tensor-product B-spline surface is
 
     .. math::
+       :label: eq-bspline-Z
 
        Z(u,v) = \sum_{i=0}^{n} \sum_{j=0}^{m}
-                 N_{i,p}(u)\, M_{j,q}(v)\, \mathbf{P}_{i,j}.
+                N_{i,p}(u)\, M_{j,q}(v)\, \mathbf{P}_{i,j}.
 
     **Implementation details (this library).**
-    In our setup, :math:`\mathbf{P}_{i,j}` are scalars that parameterize a
-    height field. We use uniformly increasing (clamped) knot vectors and
-    assume :math:`u,v \in [0,1]`. To couple an explicit surface to the ray
-    tracer, we map physical coordinates :math:`\hat{x}_1,\hat{x}_2` to the
-    parametric domain via a scale :math:`h`:
+    We use scalar control points :math:`\mathbf{P}_{i,j}` (height field),
+    uniformly increasing clamped knot vectors, and :math:`u,v \in [0,1]`.
+    To couple an explicit surface to the ray tracer, we map physical
+    coordinates :math:`\hat{x}_1,\hat{x}_2` to the parametric domain via a
+    scale :math:`h`:
 
     .. math::
 
-       S(\hat{x}_1,\hat{x}_2) = Z\!\left(\frac{\hat{x}_1}{h},
-                                          \frac{\hat{x}_2}{h}\right).
+       S(\hat{x}_1,\hat{x}_2) =
+       Z\!\left(\frac{\hat{x}_1}{h},\, \frac{\hat{x}_2}{h}\right).
+
+.. figure:: _static/bspline_plot1.png
+   :alt: Freeform lens with B-spline surface
+   :width: 60%
+   :align: center
+
+   Visualization of a Freeform lens with a B-spline surface.
 
 Examples:
     Define a lens with a B-spline surface and plot it:
@@ -102,13 +116,6 @@ Examples:
                        material, aperture_radius)
 
        dit.plotting.system3D.plot(lens, zticks=[0, 5])
-
-References:
-    1. Piegl, L., & Tiller, W. (1997). *The NURBS Book* (2nd ed.). Springer.
-    2. Hughes, T. J. R., Cottrell, J. A., & Bazilevs, Y. (2005/2006).
-       Isogeometric Analysis.
-    3. Giannelli, C., Jüttler, B., & Speleers, H. (2012).
-       THB-splines: The truncated basis for hierarchical splines.
 
 """
 

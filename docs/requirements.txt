@@ -9,6 +9,7 @@ furo>=2024.8.6
 # Extensions used in your config:
 sphinxcontrib-bibtex>=2.6
 nbsphinx>=0.9
+sphinx_copybutton>=0.5
 sphinx.ext.napoleon
 sphinx.ext.autodoc
 sphinx.ext.autosummary

@@ -2,9 +2,6 @@
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
 __all__ = [
-    "Intersection",
-    "Ray",
-    "Surface",
     "SemiFunctionalModule",
     "cat_semi_functionals",
     "get_functional_param_args",
@@ -158,7 +155,7 @@ class CustomAutogradRule_t(torch.autograd.Function):
                 O:torch.Tensor, 
                 D:torch.Tensor, 
                 surface_and_normal_func:Callable, 
-                t_detached:torch.Tensor, *param_args):
+                t_detached:torch.Tensor, *param_args) -> torch.Tensor:
         """
         Stores inputs for backward pass and returns precomputed `t`.
 

@@ -3,28 +3,55 @@ Diffinytrace Documentation
 
 **DiffinyTrace** is a Python library for differentiable ray tracing and optical system optimization using PyTorch. It enables automatic differentiation through optical systems, making it possible to optimize lens designs, mirror configurations, and other optical components using gradient-based methods.
 
+The source code is available at the `GitHub repository <https://github.com/martinpflaum/diffinytrace>`_.
+
+
 Key Features
 ------------
 
+.. figure:: _static/system_3D_plot.png
+   :width: 60%
+   :align: center
+   :alt: Transformation example
+
+   **Flexible Transformations** — apply general transformations such as rotations and translations to optical components, with full control over the parameters and their role in the transformation.
+
+.. figure:: _static/cad_export.png
+   :width: 40%
+   :align: center
+   :alt: CAD export example
+
+   **Seamless CAD Export** — generate lenses and mirrors that can be exported to
+   standard CAD file formats.
+
+.. figure:: _static/bspline_plot1.png
+   :width: 80%
+   :align: center
+   :alt: B-spline surface example
+
+   **Freeform Surfaces** — design complex optical elements with advanced
+   B-spline representations for maximum flexibility.
 
 * **Differentiable Ray Tracing**: Full automatic differentiation support through optical systems
-* **Freeform Surfaces**: Advanced B-spline surface modeling for complex optical geometries
-* **CAD Export**: Export lenses and mirrors to popular CAD file formats
 * **Constraint Optimization**: Advanced optimization with PyTorch and SciPy integration
 * **Illumination Design**: Algorithms for computing lens surfaces to achieve desired illumination profiles
 * **GPU Acceleration**: CUDA support for high-performance computations
 
 
-Quick Start
------------
+Installation
+------------
+DiffinyTrace requires PyTorch to be installed. Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the `PyTorch website <https://pytorch.org/get-started/locally/>`_.
 
-Install DiffinyTrace:
+You can install DiffinyTrace via pip:
 
 .. code-block:: bash
 
-   pip install diffinytrace
+   pip install diffinytrace 
 
-Basic usage example:
+DiffinyTrace has been tested only with PyTorch 2.6. Additionally numpy 2 is not supported as of now.
+
+Basic Usage Example
+-------------------
 
 .. code-block:: python
 
@@ -56,16 +83,9 @@ Documentation Structure
    :caption: Contents
    
    index_base
-   index_utilities
+   index_quick_start
    examples
    references
-
-Getting Help
-------------
-
-* **GitHub Repository**: `https://github.com/yourusername/diffinytrace`
-* **Issues & Bug Reports**: Use the GitHub issue tracker
-* **Examples**: See the :doc:`examples` section for complete tutorials
 
 License
 -------

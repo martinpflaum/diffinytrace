@@ -169,9 +169,7 @@ def calc_smooth_desired_irradiance(desired_irradiance_fun:Callable,
 
 class GaussianSmoother():
     r"""
-    GaussianSmoother applies Gaussian convolution to smooth irradiance maps.
-
-    This class provides methods for smoothing irradiance data using a Gaussian kernel and integrating values over a grid.
+    The GaussianSmoother class implements gaussian measurement functions but also computes smoothed desired irradiance distributions. For more information on this class please refer to the examples.
 
     Args:
         x_range (list): Range of the target plane in the x direction [min, max].
@@ -277,8 +275,6 @@ class GaussianSmoother():
 
 class GaussianSmootherSquare(GaussianSmoother):
     r"""
-    GaussianSmootherSquare applies Gaussian smoothing to square grids.
-
     This class is a specialized version of GaussianSmoother for cases where the x and y ranges are identical,
     and the grid is square (same number of pixels in both directions).
 
@@ -365,8 +361,8 @@ def make_merit_function(optical_system:SequentialOpticalSystem,
                         use_desired_irradiance_smoothing=True,
                         device=torch.get_default_device())->Callable:
     """
-    Creates a merit function for the given optical system, source, and detector.
-    
+    Creates a merit function to obtain a desired irradiance distribution for the given optical system, source, and detector.
+
     Args:
         optical_system (SequentialOpticalSystem): The optical system to be used.
         sequence: The sequence of elements in the optical system.

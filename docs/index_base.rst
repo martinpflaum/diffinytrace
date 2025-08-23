@@ -1,4 +1,4 @@
-Base
+Components
 ====================
 
 .. toctree::
@@ -17,3 +17,7 @@ Base
    transforms
    render
    gaussian_smoother
+   diffinytrace.basis_functions
+   diffinytrace.export
+   diffinytrace.plotting
+   diffinytrace.utils

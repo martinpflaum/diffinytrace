@@ -182,7 +182,7 @@ for filename in os.listdir(source_dir):
         shutil.copy(full_src_path, full_dst_path)
         examples.append(filename.split(".")[0])  # Store the filename without extension
 
-create_examples_rst(examples)
+#create_examples_rst(examples)
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -193,7 +193,8 @@ extensions = ["sphinx.ext.autodoc",
               "sphinx.ext.mathjax",
             'sphinxcontrib.bibtex',
             "nbsphinx",
-            "sphinx.ext.intersphinx"]
+            "sphinx.ext.intersphinx",
+            "sphinx_copybutton"]
 
 """
 extensions = [
@@ -223,7 +224,6 @@ exclude_patterns = []
 
 autosummary_generate = True
 autodoc_member_order = 'bysource'
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

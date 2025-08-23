@@ -2,10 +2,7 @@ r"""
 Optimization Utilities for PyTorch-SciPy Integration
 ====================================================
 
-This submodule provides a set of tools for constrained and unconstrained optimization
-of PyTorch models using SciPy optimizers. It bridges the gap between SciPy’s powerful
-optimization routines and PyTorch’s autograd system, enabling flexible and efficient
-hybrid optimization workflows.
+This submodule provides a set of tools for constrained and unconstrained optimization of PyTorch models using SciPy optimizers. It bridges the gap between SciPy’s powerful optimization routines and PyTorch’s autograd system, enabling flexible and efficient hybrid optimization workflows.
 
 Key Features:
 -------------
@@ -22,9 +19,7 @@ Key Features:
 Optimization Constraints in Optical Systems
 -------------------------------------------
 
-When using optimization procedures to attain parameters of an optical system, it is important to have constraints that 
-ensure that the optical system can be manufactured. The following demonstrates the implementation of different types of 
-constraints in our library, with a specific focus on the positive air spacing and minimum glass thickness constraints.
+When using optimization procedures to attain parameters of an optical system, it is important to have constraints that ensure that the optical system can be manufactured. The following demonstrates the implementation of different types of constraints in our library, with a specific focus on the positive air spacing and minimum glass thickness constraints.
 
 Constraint optimization problems can often be expressed as a *nonlinear program*, which is defined as follows (see :cite:`italiens`):
 
@@ -46,17 +41,12 @@ where:
 - :math:`\hat{g}_i: \mathbb{R}^n \to \mathbb{R}` are the inequality constraint functions.
 - :math:`\hat{h}_j: \mathbb{R}^n \to \mathbb{R}` are the equality constraint functions.
 
-For this type of problem, multiple numerical schemes are available in the Python library *SciPy*. Some optimization schemes 
-also require derivative information for functions that describe constraints. For example, Sequential Least Squares Programming 
-(SLSQP) uses the derivatives of the constraint functions :math:`\hat{g}_i` and :math:`\hat{h}_j` to find local minima.
+For this type of problem, multiple numerical schemes are available in the Python library *SciPy*. Some optimization schemes also require derivative information for functions that describe constraints. For example, Sequential Least Squares Programming (SLSQP) uses the derivatives of the constraint functions :math:`\hat{g}_i` and :math:`\hat{h}_j` to find local minima.
 
 By combining the libraries PyTorch and SciPy, we leverage the strengths of two sophisticated and established libraries:
-1. **PyTorch**: Efficiently calculates the derivatives of the merit function :math:`m` and the constraint functions 
-   :math:`\hat{g}_i` and :math:`\hat{h}_j` using automatic differentiation. Additionally, it allows evaluation of these 
-   functions and their derivatives on a graphics card, providing significant speedups.
-2. **SciPy**: Provides well-tested traditional algorithms to find local minima. While PyTorch also has a wide variety of 
-   optimization algorithms, its main application is stochastic gradient descent in deep learning, which may not be the 
-   best choice for optimizing optical systems.
+
+1. **PyTorch**: Efficiently calculates the derivatives of the merit function :math:`m` and the constraint functions :math:`\hat{g}_i` and :math:`\hat{h}_j` using automatic differentiation. Additionally, it allows evaluation of these functions and their derivatives on a graphics card, providing significant speedups.
+2. **SciPy**: Provides well-tested traditional algorithms to find local minima. While PyTorch also has a wide variety of optimization algorithms, its main application is stochastic gradient descent in deep learning, which may not be the best choice for optimizing optical systems.
 
 Types of Constraints
 --------------------
@@ -64,10 +54,7 @@ Types of Constraints
 In our library, we implemented three ways to define constraints:
 
 1. **Bounds**  
-   Most numerical schemes in SciPy support bounding box constraints, allowing the definition of minimum and maximum values 
-   for each parameter. These bounds can be interpreted as constraints in the form :math:`\hat{g}_i(p) = p - C_i` or 
-   :math:`\hat{g}_i(p) = C_i - p`, where :math:`C_i \in \mathbb{R}`. This is particularly useful for distance transformations, 
-   where we can ensure that the distance parameter is never smaller than 0. For example:
+   Most numerical schemes in SciPy support bounding box constraints, allowing the definition of minimum and maximum values for each parameter. These bounds can be interpreted as constraints in the form :math:`\hat{g}_i(p) = p - C_i` or :math:`\hat{g}_i(p) = C_i - p`, where :math:`C_i \in \mathbb{R}`. This is particularly useful for distance transformations, where we can ensure that the distance parameter is never smaller than 0. For example:
 
    >>> import diffinytrace as dit
    >>> import torch
@@ -83,17 +70,10 @@ In our library, we implemented three ways to define constraints:
    >>> distance_transform = dit.transforms.Distance(10.)
    >>> distance_transform.distance.requires_grad = False
 
-   Note: While it is easy to set specific parameters as constants, it is not possible to disable gradient computation for 
-   individual parameters if the variable contains multiple values. For instance, in the case of a B-spline surface, it is 
-   not possible to disable gradient computation for individual B-spline coefficients.
+   Note: While it is easy to set specific parameters as constants, it is not possible to disable gradient computation for individual parameters if the variable contains multiple values. For instance, in the case of a B-spline surface, it is not possible to disable gradient computation for individual B-spline coefficients.
 
 3. **Arbitrary Constraint Functions**  
-   Our library also supports defining nonlinear inequality constraint functions :math:`\hat{g}_i` and equality constraint 
-   functions :math:`\hat{h}_i`. Some local optimization methods require derivative information for these nonlinear constraint 
-   functions. To efficiently evaluate these derivatives, we use automatic differentiation. This is achieved by defining the 
-   constraint functions :math:`\hat{g}_i` with PyTorch and calculating their derivatives with respect to the parameters of 
-   the optical system. This approach eliminates the need for finite differences, which could significantly slow down the 
-   optimization procedure.
+   Our library also supports defining nonlinear inequality constraint functions :math:`\hat{g}_i` and equality constraint functions :math:`\hat{h}_i`. Some local optimization methods require derivative information for these nonlinear constraint functions. To efficiently evaluate these derivatives, we use automatic differentiation. This is achieved by defining the constraint functions :math:`\hat{g}_i` with PyTorch and calculating their derivatives with respect to the parameters of the optical system. This approach eliminates the need for finite differences, which could significantly slow down the optimization procedure.
 """
 
 # Copyright (c) 2025 Martin Pflaum
@@ -178,7 +158,7 @@ def make_parameter_from_input(input,bounds=None, dtype=None, device=None,bounds_
     setattr(input,bounds_attr_name,bounds)    
     return input
 
-def pack_tensors(tensor_list):
+def pack_tensors(tensor_list:List[torch.Tensor]) -> torch.Tensor:
     """
     Flattens and concatenates a list of tensors into a single 1D tensor.
 
@@ -192,7 +172,7 @@ def pack_tensors(tensor_list):
         return tensor_list.reshape(-1)
     return torch.cat([t.reshape(-1) for t in tensor_list])
 
-def unpack_tensors(packed_tensor, shapes):
+def unpack_tensors(packed_tensor: torch.Tensor, shapes: List[Tuple[int]]) -> List[torch.Tensor]:
     """
     Unpacks a 1D tensor into a list of tensors with specified shapes.
 
@@ -216,18 +196,57 @@ def unpack_tensors(packed_tensor, shapes):
         start += size  # Move to the next start index
     return unpacked_tensors
 
-def apply_vec_to_params(vec,params,device=None,dtype = None):
+def apply_vec_to_params(vec: np.ndarray, params: list[torch.nn.Parameter], device=None, dtype=None):
     """
-    Updates `params` with values from a flat NumPy vector.
+    Updates PyTorch parameters with values from a flattened NumPy vector.
+
+    This function is used in optimization workflows to update parameter values
+    during SciPy optimization. It takes a flat vector of parameter values and
+    distributes them back to the original parameter tensors, preserving their
+    original shapes.
 
     Args:
-        vec (np.ndarray): A 1D NumPy array of new parameter values.
-        params (list of torch.nn.Parameter): Parameters to update.
-        device (torch.device, optional): Device to move data to.
-        dtype (torch.dtype, optional): Data type for the new parameter values.
+        vec (np.ndarray): A 1D NumPy array containing new parameter values.
+            The length must match the total number of elements across all parameters.
+        params (list[torch.nn.Parameter]): List of PyTorch parameters to update.
+            Each parameter will be reshaped from the corresponding portion of `vec`.
+        device (torch.device, optional): Target device for the parameters. 
+            If None, uses the device of the first parameter. Defaults to None.
+        dtype (torch.dtype, optional): Target data type for the parameters.
+            If None, uses the dtype of the first parameter. Defaults to None.
 
     Raises:
         RuntimeError: If `vec` is not a NumPy array.
+
+    Example:
+        >>> import torch
+        >>> import numpy as np
+        >>> import diffinytrace as dit
+        >>> 
+        >>> # Create some parameters
+        >>> params = [
+        ...     torch.nn.Parameter(torch.ones((2,2)))*0.25,
+        ...     torch.nn.Parameter(torch.ones(3))
+        ... ]
+        >>> # Flatten parameters to create a vector
+        >>> vec = dit.optimize.pack_tensors(params).detach().cpu().numpy()
+        >>> print(f"Vector length: {len(vec)}")  # Should be 2*2 + 3 = 7
+        >>> # Modify the vector
+        >>> 
+        >>> print(params)
+        >>> 
+        >>> vec_new = vec * 2.0
+        >>> # Update parameters with new values
+        >>> dit.optimize.apply_vec_to_params(vec_new, params)
+        >>> 
+        >>> # Parameters are now updated with doubled values
+        >>> print(params)
+
+    Note:
+        - This function modifies parameters in-place using `param.data = ...`
+        - The function uses `torch.no_grad()` to avoid building computation graphs
+        - Parameter shapes are preserved during the update process
+        - Commonly used with `pack_tensors()` and `unpack_tensors()` for optimization
     """
     if not isinstance(vec, np.ndarray):
         raise RuntimeError("vec should be a numpy vector")
@@ -240,8 +259,8 @@ def apply_vec_to_params(vec,params,device=None,dtype = None):
     with torch.no_grad():
         for k,param in enumerate(params):
             param.data = unpacked_params[k]
-    
-def set_full_if_nan(input,fill_value):
+
+def set_full_if_nan(input:np.ndarray, fill_value: float)->np.ndarray:
     """
     Replaces NaNs in input with a specified fill value.
 
@@ -269,13 +288,56 @@ def set_full_if_nan(input,fill_value):
 
 class ParameterFunHelper():
     """
-    Helper class to evaluate a function and its gradient w.r.t. torch parameters.
+    Helper class for evaluating PyTorch functions and gradients in SciPy optimization.
+    
+    This class bridges PyTorch's automatic differentiation with SciPy's optimization
+    routines by providing function and gradient evaluations in NumPy format.
+    It includes caching to avoid redundant computations and handles NaN values
+    gracefully during optimization.
+
+    Args:
+        original_fun (Callable): PyTorch function to be optimized. Should return a scalar tensor.
+        params (List[torch.nn.Parameter]): List of PyTorch parameters to optimize over.
+        nan_fallback (float, optional): Value to return if NaN is detected in function 
+            or gradient evaluation. Defaults to float("inf").
 
     Attributes:
-        orginal_fun (Callable): Function to be optimized.
-        params (list of torch.nn.Parameter): Parameters for optimization.
-        nan_fallback (float): Value to return if NaNs are detected.
-    """    
+        original_fun (Callable): The objective function being optimized.
+        params (List[torch.nn.Parameter]): Parameters for optimization.
+        nan_fallback (float): Fallback value for NaN handling.
+        last_x_fun_numpy (np.ndarray): Cache of last input for function evaluation.
+        last_fun_val_numpy (float): Cache of last function value in NumPy format.
+        last_fun_val_torch (torch.Tensor): Cache of last function value as PyTorch tensor.
+        last_x_grad_numpy (np.ndarray): Cache of last input for gradient evaluation.
+        last_grad_val_numpy (np.ndarray): Cache of last gradient in NumPy format.
+
+    Example:
+        >>> import torch
+        >>> import diffinytrace as dit
+        >>> import numpy as np
+        >>> 
+        >>> # Define parameters and objective function
+        >>> params = [torch.nn.Parameter(torch.randn(5))]
+        >>> def objective():
+        ...     return torch.sum(params[0]**2)
+        >>> 
+        >>> # Create helper for SciPy optimization
+        >>> helper = dit.optimize.ParameterFunHelper(objective, params)
+        >>> 
+        >>> # Use with SciPy
+        >>> x0 = np.ones((5,))*3.
+        >>> fun_val = helper.fun(x0)        # Evaluate function 5*3^2 = 45
+        >>> grad_val = helper.jac(x0)       # Evaluate gradient 2*3 = 6
+        >>> fun_val, grad_val = helper.fun_jac(x0)  # Evaluate both
+        >>> 
+        >>> print(fun_val, grad_val)  # (45.0, array([6., 6., 6., 6., 6.]))
+
+    Note:
+        - Function and gradient evaluations are cached to avoid redundant computations
+          when SciPy requests the same point multiple times.
+        - All NaN values in function outputs or gradients are replaced with `nan_fallback`.
+        - Parameters are automatically updated with new values during evaluation.
+    """
     def __init__(self,orginal_fun,params,nan_fallback = float("inf")):
         self.last_x_fun_numpy = None
         self.last_fun_val_numpy = None
@@ -405,7 +467,7 @@ def create_fun_and_gradient(merit_fun,params,nan_fallback,device,dtype):
     return fun_and_gradient
 
 
-def remove_bounds(params,bounds_attr_name):
+def remove_bounds(params,bounds_attr_name) -> None:
     """
     Removes the bounds attribute from parameters if present.
 
