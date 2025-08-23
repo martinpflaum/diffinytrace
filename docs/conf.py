@@ -248,7 +248,7 @@ mathjax3_config = {
 }
 nbsphinx_allow_errors = True
 nbsphinx_execute = 'never'
-html_favicon = "_static/telescope.ico"
+html_favicon = "_static/partial.svg"
 
 # Exclude certain notebooks from processing
 nbsphinx_execute_arguments = [
