@@ -10,17 +10,19 @@ __all__ = [
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import colour
+from colour import XYZ_to_sRGB,wavelength_to_XYZ
+from typing import Tuple,Optional,Union
 
 class PlotableWavelength:
-    def __init__(self,bounds,ylabel):
-        """
-        Initialize the PlotableWavelength object with bounds and ylabel.
-        
-        Args:
-            bounds (tuple): The bounds for the wavelength range.
-            ylabel (str): The label for the y-axis.
-        """
+    """
+    Represents a wavelength range and y-axis label for plotting spectral data.
+
+    Attributes:
+        bounds (tuple): Lower and upper bounds for the wavelength range.
+        ylabel (str): Label for the y-axis in plots.
+    """
+
+    def __init__(self, bounds: Tuple[float, float], ylabel: str):
         self.bounds = bounds
         self.ylabel = ylabel
 
@@ -39,7 +41,7 @@ def add_colour_bar(fig, ax, wl):
     def wavelength_to_rgb(wl):
         wl = wl*1000.
         if 360.0 < wl and wl < 780.0:
-            rgb = colour.XYZ_to_sRGB(colour.wavelength_to_XYZ(wl))
+            rgb = XYZ_to_sRGB(wavelength_to_XYZ(wl))
             return np.clip(rgb, 0.0, 1.0)  # Ensure RGB values are within [0, 1]
         else:
             return (0.,0.,0.)

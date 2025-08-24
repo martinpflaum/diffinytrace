@@ -3,20 +3,20 @@
 
 __all__ = [
     "precompute_legendre_polynomials",
-    "legendre_2d_basis",
+    "basis_2D",
     "get_num_coeff"
 ]
 
 import torch
 
-def precompute_legendre_polynomials(degree, x):
+def precompute_legendre_polynomials(x: torch.Tensor, degree: int) -> list[torch.Tensor]:
     """
     Precomputes all Legendre polynomials up to a given degree.
 
     Args:
-    degree (int): Maximum degree of the Legendre polynomials.
     x (torch.Tensor): Input tensor for x-coordinates.
-
+    degree (int): Maximum degree of the Legendre polynomials.
+    
     Returns:
     list of torch.Tensor: List of precomputed Legendre polynomials [P_0(x), P_1(x), ..., P_degree(x)].
     """
@@ -30,7 +30,7 @@ def precompute_legendre_polynomials(degree, x):
     
     return P
 
-def legendre_2d_basis(degree, x, y):
+def basis_2D(points: torch.Tensor, degree: int) -> torch.Tensor:
     """
     Generates 2D Legendre polynomial basis functions up to a given degree using precomputed 1D polynomials.
 
@@ -42,9 +42,12 @@ def legendre_2d_basis(degree, x, y):
     Returns:
     torch.Tensor: Tensor of shape (num_basis_functions, *x.shape) with all 2D basis functions.
     """
+    x = points[:, 0]
+    y = points[:, 1]
+
     # Precompute 1D Legendre polynomials for x and y
-    Px = precompute_legendre_polynomials(degree, x)
-    Py = precompute_legendre_polynomials(degree, y)
+    Px = precompute_legendre_polynomials(x, degree)
+    Py = precompute_legendre_polynomials(y, degree)
 
     basis_functions = {}
 
@@ -60,7 +63,7 @@ def legendre_2d_basis(degree, x, y):
     # Stack basis functions along a new dimension
     return torch.stack(out, dim=1)
 
-def get_num_coeff(degree):
+def get_num_coeff(degree: int) -> int:
     """
     Returns the number of coefficients for a given degree of Legendre polynomials.
     The number of coefficients is given by the formula (degree + 1) * (degree + 2) / 2.

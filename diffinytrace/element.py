@@ -110,10 +110,10 @@ class OpticalSystem(nn.Module,Plotable):
         out = [[self.modules_dict[key],key] for key in self.modules_dict.keys()]
         return out
         
-    def get_plot_points2D(self,resolution:int):
+    def get_plot_points_2D(self,resolution:int):
         return []
     
-    def get_plot_points3D(self,resolution:int):
+    def get_plot_points_3D(self,resolution:int):
         return []
 
         
@@ -126,7 +126,7 @@ class SequentialOpticalSystem(OpticalSystem):
     Attributes:
         n_func_enviroment (Callable): Function returning refractive index of the surrounding medium.
     """ 
-    def __init__(self,modules_dict:Dict,n_func_enviroment=materials["AIR"]):
+    def __init__(self,modules_dict:Dict, n_func_enviroment=materials["AIR"]):
         OpticalSystem.__init__(self,modules_dict)
         self.n_func_enviroment = n_func_enviroment #Edit wavelength dependent
         
@@ -179,6 +179,12 @@ class OpticalElement(PhysicalObject,Plotable):
         raise NotImplementedError("process_ray not implemented")
     
     def get_transform(self):
+        """
+        Returns the transformation associated with the surface.
+
+        Returns:
+            Transform: The local-to-global transformation object.
+        """
         raise NotImplementedError("get_transform not implemented")
 
 
@@ -283,7 +289,16 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
             
 
 
-    def get_plot_points2D(self,resolution:int)->List[Tuple[torch.Tensor]]:
+    def get_plot_points_2D(self,resolution:int)->List[Tuple[torch.Tensor]]:
+        """
+        Returns 2D slices through the surface (z-y plane) for plotting.
+
+        Args:
+            resolution (int): Number of sample points along the y-axis.
+
+        Returns:
+            List[Tuple[torch.Tensor]]: List of (z, y) coordinate tuples.
+        """
         y = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
         x = torch.zeros_like(y)
         O = torch.zeros((resolution,2))
@@ -298,7 +313,16 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         z = points[:,2]
         return [(z,y)]
 
-    def get_plot_points3D(self,resolution:int)->List[Tuple[torch.Tensor]]:
+    def get_plot_points_3D(self,resolution:int)->List[Tuple[torch.Tensor]]:
+        """
+        Returns 3D grid of surface points for visualization.
+
+        Args:
+            resolution (int): Grid resolution in x and y.
+
+        Returns:
+            List[Tuple[torch.Tensor]]: List of (x, y, z) meshgrids as torch tensors.
+        """
         _x = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
         _y = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
         mesh = torch.meshgrid(_x,_y)
@@ -333,7 +357,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
             resolution (int): Sampling resolution.
 
         Returns:
-            tuple: (x, y, z) coordinate grids for CAD modeling.
+            Tuple[torch.Tensor]: (x, y, z) coordinate grids for CAD modeling.
         """
         #TODO maybe implement this also for affine transforms in surface class itself
         _x = torch.linspace(-self.aperture_radius,self.aperture_radius,resolution)
@@ -444,8 +468,7 @@ class OpticalSurface(OpticalElement,PhysicalSurface):
         Constructs a callable for surface position and normal computation with parameter tracking.
 
         Returns:
-            tuple: (callable, list) where the callable computes (position, normal),
-                and the list contains parameters to be optimized.
+            Tuple[Callable, List]: Callable computes (position, normal), and the list contains parameters to be optimized.
         """
         surface_and_normal,param_args = construct_surface_and_normal_func_with_params([self.transform,self.surface])
         return surface_and_normal,param_args
@@ -543,6 +566,19 @@ class LensSurfaceTransmissionEnter(OpticalSurface):
         self.n_func = n_func
 
     def forward(self, O1, D1, wl, n_func_enviroment,meta_data):
+        """
+        Propagates rays through the lens entry surface.
+
+        Args:
+            O1 (torch.Tensor): Ray origins.
+            D1 (torch.Tensor): Ray directions.
+            wl (torch.Tensor): Wavelengths.
+            n_func_enviroment: Function returning environmental refractive index.
+            meta_data (dict): Ray metadata.
+
+        Returns:
+            Tuple: Updated ray origins, directions, wavelengths, environment function, and metadata.
+        """
         PL, OPL, ray_paths, valid = meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"],meta_data["valid"]
 
         surface_and_normal_func1,param_args1 = self.get_surface_and_normal_func_with_params()
@@ -569,6 +605,19 @@ class LensSurfaceTransmissionLeave(OpticalSurface):
         self.n_func = n_func
 
     def forward(self, O2, D2, wl, n_func_enviroment, meta_data):
+        """
+        Propagates rays through the lens exit surface.
+
+        Args:
+            O2 (torch.Tensor): Ray origins.
+            D2 (torch.Tensor): Ray directions.
+            wl (torch.Tensor): Wavelengths.
+            n_func_enviroment: Function returning environmental refractive index.
+            meta_data (dict): Ray metadata.
+
+        Returns:
+            Tuple: Updated ray origins, directions, wavelengths, environment function, and metadata.
+        """
         PL, OPL, ray_paths, valid = meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"],meta_data["valid"]
 
         surface_and_normal_func2,param_args2 = self.get_surface_and_normal_func_with_params()
@@ -614,12 +663,34 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
 
               
     def parametric_sample(self, num_points:int, method:str="sobol"):
+        """
+        Samples parametric positions on the lens side surface.
+
+        Args:
+            num_points (int): Number of sample points.
+            method (str): Sampling method ("sobol", "monte_carlo", "midpoint").
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]: Sampled positions and integration weights.
+
+        Raises:
+            RuntimeError: If unsupported method is provided.
+        """
         if (method != "sobol") or (method != "monte_carlo") or (method != "midpoint"):
             raise RuntimeError("Only sobol,monte_carlo and midpoint supported for LensSurfaceSide parametric_sample")
         
         return self.integrator.sample(num_points, method)
 
     def parametric_surface(self, parametric_pos:torch.Tensor) -> torch.Tensor:
+        """
+        Maps parametric coordinates to 3D global coordinates for the lens side.
+
+        Args:
+            parametric_pos (torch.Tensor): Parametric positions of shape (N, 2).
+
+        Returns:
+            torch.Tensor: 3D positions of shape (N, 3).
+        """
         device = parametric_pos.device
         dtype = parametric_pos.dtype
 
@@ -647,7 +718,7 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
         out = parameterize_height(*parameterize_circle(t),param_height)
         return out
 
-    def get_plot_points2D(self,resolution:int):
+    def get_plot_points_2D(self, resolution:int) -> List[Tuple[torch.Tensor]]:
         """
         Returns 2D slices through the surface (z-y plane) for plotting.
 
@@ -655,9 +726,9 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
             resolution (int): Number of sample points along the y-axis.
 
         Returns:
-            list[tuple]: List of (z, y) coordinate tuples.
+            List[Tuple[torch.Tensor]]: List of (z, y) coordinate tuples.
         """
-        def aperture_pass(surface,transformation):
+        def aperture_pass(surface, transformation):
             y = torch.tensor([-self.aperture_radius,self.aperture_radius])
             x = torch.zeros_like(y)
             O = torch.zeros((2,2))
@@ -689,7 +760,7 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
         y2[1] = _y2[1]
         return [(z1,y1),(z2,y2)]
 
-    def get_plot_points3D(self,resolution:int):
+    def get_plot_points_3D(self, resolution:int) -> List[Tuple[torch.Tensor]]:
         """
         Returns 3D grid of surface points for visualization.
 
@@ -697,7 +768,7 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
             resolution (int): Grid resolution in x and y.
 
         Returns:
-            list[tuple]: List of (x, y, z) meshgrids as torch tensors.
+            List[Tuple[torch.Tensor]]: List of (x, y, z) meshgrids as torch tensors.
         """
         def make_sub_surface(x,y):
             O = torch.zeros((y.shape[0],2))
@@ -744,7 +815,14 @@ class LensSurfaceSide(PhysicalSurface,Plotable):
                 out = []
                 out.append(make_sub_surface(x,y))
                 return out    
+            
     def get_plotly_color_scale(self):
+        """
+        Returns color scale for plotly visualization.
+
+        Returns:
+            List: Color scale values.
+        """
         if self.is_square:
             out = []
             for k in range(4):
@@ -807,16 +885,25 @@ class Lens(OpticalElement):
         self.aperture_radius = aperture_radius
         self.is_square = is_square
 
-    def get_plot_points2D(self,resolution:int):
+    def get_plot_points_2D(self, resolution:int) -> List[Tuple[torch.Tensor]]:
+        """
+        Returns 2D slices through the lens for plotting.
+
+        Args:
+            resolution (int): Number of sample points.
+
+        Returns:
+            List[Tuple[torch.Tensor]]: List of (z, y) coordinate tuples.
+        """
         def inverse_points(input):
             z,y = input
             z = torch.tensor(np.array(np.array(z)[::-1]))
             y = torch.tensor(np.array(np.array(y)[::-1]))
             return (z,y)    
         
-        psurface1 = self.surface1.get_plot_points2D(resolution)
-        psurface2 = self.surface2.get_plot_points2D(resolution)
-        psurfaceCy = self.lens_surface_side.get_plot_points2D(resolution)
+        psurface1 = self.surface1.get_plot_points_2D(resolution)
+        psurface2 = self.surface2.get_plot_points_2D(resolution)
+        psurfaceCy = self.lens_surface_side.get_plot_points_2D(resolution)
         
         #return psurface1+psurface2+psurfaceCy
     
@@ -828,30 +915,51 @@ class Lens(OpticalElement):
         
         """
              out = []
-        out += self.surface1.get_plot_points2D(resolution)
-        out += self.surface2.get_plot_points2D(resolution)
-        out += self.cylinder_surface.get_plot_points2D(resolution)
+        out += self.surface1.get_plot_points_2D(resolution)
+        out += self.surface2.get_plot_points_2D(resolution)
+        out += self.cylinder_surface.get_plot_points_2D(resolution)
         
         return out
     
         """
         return out
-    
-    def get_plot_points3D(self,resolution:int):
+
+    def get_plot_points_3D(self, resolution:int) -> List[Tuple[torch.Tensor]]:
+        """
+        Returns 3D grid of lens surface points for visualization.
+
+        Args:
+            resolution (int): Grid resolution.
+
+        Returns:
+            List[Tuple[torch.Tensor]]: List of (x, y, z) meshgrids.
+        """
         out = []
-        out += self.surface1.get_plot_points3D(resolution)
-        out += self.surface2.get_plot_points3D(resolution)
-        out += self.lens_surface_side.get_plot_points3D(resolution)
+        out += self.surface1.get_plot_points_3D(resolution)
+        out += self.surface2.get_plot_points_3D(resolution)
+        out += self.lens_surface_side.get_plot_points_3D(resolution)
         return out
-    
-    def get_plotly_color_scale(self):
+
+    def get_plotly_color_scale(self) -> List:
+        """
+        Returns color scale for plotly visualization.
+
+        Returns:
+            List: Color scale values.
+        """
         out = []
         out += self.surface1.get_plotly_color_scale()
         out += self.surface2.get_plotly_color_scale()
         out += self.lens_surface_side.get_plotly_color_scale()
         return out
 
-    def get_plotable_childs(self):
+    def get_plotable_childs(self) -> List:
+        """
+        Returns plotable child elements.
+
+        Returns:
+            List: List of child elements.
+        """
         return []
     
     def forward(self,O1:torch.Tensor,D1:torch.Tensor,wl:torch.Tensor,n_func_enviroment,meta_data):
@@ -872,6 +980,12 @@ class Lens(OpticalElement):
         return self.surface2(*out)
 
     def get_transform(self):
+        """
+        Returns the transformation of the lens exit surface.
+
+        Returns:
+            Transform: The transformation object.
+        """
         return self.surface2.transform
 
 
@@ -904,13 +1018,26 @@ class Mirror(OpticalSurface):
     Visualization is colored in a warm gold tone.
 
     Inherits:
-        - OpticalSurface: Full support for surface transformation and intersection.
+        OpticalSurface: Full support for surface transformation and intersection.
 
     """
     def __init__(self,transform,surface,aperture_radius,is_square=False):
         super().__init__(transform,surface,aperture_radius,is_square,'#fff2cc','#d6b656')
         
     def forward(self,O1,D1,wl,n_func_enviroment,meta_data):
+        """
+        Propagates rays through the mirror surface.
+
+        Args:
+            O1 (torch.Tensor): Ray origins.
+            D1 (torch.Tensor): Ray directions.
+            wl (torch.Tensor): Wavelengths.
+            n_func_enviroment: Function returning environmental refractive index.
+            meta_data (dict): Ray metadata.
+
+        Returns:
+            Tuple: Updated ray origins, directions, wavelengths, environment function, and metadata.
+        """
         #DONE: test mirror for 180° rotation.
         PL, OPL, ray_paths, valid = meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"],meta_data["valid"]
 
@@ -1061,7 +1188,12 @@ def set_unused_params_to_zero(optical_system:SequentialOpticalSystem,
             param.data[dp_zero] = 0.0
 
 
-def get_unused_params_mask(optical_system:SequentialOpticalSystem,sequence,source,params,num_rays=100000,method_ray_tracing="sobol"):
+def get_unused_params_mask(optical_system:SequentialOpticalSystem,
+                           sequence:List[str],
+                           source,
+                           params,
+                           num_rays:int=100000,
+                           method_ray_tracing="sobol")->List[torch.BoolTensor]:
     """
     Returns a boolean mask identifying which parameters are unused in the ray tracing process.
 
@@ -1120,6 +1252,15 @@ class FresnelOpticalSurface(OpticalSurface):
         self.surface_derivative_y = surface_derivative_y
     
     def get_virtual_normals(self,O):
+        """
+        Computes virtual surface normals for Fresnel surfaces.
+
+        Args:
+            O (torch.Tensor): Positions.
+
+        Returns:
+            torch.Tensor: Virtual normals.
+        """
         surface_and_normal1,param_args1 = construct_surface_and_normal_func_with_params([self.transform,self.surface_derivative_x])
         surface_and_normal2,param_args2 = construct_surface_and_normal_func_with_params([self.transform,self.surface_derivative_y])
         dx,_ = surface_and_normal1(O,*param_args1)
@@ -1137,6 +1278,19 @@ class FresnelVirtualLensSurfaceTransmissionEnter(FresnelOpticalSurface):
         self.n_func = n_func
         
     def forward(self, O1, D1, wl, n_func_enviroment,meta_data):
+        """
+        Propagates rays through the Fresnel lens entry surface.
+
+        Args:
+            O1 (torch.Tensor): Ray origins.
+            D1 (torch.Tensor): Ray directions.
+            wl (torch.Tensor): Wavelengths.
+            n_func_enviroment: Function returning environmental refractive index.
+            meta_data (dict): Ray metadata.
+
+        Returns:
+            Tuple: Updated ray origins, directions, wavelengths, environment function, and metadata.
+        """
         PL, OPL, ray_paths, valid = meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"],meta_data["valid"]
 
         t1 = self.get_ray_intersect_length(O1,D1)
@@ -1161,6 +1315,19 @@ class FresnelVirtualLensSurfaceTransmissionLeave(FresnelOpticalSurface):
         self.n_func = n_func
         
     def forward(self, O2, D2, wl, n_func_enviroment, meta_data):
+        """
+        Propagates rays through the Fresnel lens exit surface.
+
+        Args:
+            O2 (torch.Tensor): Ray origins.
+            D2 (torch.Tensor): Ray directions.
+            wl (torch.Tensor): Wavelengths.
+            n_func_enviroment: Function returning environmental refractive index.
+            meta_data (dict): Ray metadata.
+
+        Returns:
+            Tuple: Updated ray origins, directions, wavelengths, environment function, and metadata.
+        """
         PL, OPL, ray_paths, valid = meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"],meta_data["valid"]
 
         
@@ -1212,16 +1379,16 @@ class FresnelVirtualLens(OpticalElement):
         self.aperture_radius = aperture_radius
         self.is_square = is_square
 
-    def get_plot_points2D(self,resolution:int):
+    def get_plot_points_2D(self,resolution:int):
         def inverse_points(input):
             z,y = input
             z = torch.tensor(np.array(np.array(z)[::-1]))
             y = torch.tensor(np.array(np.array(y)[::-1]))
             return (z,y)    
         
-        psurface1 = self.surface1.get_plot_points2D(resolution)
-        psurface2 = self.surface2.get_plot_points2D(resolution)
-        psurfaceCy = self.lens_surface_side.get_plot_points2D(resolution)
+        psurface1 = self.surface1.get_plot_points_2D(resolution)
+        psurface2 = self.surface2.get_plot_points_2D(resolution)
+        psurfaceCy = self.lens_surface_side.get_plot_points_2D(resolution)
         
         #return psurface1+psurface2+psurfaceCy
     
@@ -1233,37 +1400,82 @@ class FresnelVirtualLens(OpticalElement):
         
         """
              out = []
-        out += self.surface1.get_plot_points2D(resolution)
-        out += self.surface2.get_plot_points2D(resolution)
-        out += self.cylinder_surface.get_plot_points2D(resolution)
+        out += self.surface1.get_plot_points_2D(resolution)
+        out += self.surface2.get_plot_points_2D(resolution)
+        out += self.cylinder_surface.get_plot_points_2D(resolution)
         
         return out
     
         """
         return out
     
-    def get_plot_points3D(self,resolution):
+    def get_plot_points_3D(self,resolution):
+        """
+        Returns 3D grid of Fresnel lens surface points for visualization.
+
+        Args:
+            resolution (int): Grid resolution.
+
+        Returns:
+            List[Tuple[torch.Tensor]]: List of (x, y, z) meshgrids.
+        """
         out = []
-        out += self.surface1.get_plot_points3D(resolution)
-        out += self.surface2.get_plot_points3D(resolution)
-        out += self.lens_surface_side.get_plot_points3D(resolution)
+        out += self.surface1.get_plot_points_3D(resolution)
+        out += self.surface2.get_plot_points_3D(resolution)
+        out += self.lens_surface_side.get_plot_points_3D(resolution)
         return out
     
     def get_plotly_color_scale(self):
+        """
+        Returns color scale for plotly visualization.
+
+        Returns:
+            List: Color scale values.
+        """
         out = []
         out += self.surface1.get_plotly_color_scale()
         out += self.surface2.get_plotly_color_scale()
         out += self.lens_surface_side.get_plotly_color_scale()
         return out
 
-    def get_plotable_childs(self):
+    def get_plotable_childs(self)->List:
+        """
+        Returns plotable child elements.
+
+        Returns:
+            List: List of child elements.
+        """
         return []
 
-    def forward(self,O1:torch.Tensor,D1:torch.Tensor,wl:torch.Tensor,n_func_enviroment,meta_data):
+    def forward(self,
+                O1:torch.Tensor,
+                D1:torch.Tensor,
+                wl:torch.Tensor,
+                n_func_enviroment,
+                meta_data)->torch.Tensor:
+        """
+        Simulates light passing through the Fresnel lens.
+
+        Args:
+            O1 (torch.Tensor): Ray origin positions.
+            D1 (torch.Tensor): Ray directions.
+            wl (torch.Tensor): Wavelengths.
+            n_func_enviroment: Function returning external medium refractive index.
+            meta_data (dict): Ray metadata.
+
+        Returns:
+            Tuple: Updated ray origins, directions, etc.
+        """
         out = self.surface1(O1,D1,wl,n_func_enviroment,meta_data)
         return self.surface2(*out)
 
-    def get_transform(self):
+    def get_transform(self) -> Transform:
+        """
+        Returns the transformation of the Fresnel lens exit surface.
+
+        Returns:
+            Transform: The transformation object.
+        """
         return self.surface2.transform
 
 
@@ -1365,11 +1577,11 @@ def smooth_lens_with_unused_params(lens:Lens,\
 
 
 """
-def set_unused_bspline_coeff_to_nearest(optical_system,\
-                                            sequence,\
-                                            source,\
-                                            bspline_surface,\
-                                            num_rays=100000,\
+def set_unused_bspline_coeff_to_nearest(optical_system,
+                                            sequence:list[str],
+                                            source,
+                                            bspline_surface,
+                                            num_rays=100000,
                                             method_ray_tracing="sobol"):
     
     """

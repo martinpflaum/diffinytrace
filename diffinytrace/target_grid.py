@@ -390,4 +390,4 @@ class GridSquare(Grid):
             [-aperture_radius,aperture_radius],\
             [-aperture_radius,aperture_radius],grid_size,grid_size)
         
-#%%
+

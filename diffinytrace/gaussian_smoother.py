@@ -3,8 +3,8 @@
 
 
 __all__ = [
-    "gaussian_func1D",
-    "gaussian_func2D",
+    "gaussian_func_1D",
+    "gaussian_func_2D",
     "calc_smooth_desired_irradiance",
     "GaussianSmoother",
     "make_evaluation_function",
@@ -29,7 +29,7 @@ import gc
 import warnings
 from .render import binned_irradiance
 
-def gaussian_func1D(eval_points:torch.Tensor,
+def gaussian_func_1D(eval_points:torch.Tensor,
                     x_range,
                     num_gauss_points:int,
                     sigma:float,
@@ -67,7 +67,7 @@ def gaussian_func1D(eval_points:torch.Tensor,
     out = multiplier*torch.exp(-(dist**2.0/(2.0*(sigma**2.0))))
     return out
 
-def gaussian_func2D(eval_points:torch.Tensor,
+def gaussian_func_2D(eval_points:torch.Tensor,
                                   x_range,
                                   y_range,
                                   x_grid_size:int,
@@ -99,8 +99,8 @@ def gaussian_func2D(eval_points:torch.Tensor,
     eval_points1 = eval_points[:,1]
     eval_points2 = eval_points[:,0]
     
-    out1 = gaussian_func1D(eval_points1,y_range,y_grid_size,sigma,include_boundary)
-    out2 = gaussian_func1D(eval_points2,x_range,x_grid_size,sigma,include_boundary)
+    out1 = gaussian_func_1D(eval_points1,y_range,y_grid_size,sigma,include_boundary)
+    out2 = gaussian_func_1D(eval_points2,x_range,x_grid_size,sigma,include_boundary)
     
     if not val_multi is None:
         out1 = out1*val_multi.reshape(1,-1)
@@ -153,7 +153,7 @@ def calc_smooth_desired_irradiance(desired_irradiance_fun:Callable,
         for k in range(num_splits):
             split_points = splitted_points[k].to(device=device,dtype=dtype)
             split_weights = splitted_weights[k].to(device=device,dtype=dtype)
-            tmp = gaussian_func2D(split_points,x_range,y_range,x_grid_size,y_grid_size,sigma=sigma,val_multi=desired_irradiance_fun(split_points)*split_weights)
+            tmp = gaussian_func_2D(split_points,x_range,y_range,x_grid_size,y_grid_size,sigma=sigma,val_multi=desired_irradiance_fun(split_points)*split_weights)
             #print("tmp.shape",tmp.shape)
             out.append(tmp.detach())
             #del split_points, split_weights
@@ -240,7 +240,7 @@ class GaussianSmoother():
         Returns:
             torch.Tensor: Smoothed irradiance values at the specified points.
         """
-        return gaussian_func2D(points,self.x_range,self.y_range,self.x_grid_size,self.y_grid_size,self.sigma,ray_multi,include_boundary=self.include_boundary)
+        return gaussian_func_2D(points,self.x_range,self.y_range,self.x_grid_size,self.y_grid_size,self.sigma,ray_multi,include_boundary=self.include_boundary)
 
     def none_smoothed_irradiance(self,points:torch.Tensor,ray_multi:torch.Tensor)->torch.Tensor:
         """

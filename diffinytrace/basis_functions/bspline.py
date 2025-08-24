@@ -124,17 +124,16 @@ Examples:
 
 __all__ = [
     "cox_de_boor_recursion",
-    "basis_1d",
-    "basis_2d",
-    "surface_2d",
-    "insert_knot1D_single",
+    "basis_1D",
+    "basis_2D",
+    "surface_2D",
+    "insert_knot_1D_single",
     "insert_knots1D",
     "refine2D"
 ]
 
-import matplotlib.pyplot as plt
 import torch
-from typing import Tuple,List,Callable,Optional
+from typing import Tuple,List,Callable,Optional,Union
 
 
 def cox_de_boor_recursion(U: torch.Tensor, k: int, n: int, xis: torch.Tensor, k_curr: int) -> torch.Tensor:
@@ -181,7 +180,7 @@ def cox_de_boor_recursion(U: torch.Tensor, k: int, n: int, xis: torch.Tensor, k_
     
     return out
 
-def basis_1d(points:torch.Tensor,
+def basis_1D(points:torch.Tensor,
              U:torch.Tensor,
              k:int,
              n:int,
@@ -211,7 +210,7 @@ def basis_1d(points:torch.Tensor,
         >>> k = 3  # This is order 3
         >>> print(U[0], U[-1])
         >>> xis = torch.linspace(0, 1, 100)
-        >>> xN = bspline.basis_1d(xis, U, k, n, [0., 1.])
+        >>> xN = bspline.basis_1D(xis, U, k, n, [0., 1.])
         >>> num_points = xN.shape[0]
         >>> tmp = xN.reshape(num_points, -1, 1) * xN.reshape(num_points, 1, -1)
         >>> for yin in xN.T:
@@ -225,12 +224,12 @@ def basis_1d(points:torch.Tensor,
     k_curr = k
     return cox_de_boor_recursion(U,k,n,points,k_curr-1)
 
-def basis_2d(points:torch.Tensor,
+def basis_2D(points:torch.Tensor,
              Us:List[torch.Tensor],
              orders:List[int],
              ns:List[int],
              x_range:tuple,
-             y_range:tuple):
+             y_range:tuple) -> torch.Tensor:
     """Compute the 2D B-spline basis functions for given points.
     
     Args:
@@ -246,7 +245,7 @@ def basis_2d(points:torch.Tensor,
     
     Example:
         >>> import diffinytrace as dit
-        >>> from diffinytrace.basis_functions.bspline import basis_2d
+        >>> from diffinytrace.basis_functions.bspline import basis_2D
         >>> import torch
         >>> 
         >>> U1 = torch.tensor([0., 0.2, 0.4, 0.6, 0.8, 1])
@@ -260,7 +259,7 @@ def basis_2d(points:torch.Tensor,
         >>> grid_y, grid_x = torch.meshgrid(_y, _x, indexing='ij')
         >>> points = torch.cat([grid_x.reshape(-1, 1), grid_y.reshape(-1, 1)], dim=-1)
         >>> 
-        >>> N2D = basis_2d(points, Us, ps, ns, torch.tensor([0, 1]), torch.tensor([0, 1]))
+        >>> N2D = basis_2D(points, Us, ps, ns, torch.tensor([0, 1]), torch.tensor([0, 1]))
         >>> 
         >>> xi = 0
         >>> yi = 2
@@ -286,15 +285,15 @@ def basis_2d(points:torch.Tensor,
         Us[1] = Us[1].to(device)
     
     #Move evaluation to cor.py make abstraction
-    Ns1 = basis_1d(points[:,0],Us[0],orders[0],ns[0],x_range)    
-    Ns2 = basis_1d(points[:,1],Us[1],orders[1],ns[1],y_range)
+    Ns1 = basis_1D(points[:,0],Us[0],orders[0],ns[0],x_range)    
+    Ns2 = basis_1D(points[:,1],Us[1],orders[1],ns[1],y_range)
     num_points = Ns1.shape[0]
     N2D = Ns1.reshape(num_points,-1,1)*Ns2.reshape(num_points,1,-1)
     
     return N2D
 
 
-def surface_2d(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], ns: List[int], x_range: tuple, y_range: tuple, control_points: torch.Tensor) -> torch.Tensor:
+def surface_2D(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], ns: List[int], x_range: tuple, y_range: tuple, control_points: torch.Tensor) -> torch.Tensor:
     """
     Evaluate a 2D B-spline surface at given points using provided knot vectors, orders, and control points.
 
@@ -322,7 +321,7 @@ def surface_2d(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], 
         >>> U_x = torch.linspace(0, 1, n_x + k_x)
         >>> U_y = torch.linspace(0, 1, n_y + k_y)
         >>> points = torch.rand((100, 2))
-        >>> surface = bspline.surface_2d(points, [U_x, U_y], [k_x, k_y], [n_x, n_y], (0.0, 1.0), (0.0, 1.0), control_points)
+        >>> surface = bspline.surface_2D(points, [U_x, U_y], [k_x, k_y], [n_x, n_y], (0.0, 1.0), (0.0, 1.0), control_points)
     """
     if len(points.shape) != 2 or points.shape[1] != 2:
         raise RuntimeError("The points must be in local coordinates and of shape [#points,2]")
@@ -334,8 +333,8 @@ def surface_2d(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], 
     
     num_points = points.shape[0]
     # Compute basis functions in x and y directions
-    Ns1 = basis_1d(points[:, 0], Us[0], orders[0], ns[0], x_range)
-    Ns2 = basis_1d(points[:, 1], Us[1], orders[1], ns[1], y_range)
+    Ns1 = basis_1D(points[:, 0], Us[0], orders[0], ns[0], x_range)
+    Ns2 = basis_1D(points[:, 1], Us[1], orders[1], ns[1], y_range)
     
     # Unique knots and step size in x-direction
     U1_unique = torch.unique(Us[0])
@@ -378,11 +377,11 @@ def surface_2d(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], 
     idx2 = idx2 % n2
 
     # Extract basis function values and control points using broadcasting
-    basis_values_1d_1 = Ns1.gather(1, idx1)  # Extract relevant basis values for x
-    basis_values_1d_2 = Ns2.gather(1, idx2)  # Extract relevant basis values for y
+    basis_values_1D_1 = Ns1.gather(1, idx1)  # Extract relevant basis values for x
+    basis_values_1D_2 = Ns2.gather(1, idx2)  # Extract relevant basis values for y
 
     # Compute outer product of basis functions (NxM grid for each point)
-    N2D = basis_values_1d_1[:, :, None] * basis_values_1d_2[:, None, :]
+    N2D = basis_values_1D_1[:, :, None] * basis_values_1D_2[:, None, :]
     N2D = N2D.reshape(num_points,-1)
     # Use advanced indexing to gather control points
     
@@ -397,7 +396,7 @@ def surface_2d(points: torch.Tensor, Us: List[torch.Tensor], orders: List[int], 
 
 
 
-def insert_knot1D_single(U: torch.Tensor, 
+def insert_knot_1D_single(U: torch.Tensor, 
                          korder: int, 
                          new_knot: torch.Tensor, 
                          control_points: torch.Tensor, 
@@ -426,13 +425,13 @@ def insert_knot1D_single(U: torch.Tensor,
         >>> U = U.float()
         >>> print(U.shape[0] - k == n, n >= k)
         >>> for m in range(100):
-        ...     U_new, new_control_points = bspline.insert_knot1D_single(U, k, torch.rand((1)), control_points)
+        ...     U_new, new_control_points = bspline.insert_knot_1D_single(U, k, torch.rand((1)), control_points)
         ...     print("new_control_points", new_control_points)
         ...     print("control_points", control_points)
         ...     xis = torch.linspace(0, 1, 1000)
-        ...     xN1 = bspline.basis_1d(xis, U, k, 3, [0, 1.])
+        ...     xN1 = bspline.basis_1D(xis, U, k, 3, [0, 1.])
         ...     out1 = xN1 @ control_points
-        ...     xN2 = bspline.basis_1d(xis, U_new, k, 4, [0, 1.])
+        ...     xN2 = bspline.basis_1D(xis, U_new, k, 4, [0, 1.])
         ...     out2 = xN2 @ new_control_points
         ...     plt.plot(out1[:, 0], out1[:, 1], linewidth=5.0)
         ...     plt.plot(out2[:, 0], out2[:, 1], "--")
@@ -465,7 +464,11 @@ def insert_knot1D_single(U: torch.Tensor,
     return U_new,control_points_new
 
 
-def insert_knots1D(U, korder, new_knot_list, control_points, dim=0):
+def insert_knots_1D(U:torch.Tensor, 
+                    korder:int, 
+                    new_knot_list:List[float], 
+                    control_points:torch.Tensor, 
+                    dim:int=0)->Tuple[torch.Tensor, torch.Tensor]:
     """
     Insert multiple knots into a 1D B-spline knot vector and update control points.
 
@@ -480,11 +483,13 @@ def insert_knots1D(U, korder, new_knot_list, control_points, dim=0):
         Tuple[torch.Tensor, torch.Tensor]: (Updated knot vector, updated control points).
     """
     for new_knot in new_knot_list:
-        U,control_points = insert_knot1D_single(U,korder,new_knot,control_points,dim=dim)
+        U,control_points = insert_knot_1D_single(U,korder,new_knot,control_points,dim=dim)
     return U,control_points
 
 
-def refine2D(Us, orders, coeff=None):
+def refine_2D(Us:List[torch.Tensor],
+              orders:List[int], 
+              coeff:Optional[torch.Tensor]=None) -> Union[Tuple[List[torch.Tensor], torch.Tensor], Tuple[torch.Tensor, torch.Tensor]]:
     """
     Refine 2D B-spline knot vectors by inserting midpoints between existing knots.
     Optionally updates coefficients (control points) accordingly.
@@ -509,8 +514,8 @@ def refine2D(Us, orders, coeff=None):
          
     if not coeff is None:
         coeff = coeff.detach()
-        U1,coeff = insert_knots1D(U1,orders[0],new_knots_U1,coeff,dim=0)
-        U2,coeff = insert_knots1D(U2,orders[1],new_knots_U2,coeff,dim=1)
+        U1,coeff = insert_knots_1D(U1,orders[0],new_knots_U1,coeff,dim=0)
+        U2,coeff = insert_knots_1D(U2,orders[1],new_knots_U2,coeff,dim=1)
         return [U1,U2],coeff
     else:
         return U1,U2

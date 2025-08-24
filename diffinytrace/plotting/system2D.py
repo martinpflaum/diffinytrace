@@ -21,12 +21,15 @@ from copy import deepcopy
 
 def annotate_position_simple(nz,ny,name):
     """
-    Annotate the position of a point in 2D space.
-    
+    Annotate the position of a point in 2D space using its coordinates.
+
     Args:
         nz (torch.Tensor): z-coordinates of the point.
         ny (torch.Tensor): y-coordinates of the point.
-        name (str): Name to annotate.
+        name (str): Text label to annotate at the position.
+
+    Returns:
+        None
     """
     zdiff = (torch.max(nz)-torch.min(nz))
     ydiff = (torch.max(ny)-torch.min(ny))
@@ -41,30 +44,34 @@ def annotate_position_simple(nz,ny,name):
 
 def annotate_position(position,offset,name,color="black"):
     """
-    Annotate the position of a point in 2D space with an arrow.
-    
+    Annotate a point in 2D space with an arrow and label.
+
     Args:
-        position (tuple): Position of the point (z, y).
-        offset (tuple): Offset for the annotation.
-        name (str): Name to annotate.
-        color (str): Color of the annotation.
-        
+        position (tuple): (z, y) coordinates of the point.
+        offset (tuple): Offset for the annotation text.
+        name (str): Text label to annotate.
+        color (str): Color of the annotation and arrow.
+
+    Returns:
+        None
     """
     plt.annotate(name,color=color,xy=position,xytext=offset, textcoords='offset points',arrowprops=dict(arrowstyle="->",color=color,linewidth=1.5, mutation_scale=10))
 
 
 def annotated_arrow(start,end,offset,name,arrowstyle,color="black"):
     """
-    Annotate an arrow between two points in 2D space.
-    
+    Draw and annotate an arrow between two points in 2D space.
+
     Args:
-        start (tuple): Start position of the arrow (z, y).
-        end (tuple): End position of the arrow (z, y).
-        offset (tuple): Offset for the annotation.
-        name (str): Name to annotate.
-        arrowstyle (str): Style of the arrow.
+        start (tuple): Start position (z, y) of the arrow.
+        end (tuple): End position (z, y) of the arrow.
+        offset (tuple): Offset for the annotation text.
+        name (str): Text label to annotate.
+        arrowstyle (str): Matplotlib arrow style string.
         color (str): Color of the arrow and annotation.
-        
+
+    Returns:
+        None
     """
     
     arrow_patch = patches.FancyArrowPatch(start, end, arrowstyle=arrowstyle,linewidth=1.5, mutation_scale=10,color=color)
@@ -75,7 +82,10 @@ def annotated_arrow(start,end,offset,name,arrowstyle,color="black"):
 
 def layout():
     """
-    Set up the layout for the plot.
+    Set up the layout for the 2D plot, including margins, aspect ratio, and axis labels.
+
+    Returns:
+        None
     """
     #plt.grid(True)
     plt.margins(x=0.1,y=0.1)
@@ -85,12 +95,15 @@ def layout():
 
 def ray_paths(rays,ray_color="#85549c",ray_linewidth=1.25):
     """
-    Plot the ray paths in 2D space.
-    
+    Plot ray paths projected onto the y-z plane.
+
     Args:
         rays (list[torch.Tensor]): List of ray paths to plot.
         ray_color (str): Color of the rays.
         ray_linewidth (float): Line width of the rays.
+
+    Returns:
+        None
     """
     ray_color = mcolors.to_hex(ray_color)
     print("WARNING: ray_paths will project the ray position onto the y-z plane!")
@@ -105,7 +118,22 @@ def ray_paths(rays,ray_color="#85549c",ray_linewidth=1.25):
 
 
 def _plot_surface(surface,name,resolution,annotate,fill_color,outline_color,linewidth):
-    surface_list = surface.get_plot_points2D(resolution)
+    """
+    Plot a 2D surface and optionally annotate it.
+
+    Args:
+        surface: Object with get_plot_points_2D method.
+        name (str): Name for annotation.
+        resolution (int): Resolution for the surface plot.
+        annotate (bool): Whether to annotate the surface.
+        fill_color (str): Fill color for the surface.
+        outline_color (str): Outline color for the surface.
+        linewidth (float): Line width for the surface.
+
+    Returns:
+        None
+    """
+    surface_list = surface.get_plot_points_2D(resolution)
     if len(surface_list)==0:
         return
     if fill_color is None:
@@ -125,6 +153,21 @@ def _plot_surface(surface,name,resolution,annotate,fill_color,outline_color,line
     
 
 def _plot_surface_recursively(current_elem,name,resolution=200,annotate=False,fill_color=None,outline_color=None,linewidth=None):
+    """
+    Recursively plot a surface and its plotable children in 2D.
+
+    Args:
+        current_elem: The current plotable element.
+        name (str): Name for annotation.
+        resolution (int): Resolution for the surface plot.
+        annotate (bool): Whether to annotate the surface.
+        fill_color (str): Fill color for the surface.
+        outline_color (str): Outline color for the surface.
+        linewidth (float): Line width for the surface.
+
+    Returns:
+        None
+    """
     _plot_surface(current_elem,name,resolution,annotate,fill_color,outline_color,linewidth)
     for elem,elem_name in current_elem.get_plotable_childs():
         _plot_surface_recursively(elem,elem_name,resolution,annotate,fill_color,outline_color,linewidth)
@@ -133,8 +176,9 @@ def _plot_surface_recursively(current_elem,name,resolution=200,annotate=False,fi
 def plot(element=None,rays=None,resolution=200,annotate=False,ray_color="#85549c",ray_linewidth=1.25,fill_color=None,outline_color=None,linewidth=None,show=True):
     """
     Plot a 2D surface and optionally ray paths.
+
     Args:
-        element (Plotable): The element to plot.
+        element: The element to plot (must implement Plotable interface).
         rays (list[torch.Tensor]): List of ray paths to plot.
         resolution (int): Resolution for the surface plot.
         annotate (bool): Whether to annotate the surface.
@@ -143,8 +187,8 @@ def plot(element=None,rays=None,resolution=200,annotate=False,ray_color="#85549c
         fill_color (str): Fill color for the surface.
         outline_color (str): Outline color for the surface.
         linewidth (float): Line width for the surface.
-        show (bool): Whether to show the plot.
-    
+        show (bool): Whether to display the plot immediately.
+
     Returns:
         None
     """

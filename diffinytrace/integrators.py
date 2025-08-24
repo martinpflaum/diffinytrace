@@ -1,12 +1,20 @@
 # Copyright (c) 2025 Martin Pflaum
 # This file is part of the diffinytrace project, licensed under the MIT License.
 
-__all__ = ["Integrator", "Cube","Disc"]
+__all__ = ["Integrator", "Cube","Disc","IntegrationMethod"]
 
 import torch
 import numpy as np
 import math
 from scipy.stats import qmc
+from enum import Enum
+
+class IntegrationMethod(Enum):
+    SIMPSON = "simpson"
+    MIDPOINT = "midpoint"
+    MONTE_CARLO = "monte_carlo"
+    SOBOL = "sobol"
+    SOBOL_POW2 = "sobol_pow2"
 
 def check_2val(num_points):
     num_points = np.array(num_points)
@@ -18,7 +26,7 @@ class Integrator():
     def __init__(self):
         pass
 
-    def sample(self,num_points,method):
+    def sample(self, num_points: int | list[int], method: IntegrationMethod) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Sample points and weights using the specified method.
         Args:
@@ -29,11 +37,10 @@ class Integrator():
         """
         raise NotImplementedError("sample() not implemented")
 
-    def in_bounds(self,x):
+    def in_bounds(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError("in_bounds() not implemented")
-    
 
-    def get_volume(self):
+    def get_volume(self) -> float:
         raise NotImplementedError("get_volume() not implemented")
 
      
@@ -45,20 +52,9 @@ class Cube(Integrator):
         bounds (array-like): The bounds for each dimension of the cube. Should be a list or array of shape (n_dim, 2),
             where each row specifies [lower_bound, upper_bound] for a dimension.
 
-    Methods:
-        sample(num_points, method="midpoint"):
-            Sample points and weights using the specified integration method.
-            Supported methods: 'simpson', 'midpoint', 'monte_carlo', 'sobol', 'sobol_pow2'.
-
-        in_bounds(x):
-            Check if the given points are within the cube bounds.
-
-        get_volume():
-            Return the volume of the cube.
-
     Example:
         >>> cube = dit.integrators.Cube([[0, 1], [0, 1]])
-        >>> points, weights = cube.sample([10, 10], method="midpoint")
+        >>> points, weights = cube.sample([10, 10], method=IntegrationMethod.MIDPOINT)
         >>> volume = cube.get_volume()
         >>> all_in_bounds = cube.in_bounds(points)
         >>> print("Sampled points:", points)
@@ -76,8 +72,8 @@ class Cube(Integrator):
         self.bounds = torch.tensor(bounds)
         if len(self.bounds.shape)!=2:
             raise ValueError("len(self.bounds.shape)==2 must hold true!")
-    
-    def sample(self,num_points,method="midpoint")-> tuple[torch.Tensor, torch.Tensor]:
+
+    def sample(self, num_points: int | list[int], method: IntegrationMethod = IntegrationMethod.MIDPOINT) -> tuple[torch.Tensor, torch.Tensor]:
         r"""
         Sample points and weights using the specified method.
         
@@ -88,7 +84,9 @@ class Cube(Integrator):
         Returns:
             tuple: A tuple containing the sampled points and their corresponding weights.
         """
-        
+        if not isinstance(method, str):
+            method = str(method.value)
+
         
         if method == 'simpson':
             return self._sample_simpson(num_points)
@@ -103,15 +101,14 @@ class Cube(Integrator):
         else:
             raise ValueError(f"Unknown integration method: {method}")
     
-    def in_bounds(self,x):
+    def in_bounds(self, x:torch.Tensor) -> torch.Tensor:
         out = torch.ones(x.shape[0],device=x.device,dtype=torch.bool).float()
         for k in range(self.bounds.shape[0]):
             out = out*((self.bounds[k,0]<=x[:,k]).float())*((x[:,k]<=self.bounds[k,1]).float())
         out = out==1.0
         return out
-        
-    def get_volume(self):
-        
+
+    def get_volume(self) -> float:
         """
         Returns:
             float: Volume of the Cube.
@@ -309,8 +306,8 @@ class Disc(Integrator):
 
     def __init__(self,radius):
         self.radius = float(radius)
-    
-    def sample(self,num_points,method="sobol")-> tuple[torch.Tensor, torch.Tensor]:
+
+    def sample(self, num_points: int | list[int], method: IntegrationMethod = IntegrationMethod.SOBOL) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Sample points and weights using the specified method.
         
@@ -320,7 +317,9 @@ class Disc(Integrator):
         Returns:
             tuple: A tuple containing the sampled points and their corresponding weights.
         """
-        
+        if not isinstance(method, str):
+            method = str(method.value)
+
         if method == 'simpson':
             return self._sample_simpson(num_points)
         elif method == 'monte_carlo':

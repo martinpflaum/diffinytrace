@@ -35,7 +35,12 @@ from OCP.BRepBuilderAPI import (
 import numpy as np
 
 
-def lens_to_solid(lens,resolution,tol=0.001,smoothing = None,minDeg: int = 1,maxDeg: int = 3):
+def lens_to_solid(lens,
+                  resolution: int,
+                  tol:float = 0.001,
+                  smoothing = None,
+                  minDeg: int = 1,
+                  maxDeg: int = 3) -> cq.Solid:
     """
     Convert a lens object to a CAD solid.
     
@@ -229,7 +234,7 @@ def makeBsplineFace(
     weights = np.ones((control_points.shape[0],control_points.shape[1]),dtype=float)
     return makeNurbsFace(control_points,weights,U1,U2,u_degree,v_degree,u_periodic,v_periodic)
 
-def export_lens(file_path,lens,resolution,tol=0.001):
+def export_lens(file_path:str, lens, resolution:int, tol:float = 0.001):
     """
     Export a lens to a CAD file.
     

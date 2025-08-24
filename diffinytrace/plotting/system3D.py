@@ -28,6 +28,17 @@ import copy
 
 ##2013FF
 def ray_paths_one_bin(rays,ray_color,ray_linewidth):
+    """
+    Generate a Plotly 3D line plot for a group of rays with the same number of segments.
+
+    Args:
+        rays (list[torch.Tensor]): List of ray paths, each as a tensor.
+        ray_color (str): Color for the ray lines.
+        ray_linewidth (float): Line width for the ray lines.
+
+    Returns:
+        plotly.graph_objs.Figure: Plotly figure containing the ray paths.
+    """
     rays = [elem.numpy() for elem in rays]
     rays = np.array(rays)
     rays = torch.tensor(rays)
@@ -44,17 +55,17 @@ def ray_paths_one_bin(rays,ray_color,ray_linewidth):
         line_fig.data[k].line.width = ray_linewidth
     return line_fig
 
-def ray_paths(rays,ray_color="#9673A6",ray_linewidth=3):#9673A6#D6B656
+def ray_paths(rays,ray_color="#9673A6",ray_linewidth=3):
     """
-    Plot the ray paths in 3D.
-    
+    Generate Plotly line objects for multiple ray paths, grouped by path length.
+
     Args:
         rays (list[torch.Tensor]): List of rays to plot.
         ray_color (str): Color of the rays.
         ray_linewidth (float): Line width of the rays.
-    
+
     Returns:
-        data (list): List of plotly line objects.
+        list: List of Plotly line objects for each ray group.
     """
     ray_color = mcolors.to_hex(ray_color)
     data = []
@@ -72,19 +83,19 @@ def ray_paths(rays,ray_color="#9673A6",ray_linewidth=3):#9673A6#D6B656
 
 def surface(transformation,surface,name,aperture_radius,resolution,colorscale,is_square=False):
     """
-    Plot the surface of an optical element in 3D.
-    
+    Generate a Plotly surface plot for an optical element.
+
     Args:
-        transformation (Transformation): The transformation object for the optical element.
-        surface (Surface): The surface object to plot.
+        transformation: Transformation object for the optical element.
+        surface: Surface object to plot.
         name (str): Name of the surface.
         aperture_radius (float): Radius of the aperture.
         resolution (int): Resolution for the surface plot.
         colorscale (list): Color scale for the surface plot.
         is_square (bool): Whether the aperture is square or circular.
-    
+
     Returns:
-        data (list): List of plotly surface objects.
+        list: List of Plotly surface objects.
     """
     
     _x = torch.linspace(-aperture_radius,aperture_radius,resolution)
@@ -132,21 +143,21 @@ def surface(transformation,surface,name,aperture_radius,resolution,colorscale,is
 
 def get_optical_system_layout(show_grid,xlabel="x [mm]",ylabel="y [mm]",zlabel="z [mm]",xticks=None,yticks=None,zticks=None,axislabel_font_size=10,tick_font_size=10):
     """
-    Get the layout for the optical system plot.
-    
+    Create a Plotly layout for 3D visualization of the optical system.
+
     Args:
         show_grid (bool): Whether to show the grid.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         zlabel (str): Label for the z-axis.
-        xticks (list[float]): Custom x-ticks.
-        yticks (list[float]): Custom y-ticks.
-        zticks (list[float]): Custom z-ticks.
+        xticks (list[float], optional): Custom x-ticks.
+        yticks (list[float], optional): Custom y-ticks.
+        zticks (list[float], optional): Custom z-ticks.
         axislabel_font_size (int): Font size for axis labels.
         tick_font_size (int): Font size for tick labels.
-    
+
     Returns:
-        layout (plotly.graph_objects.Layout): The layout object for the plot.
+        plotly.graph_objs.Layout: Layout object for the plot.
     """
     #TODO write wrapper for plot3D!
     camera = dict(
@@ -198,7 +209,18 @@ def get_optical_system_layout(show_grid,xlabel="x [mm]",ylabel="y [mm]",zlabel="
 
 
 def _plot_surface(surface,name,resolution):
-    surface_list = surface.get_plot_points3D(resolution)
+    """
+    Generate Plotly surface objects for all 3D surface segments of an element.
+
+    Args:
+        surface: Object with get_plot_points_3D and get_plotly_color_scale methods.
+        name (str): Name for the surface.
+        resolution (int): Resolution for the surface plot.
+
+    Returns:
+        list: List of Plotly surface objects.
+    """
+    surface_list = surface.get_plot_points_3D(resolution)
     if len(surface_list)==0:
         return []
     colorscale = surface.get_plotly_color_scale()
@@ -215,6 +237,17 @@ def _plot_surface(surface,name,resolution):
 
 
 def _plot_surface_recursively(current_elem,name,resolution):
+    """
+    Recursively generate Plotly surface objects for an element and its plotable children.
+
+    Args:
+        current_elem: The current plotable element.
+        name (str): Name for the element.
+        resolution (int): Resolution for the surface plot.
+
+    Returns:
+        list: List of Plotly surface objects for the element and its children.
+    """
     out = _plot_surface(current_elem,name,resolution)
     for elem,elem_name in current_elem.get_plotable_childs():
         out += _plot_surface_recursively(elem,elem_name,resolution)
@@ -236,30 +269,29 @@ def plot(element=None,
          ray_linewidth=3.,
          show=True,
          html_file_name=None):
-    
     """
-    Plots the optical system in 3D using Plotly.
+    Visualize the optical system and ray paths in 3D using Plotly.
 
     Args:
-        element (Plotable): The optical system element to plot.
-        rays (list[torch.Tensor]): List of rays to plot.
+        element: The optical system element to plot (must implement Plotable interface).
+        rays (list[torch.Tensor] or dict): List of rays or dict containing ray paths.
         resolution (int): Resolution for the surface plot.
         show_grid (bool): Whether to show the grid.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         zlabel (str): Label for the z-axis.
-        xticks (list[float]): Custom x-ticks.
-        yticks (list[float]): Custom y-ticks.
-        zticks (list[float]): Custom z-ticks.
+        xticks (list[float], optional): Custom x-ticks.
+        yticks (list[float], optional): Custom y-ticks.
+        zticks (list[float], optional): Custom z-ticks.
         axislabel_font_size (int): Font size for axis labels.
         tick_font_size (int): Font size for tick labels.
         ray_color (str): Color of the rays.
         ray_linewidth (float): Line width of the rays.
-        show (bool): Whether to show the plot immediately.
-        html_file_name (str | None): If provided, saves the plot as an HTML file.
-    
+        show (bool): Whether to display the plot immediately.
+        html_file_name (str, optional): If provided, saves the plot as an HTML file.
+
     Returns:
-        fig (plotly.graph_objects.Figure): The plotly figure object.
+        plotly.graph_objs.Figure or None: The Plotly figure object if show is False, otherwise None.
     """
     
     data = []

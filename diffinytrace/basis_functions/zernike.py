@@ -41,17 +41,17 @@ Example:
     >>> # Group basis functions by radial degree
     >>> basis_by_degree = {}
     >>> for basis_idx in range(basis_values.shape[1]):
-    ...     radial_degree = zernike.get_radial_order(basis_idx)
-    ...     if radial_degree not in basis_by_degree:
-    ...         basis_by_degree[radial_degree] = []
-    ...     basis_by_degree[radial_degree].append(basis_idx)
+    ...     radial_order = zernike.get_radial_order(basis_idx)
+    ...     if radial_order not in basis_by_degree:
+    ...         basis_by_degree[radial_order] = []
+    ...     basis_by_degree[radial_order].append(basis_idx)
     >>> 
     >>> # Visualize the polynomials
     >>> max_cols = max(len(indices) for indices in basis_by_degree.values())
     >>> num_rows = len(basis_by_degree)
     >>> fig, axes = plt.subplots(num_rows, max_cols, figsize=(3*max_cols, 3*num_rows))
     >>> 
-    >>> for row_idx, (radial_degree, basis_indices) in enumerate(sorted(basis_by_degree.items())):
+    >>> for row_idx, (radial_order, basis_indices) in enumerate(sorted(basis_by_degree.items())):
     ...     for col_idx, basis_idx in enumerate(basis_indices):
     ...         # Create 2D array with NaN outside unit circle
     ...         tmp = torch.full((grid_size, grid_size), float('nan'))
@@ -62,7 +62,7 @@ Example:
     ...         im = ax.imshow(tmp.numpy(), extent=[-1, 1, -1, 1], 
     ...                       origin='lower', cmap='jet', vmin=-1, vmax=1)
     ...         azimuthal = zernike.get_azimuthal_frequency(basis_idx)
-    ...         ax.set_title(f"$Z^{{{azimuthal}}}_{{{radial_degree}}}$", fontsize=25)
+    ...         ax.set_title(f"$Z^{{{azimuthal}}}_{{{radial_order}}}$", fontsize=25)
     ...         ax.set_xticks([])
     ...         ax.set_yticks([])
     ...         ax.set_aspect('equal')
@@ -88,9 +88,8 @@ __all__ = [
 
 import torch
 import math
-import numpy as np
 
-def __zernike_calc(n, m, r_powers):
+def __zernike_calc(n:int, m:int, r_powers: list) -> torch.Tensor:
     radial_sum = torch.zeros_like(r_powers[0])
     m = abs(m)
     
@@ -112,7 +111,7 @@ def __zernike_calc(n, m, r_powers):
     
     return radial_sum
 
-def basis_function(max_radial_order, points):
+def basis_2D(points: torch.Tensor, max_radial_order: int) -> torch.Tensor:
     """
     Compute Zernike polynomials for a given set of points.
     
@@ -158,7 +157,7 @@ def basis_function(max_radial_order, points):
     
     return zernike_basis
 
-def get_num_basis(max_radial_order):
+def get_num_basis(max_radial_order:int) -> int:
     """
     Calculate the number of basis functions for Zernike polynomials up to a given radial order.
     The number of basis functions is given by the formula (n + 1) * (n + 2) / 2.
@@ -174,7 +173,7 @@ def get_num_basis(max_radial_order):
     return int(n*(n+1) / 2)
 
 
-def get_radial_order(basis_idx):
+def get_radial_order(basis_idx:int) -> int:
     """
     Calculate the radial degree from the basis function index.
     
@@ -197,7 +196,7 @@ def get_radial_order(basis_idx):
         num_azimuthal_frequencies += 1
         row_idx += 1
 
-def get_azimuthal_frequency(basis_idx):
+def get_azimuthal_frequency(basis_idx:int) -> int:
     """
     Calculate the azimuthal frequency from the basis function index.
 

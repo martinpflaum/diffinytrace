@@ -17,7 +17,7 @@ import torch
 import torch.nn as nn
 from .intersection import SemiFunctionalModule,cat_semi_functionals
 import numpy as np
-from . optimize import make_parameter_from_input  
+from .optimize import make_parameter_from_input  
 
 class Transform(SemiFunctionalModule):
     """
@@ -421,7 +421,7 @@ class Rotation(Transform):
 
         
     """
-    def __init__(self,angle,axis,parent_transform=Identity()):
+    def __init__(self, angle: float, axis: int, parent_transform=Identity()):
         #TODO test rotation for combi angle_x, angle_y, angle_z Reihenfolge egal?
         super().__init__()
         self.angle = make_parameter_from_input(angle)

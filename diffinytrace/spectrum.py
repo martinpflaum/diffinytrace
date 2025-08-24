@@ -9,14 +9,14 @@ __all__ = [
 import torch
 import torch.nn as nn
 import numpy as np
-import pvlib
 from .plotting.wavelength import PlotableWavelength
+from typing import Callable,Union,List,Tuple
 
-class Spectrum(nn.Module,PlotableWavelength):
+class Spectrum(nn.Module, PlotableWavelength):
     """
     A class to represent a spectrum as a function of wavelength.
     """
-    def __init__(self,func,bounds):
+    def __init__(self, func: Callable[[torch.Tensor], torch.Tensor], bounds: Tuple[float, float]):
         """
         Initialize the Spectrum class.
         
@@ -29,7 +29,7 @@ class Spectrum(nn.Module,PlotableWavelength):
         self.func = func
         self.bounds = bounds
 
-    def forward(self,wl):
+    def forward(self, wl: torch.Tensor) -> torch.Tensor:
         """
         Calculate the spectrum for given wavelengths.
 
@@ -46,6 +46,7 @@ class Spectrum(nn.Module,PlotableWavelength):
         
         if isinstance(out,float):
             return out*torch.ones_like(wl)
+        
         if isinstance(out,np.ndarray):
             out = torch.tensor(out,device=wl.device,dtype=wl.dtype)
         
@@ -65,11 +66,13 @@ class VisibleSunlight_am15g(Spectrum):
     This class uses the pvlib library to calculate the spectrum.
     """
     def __init__(self):
+        from pvlib.spectrum import get_am15g
+
         def func(wl):
             device = wl.device
             dtype = wl.dtype
             wl = wl.detach().cpu().numpy()
-            out = pvlib.spectrum.get_am15g(wl*1000.)
+            out = get_am15g(wl*1000.)
             out = np.array(out)
             out = torch.tensor(out,device=device,dtype=dtype)
             return out 

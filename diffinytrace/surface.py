@@ -14,9 +14,11 @@ import torch
 import torch.nn as nn
 import numpy as np
 #from diffinytrace.basis_functions import *
-from .transforms import SemiFunctionalModule
+from .transforms import SemiFunctionalModule,Transform
 from .optimize import make_parameter_from_input
 from . import basis_functions
+from typing import Tuple,List,Callable,Optional,Union
+
 
 class Surface(SemiFunctionalModule):
     r"""
@@ -189,15 +191,25 @@ class Aspheric(Surface):
 
         
     @staticmethod
-    def g(x, y,curvature,conic_coeff,aspheric_param):
-        return Aspheric._g(x**2 + y**2,curvature,conic_coeff,aspheric_param)
+    def g(x: torch.Tensor, 
+          y: torch.Tensor, 
+          curvature: torch.Tensor, 
+          conic_coeff: torch.Tensor, 
+          aspheric_param: Optional[torch.Tensor]) -> torch.Tensor:
+        return Aspheric._g(x**2 + y**2, curvature, conic_coeff, aspheric_param)
 
     @staticmethod
-    def h(z,curvature,conic_coeff,aspheric_param):
+    def h(z: torch.Tensor, 
+          curvature: torch.Tensor, 
+          conic_coeff: torch.Tensor, 
+          aspheric_param: Optional[torch.Tensor]) -> torch.Tensor:
         return -z
     
     @staticmethod
-    def _g(r2,curvature,conic_coeff,aspheric_param):
+    def _g(r2: torch.Tensor, 
+           curvature: torch.Tensor, 
+           conic_coeff: torch.Tensor, 
+           aspheric_param: Optional[torch.Tensor]) -> torch.Tensor:
         #r2 is r**2.
         tmp = r2*curvature
         total_surface = tmp / (1 + torch.sqrt(1 - (1+conic_coeff) * tmp*curvature))
@@ -208,18 +220,21 @@ class Aspheric(Surface):
         return total_surface + higher_surface
     
     @staticmethod
-    def functional(O,curvature,conic_coeff,aspheric_param):
+    def functional(O:torch.Tensor, 
+                   curvature:torch.Tensor, 
+                   conic_coeff:torch.Tensor, 
+                   aspheric_param:Optional[torch.Tensor]) -> torch.Tensor:
         x = O[:,0]
         y = O[:,1]
         z = O[:,2]
 
         return Aspheric.g(x, y,curvature,conic_coeff,aspheric_param) + Aspheric.h(z,curvature,conic_coeff,aspheric_param)
-    
-    def get_functional_param_args(self):
+
+    def get_functional_param_args(self) -> List[torch.Tensor]:
         return [self.curvature,self.conic_coeff,self.aspheric_param]
     
 
-    def explicit(self,local_pos):
+    def explicit(self,local_pos:torch.Tensor) -> torch.Tensor:
         if local_pos.shape[-1] != 2:
             raise RuntimeError("local_pos needs to be of shape [:,2]")
         x = local_pos[:,0]
@@ -274,6 +289,7 @@ class Zernike(Surface):
         return self.functional(O_new,*self.get_functional_param_args())
     
 """
+
 def bspline_n_after_refinement(n,k):
     return ((2*n+1)-k)
 
@@ -283,8 +299,8 @@ class Bspline(Surface):
     The surface is defined by the B-spline basis functions and control points.
     The functional method returns the z-coordinate of the input points.
     """
-    
-    def __init__(self,aperture_radius:float,orders,ns):
+
+    def __init__(self,aperture_radius:float,orders:List[int],ns:List[int]):
         super().__init__()
         #orders is order!!!
         #order = degree + 1
@@ -302,7 +318,7 @@ class Bspline(Surface):
         self.coeff = make_parameter_from_input(torch.zeros((self.ns)))
         self.aperture_radius = torch.tensor(aperture_radius)    
 
-    def get_CAD_coeff(self,affine_transform):
+    def get_CAD_coeff(self,affine_transform:Transform)->np.ndarray:
         """
         Get the CAD coefficients from the affine transform.
 
@@ -355,7 +371,7 @@ class Bspline(Surface):
         """
         Refine the B-spline surface by increasing the number of control points.
         The number of control points is increased by 1 in each direction."""
-        Us,coeff = basis_functions.bspline.refine2D(self.Us,self.orders,self.coeff)
+        Us,coeff = basis_functions.bspline.refine_2D(self.Us,self.orders,self.coeff)
         self.Us = Us
         with torch.no_grad():
             xtmp = make_parameter_from_input(coeff.data.detach())
@@ -370,14 +386,14 @@ class Bspline(Surface):
         y_range = [-aperture_radius,aperture_radius]
 
         
-        _zsurface = basis_functions.bspline.surface_2d(points, self.Us, self.orders, self.ns, x_range, y_range, coeff)
+        _zsurface = basis_functions.bspline.surface_2D(points, self.Us, self.orders, self.ns, x_range, y_range, coeff)
         return _zsurface-O[:,-1]
 
         
-    def get_functional_param_args(self):
+    def get_functional_param_args(self)->List[torch.Tensor]:
         return [self.coeff,self.aperture_radius]
     
-    def explicit(self,local_pos):
+    def explicit(self,local_pos:torch.Tensor)->torch.Tensor:
         """
         Convert local position to global position using the B-spline surface functional.
         
@@ -400,21 +416,14 @@ class Bspline(Surface):
 
         return self.functional(O_new,*self.get_functional_param_args())
 
-"""
-    def to(self, *args, **kwargs):
-        print("bspline to called")
-        U1,U2 = self.Us
-        self.Us = [U1.to(*args, **kwargs),U2.to(*args, **kwargs)]
-        super(Bspline, self).to(*args, **kwargs)
-        return self
-"""
+
 class Legendre(Surface):
 
     """
     A class to represent a Legendre surface in 3D space.
     Its kinda work in progress.
     """
-    def __init__(self,aperture_radius,degree):
+    def __init__(self,aperture_radius: float, degree: int):
         super().__init__()
     
         self.degree = degree
@@ -430,16 +439,16 @@ class Legendre(Surface):
             self.degree = self.degree+1
     
 
-    def functional(self,O,coeffs,aperture_radius):
+    def functional(self, O: torch.Tensor, coeffs: torch.Tensor, aperture_radius: float) -> torch.Tensor:
         points = O[:,[0,1]]/aperture_radius
-        z = basis_functions.legendre.legendre_2d_basis(self.degree,points[:,0],points[:,1])@coeffs
+        z = basis_functions.legendre.basis_2D(self.degree,points[:,0],points[:,1])@coeffs
         
         return z-O[:,-1]
         
     def get_functional_param_args(self):
         return [self.coeff,self.aperture_radius]
     
-    def explicit(self,local_pos):
+    def explicit(self,local_pos:torch.Tensor)->torch.Tensor:
         if local_pos.shape[-1] != 2:
             raise RuntimeError("local_pos needs to be of shape [:,2]")
         device = local_pos.device

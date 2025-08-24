@@ -52,12 +52,12 @@ class RaySource(PhysicalObject):
 
         raise NotImplementedError("forward() not implemented")
         
-    def get_plot_points2D(self,resolution):
-        print("get_plot_points2D not implemented")
+    def get_plot_points_2D(self,resolution):
+        print("get_plot_points_2D not implemented")
         return []
     
-    def get_plot_points3D(self,resolution):
-        print("get_plot_points3D not implemented")
+    def get_plot_points_3D(self,resolution):
+        print("get_plot_points_3D not implemented")
         return []
     
     def get_volume(self):
@@ -262,7 +262,7 @@ class PlaneSource(LightSource):
         self.aperture_radius = aperture_radius
         self.is_square = is_square
 
-    def get_plot_points2D(self,resolution):
+    def get_plot_points_2D(self,resolution):
         aperture_radius = self.aperture_radius
         x = None
         y = None
@@ -304,7 +304,7 @@ class PlaneSource(LightSource):
         z = Mv[:,2].reshape(-1)
         return [(z,y)]            
 
-    def get_plot_points3D(self,resolution):
+    def get_plot_points_3D(self,resolution):
         aperture_radius = self.aperture_radius
         x = None
         y = None
@@ -355,7 +355,7 @@ class PlaneSource1D(LightSource):
         super().__init__(transform,integrator,flux_func,total_power,num_points_normalize,method_normalize)
         self.aperture_radius = aperture_radius
     
-    def get_plot_points2D(self,resolution):
+    def get_plot_points_2D(self,resolution):
         aperture_radius = self.aperture_radius
         
         transform=self.transform
@@ -373,8 +373,8 @@ class PlaneSource1D(LightSource):
         z = Mv[:,2].reshape(-1)
         return [(z,y)] 
     
-    def get_plot_points3D(self,resolution):
-        raise RuntimeError("get_plot_points3D is not implemented for PlaneSource1D")
+    def get_plot_points_3D(self,resolution):
+        raise RuntimeError("get_plot_points_3D is not implemented for PlaneSource1D")
 
 def make_cone_directions(num_rays, unif1, unif2, theta_max_rad):
     """
