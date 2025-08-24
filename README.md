@@ -4,11 +4,6 @@
 
 The source code is available at the [GitHub repository](https://github.com/martinpflaum/diffinytrace).
 
-
-## Publications
-
-Publications using DiffinyTrace will be listed here as they become available.
-
 ## Key Features
 
 <div align="center">
