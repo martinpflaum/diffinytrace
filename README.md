@@ -28,15 +28,22 @@ The source code is available at the [GitHub repository](https://github.com/marti
 
 ## Installation
 
-DiffinyTrace requires PyTorch to be installed. Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the [PyTorch website](https://pytorch.org/get-started/locally/).
+DiffinyTrace requires **PyTorch** and **Cadquery OCP** to be installed. You will need to install these libraries by hand.
 
-You can install DiffinyTrace via pip:
+1. **Install Cadquery OCP** via conda:
+   ```bash
+   conda install -c conda-forge -c cadquery ocp
+   ```
+   For more information see https://github.com/CadQuery/OCP
 
-```bash
-pip install diffinytrace
-```
+2. **Install PyTorch**
+   Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the [PyTorch website](https://pytorch.org/get-started/locally/). DiffinyTrace should work for both cpu and cuda versions.
 
-DiffinyTrace has been tested only with PyTorch 2.6. Additionally numpy 2 is not supported as of now.
+3. **Install DiffinyTrace**
+   Install all other dependencies and the library itself via:
+   ```bash
+   pip install diffinytrace
+   ```
 
 ## Basic Usage Example
 

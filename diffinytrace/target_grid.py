@@ -50,7 +50,7 @@ class Grid():
         self.y_delta = (self.y_range[1]-self.y_range[0])/y_grid_size
         
     def get_area(self):
-        """
+        r"""
         Computes the total area of the grid.
 
         Returns:
@@ -62,7 +62,7 @@ class Grid():
         return (self.x_range[1]-self.x_range[0])*(self.y_range[1]-self.y_range[0])
     
     def get_pixel_area(self):     
-        """
+        r"""
         Returns the area of a single pixel/grid cell.
 
         Returns:
@@ -74,7 +74,7 @@ class Grid():
         return self.x_delta*self.y_delta
 
     def get_yi_xi(self,local_points,round_to_bounds=True):
-        """
+        r"""
         Converts 2D local coordinates to integer grid indices.
 
         Args:
@@ -110,7 +110,7 @@ class Grid():
             return (yi,xi),valid
 
     def get_k(self,local_points,round_to_bounds=True):
-        """
+        r"""
         Maps local coordinates to flattened grid indices.
 
         Args:
@@ -131,7 +131,7 @@ class Grid():
             return k,valid
         
     def map_matrix_to_ray(self,local_points,old_matrix):
-        """
+        r"""
         Maps a matrix defined on the grid to the given local points.
 
         Args:

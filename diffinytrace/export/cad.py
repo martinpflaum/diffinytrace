@@ -19,6 +19,8 @@ import cadquery as cq
 from collections import Counter
 from typing import List, Tuple
 import copy
+
+
 from OCP.TColgp import TColgp_Array2OfPnt
 from OCP.TColStd import TColStd_Array2OfReal, TColStd_Array1OfReal, TColStd_Array1OfInteger
 from OCP.Message import Message, Message_Gravity
