@@ -62,24 +62,6 @@ DiffinyTrace requires **PyTorch** and **Cadquery OCP** to be installed. You will
    pip install -r requirements.txt
    ```
    
-### Tested Versions
-
-DiffinyTrace has been tested with the following versions:
-
-| Library | Version |
-| :--- | :--- |
-| colour-science | 0.4.7 |
-| matplotlib | 3.10.8 |
-| numpy | 2.4.2 |
-| pandas | 3.0.0 |
-| Pillow | 12.0.0 |
-| plotly | 6.5.2 |
-| pvlib | 0.15.0 |
-| scikit-learn | 1.8.0 |
-| scipy | 1.17.0 |
-| tqdm | 4.67.3 |
-| cadquery | 2.7.0 |
-| torch | 2.10.0+cu130 |
 
 ## Basic Usage Example
 
