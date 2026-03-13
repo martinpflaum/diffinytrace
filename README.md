@@ -43,6 +43,7 @@ The source code is available at the [GitHub repository](https://github.com/marti
    
    
 2. **Install PyTorch**
+   
    Check your cuda version with 
    ```bash
    nvcc --version
