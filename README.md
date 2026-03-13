@@ -27,8 +27,6 @@ The source code is available at the [GitHub repository](https://github.com/marti
 * **GPU Acceleration**: CUDA support for high-performance computations
 
 ## Installation
-Python version 3.12
-DiffinyTrace requires **PyTorch** and **Cadquery OCP** to be installed. You will need to install these libraries by hand.
 
 1. **Create a new Enviroment** via conda:
    ```bash
