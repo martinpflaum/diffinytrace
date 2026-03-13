@@ -6,13 +6,13 @@ Cad
 
 .. automodule:: diffinytrace.export.cad
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module Contents
 ---------------
 
 .. automodule:: diffinytrace.export
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

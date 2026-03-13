@@ -1,26 +1,19 @@
 # Sphinx & core
-sphinx>=7.3
-jinja2>=3.1
-docutils>=0.18
+sphinx==9.1.0
+jinja2==3.1.6
+docutils==0.22.4
 
 # Theme
-furo>=2024.8.6
+furo==2025.12.19
 
 # Extensions used in your config:
-sphinxcontrib-bibtex>=2.6
-nbsphinx>=0.9
-sphinx_copybutton>=0.5
-sphinx.ext.napoleon
-sphinx.ext.autodoc
-sphinx.ext.autosummary
-sphinx.ext.viewcode
-sphinx.ext.mathjax
-sphinx.ext.intersphinx
-
+sphinxcontrib-bibtex==2.6.5
+nbsphinx==0.9.8
+sphinx_copybutton==0.5.2
 # Notebook toolchain for nbsphinx
-jupyter>=1.0
-nbconvert>=7.14
-nbformat>=5.10
+jupyter==1.1.1
+nbconvert==7.17.0
+nbformat==5.10.4
 
 # Optional but often helpful
 # sphinx-autobuild>=2024.4   # live-reload docs while editing

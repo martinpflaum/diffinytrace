@@ -27,24 +27,41 @@ The source code is available at the [GitHub repository](https://github.com/marti
 * **GPU Acceleration**: CUDA support for high-performance computations
 
 ## Installation
-
+Python version 3.12
 DiffinyTrace requires **PyTorch** and **Cadquery OCP** to be installed. You will need to install these libraries by hand.
 
-1. **Install Cadquery OCP** via conda:
+1. **Create a new Enviroment** via conda:
    ```bash
-   conda install -c conda-forge -c cadquery ocp
+   conda create -n dit python==3.12
    ```
-   For more information see https://github.com/CadQuery/OCP
-
+   activate enviroment via
+   ```bash
+   conda activate dit
+   ```
+   install pip
+   ```bash
+   conda install pip
+   ```
+   
+   
 2. **Install PyTorch**
-   Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the [PyTorch website](https://pytorch.org/get-started/locally/). DiffinyTrace should work for both cpu and cuda versions.
+   Check your cuda version with 
+   ```bash
+   nvcc --version
+   ```
+   
+   Diffinytrace only has been tested with 2.10.0+cu130. Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the [PyTorch website](https://pytorch.org/get-started/locally/). DiffinyTrace should work for both cpu and cuda versions.
 
 3. **Install DiffinyTrace**
    Install all other dependencies and the library itself via:
    ```bash
    pip install diffinytrace
    ```
-
+   or directly in the folder via
+   ```bash
+   pip install -r requirements.txt
+   ```
+   
 ### Tested Versions
 
 DiffinyTrace has been tested with the following versions:

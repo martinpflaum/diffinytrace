@@ -14,125 +14,125 @@ Config
 
 .. automodule:: diffinytrace.config
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Constraints
 -------------------------------
 
 .. automodule:: diffinytrace.constraints
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Element
 ---------------------------
 
 .. automodule:: diffinytrace.element
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Gaussian Smoother
 --------------------------------------
 
 .. automodule:: diffinytrace.gaussian_smoother
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Integrators
 -------------------------------
 
 .. automodule:: diffinytrace.integrators
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Intersection
 --------------------------------
 
 .. automodule:: diffinytrace.intersection
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Optimize
 ----------------------------
 
 .. automodule:: diffinytrace.optimize
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Physical Object
 ------------------------------------
 
 .. automodule:: diffinytrace.physical_object
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Refractive Index
 -------------------------------------
 
 .. automodule:: diffinytrace.refractive_index
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Render
 --------------------------
 
 .. automodule:: diffinytrace.render
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Source
 --------------------------
 
 .. automodule:: diffinytrace.source
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Spectrum
 ----------------------------
 
 .. automodule:: diffinytrace.spectrum
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Surface
 ---------------------------
 
 .. automodule:: diffinytrace.surface
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Target Grid
 --------------------------------
 
 .. automodule:: diffinytrace.target_grid
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Transforms
 ------------------------------
 
 .. automodule:: diffinytrace.transforms
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module Contents
 ---------------
 
 .. automodule:: diffinytrace
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
