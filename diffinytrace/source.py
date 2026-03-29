@@ -546,7 +546,7 @@ class CollimatedMonochromatic(PlaneSource):
         self.wl = wl
         
 
-    def sample(self,num_points,method="monte_carlo"):
+    def sample(self,num_points,method="monte_carlo")->torch.Tensor:
         return self.integrator.sample(num_points,method)
 
     def forward(self,x,n_func_enviroment):    

@@ -9,6 +9,8 @@ import math
 from scipy.stats import qmc
 from enum import Enum
 
+mersenne_twister = np.random.Generator(np.random.MT19937(seed=12345))
+
 class IntegrationMethod(Enum):
     SIMPSON = "simpson"
     MIDPOINT = "midpoint"
@@ -244,7 +246,9 @@ class Cube(Integrator):
         
         for i in range(self.bounds.shape[0]):
             # Generate random points uniformly within the bounds for each dimension
-            points[:, i] = torch.rand(num_points) * (self.bounds[i, 1] - self.bounds[i, 0]) + self.bounds[i, 0]
+            rand_points = mersenne_twister.uniform(0,1,size=num_points)
+            rand_points = torch.tensor(rand_points, dtype=torch.float32)
+            points[:, i] = rand_points * (self.bounds[i, 1] - self.bounds[i, 0]) + self.bounds[i, 0]
         
         # Calculate the volume of the cube
         volume = torch.prod(self.bounds[:,1]-self.bounds[:,0])
@@ -396,10 +400,13 @@ class Disc(Integrator):
 
     def _sample_monte_carlo(self, num_points):
         num_points = check_2val(num_points)
-        points = torch.rand(num_points,2)
+        #points = torch.rand(num_points,2)
+        rand_points = mersenne_twister.uniform(0,1,size=num_points*2)
+        rand_points = torch.tensor(rand_points, dtype=torch.float32)
+        rand_points = rand_points.reshape(num_points,2)
         
-        out_points = self._sample_points_from_unif(points)
-        out_weights = self._sample_weights_from_unif(points)
+        out_points = self._sample_points_from_unif(rand_points)
+        out_weights = self._sample_weights_from_unif(rand_points)
         return out_points,out_weights
     
 
