@@ -88,8 +88,8 @@ def compute_Jacobian(ps):
     return Js
 
 
-N = 20
-cs = [0.045]
+N = 1
+cs = [0.05]#[0.045]
 Iss = []
 Jss = []
 for index, c in enumerate(cs):
@@ -129,7 +129,8 @@ for index, c in enumerate(cs):
     fig.savefig(save_dir + "flow_" + index_string + ".png", bbox_inches='tight')
 
     # compute images
-    ray = lens.sample_ray(wavelength.item(), view=0.0, M=2049, sampling='grid')
+    ray = lens.sample_ray(wavelength.item(), view=0.0, M=2049*2, sampling='grid')
+    print(ray.o.shape)
     lens.film_size = [512, 512]
     lens.pixel_size = 50.0e-3/2
     I = lens.render(ray)
@@ -160,26 +161,50 @@ names = [
 # %%
 
 
-aperture_radius = 12.7
+final_plot_radius = 512*(50.0e-3/2)/2
 
-dit.plotting.quantity2D.plot(Iss[0],"Irradiance",[-aperture_radius,aperture_radius])
-dit.plotting.quantity2D.plot(Jss[0],"Derivative",[-aperture_radius,aperture_radius])
+#dit.plotting.quantity2D.plot(Iss[0]/(Iss[0]*lens.pixel_size**2).sum(),"Irradiance",[-final_plot_radius,final_plot_radius])
+#dit.plotting.quantity2D.plot(Jss[0]/(Iss[0]*lens.pixel_size**2).sum(),"Derivative",[-final_plot_radius,final_plot_radius])
+
+val = Jss[0]/(Iss[0]*lens.pixel_size**2).sum()
+x_range = [-final_plot_radius,final_plot_radius]
+y_range = [-final_plot_radius,final_plot_radius]
+from matplotlib.colors import LogNorm
+norm = LogNorm()
+plt.imshow(val,cmap="jet",extent=list(x_range)+list(y_range),norm=norm)
+plt.xlabel("x [mm]")
+plt.ylabel("y [mm]")
+plt.colorbar()    
+#%%
+
+val = Iss[0]/(Iss[0]*lens.pixel_size**2).sum()
+x_range = [-final_plot_radius,final_plot_radius]
+y_range = [-final_plot_radius,final_plot_radius]
+from matplotlib.colors import LogNorm
+norm = LogNorm()
+plt.imshow(val,cmap="jet",extent=list(x_range)+list(y_range))
+plt.xlabel("x [mm]")
+plt.ylabel("y [mm]")
+plt.colorbar()    
+
 
 # %%
+
+aperture_radius = 12.7
 do_air = do.Material('air')
 do_nbk7 = do.Material('N-BK7')
 dit_nbk7 = dit.RefractiveIndex(lambda x:do_nbk7.A + do_nbk7.B / (x*1000)**2,[0.1,1.5])
 dit_air = dit.RefractiveIndex(lambda x:do_air.A + do_air.B / (x*1000)**2,[0.1,1.5])
 
-#%%
+
 wave_len = 0.5328
 
 lens_pos1D = 0.5
 lens_thickness = 6.5
-curvature = 0.05
+curvature = cs[0]
 detector_distance = 25.
 device = "cuda:0"
-grid_size = 32
+grid_size = 512
 
 
 light_transform = dit.transforms.Offset(torch.tensor([0.0,0.0,0.0]))
@@ -200,10 +225,8 @@ lens1.lens_thickness.requires_grad = False
 detector_transform = dit.transforms.Distance(detector_distance)#25.0+0.5
 detector_transform.distance.requires_grad = False
 plane_surface = dit.Plane()
-detector = dit.Detector(detector_transform,plane_surface,aperture_radius)
-gridxt = torch.linspace(-aperture_radius,aperture_radius,grid_size)
-grid_delta =gridxt[1]-gridxt[0] 
-grid_delta
+
+detector = dit.Detector(detector_transform,plane_surface,final_plot_radius)
 
 
 system = dit.SequentialOpticalSystem({"source":light_source,"lens":lens1,"detector":detector},n_func_enviroment = dit_air)
@@ -217,11 +240,37 @@ O,D,wave_len,_,RayPaths = system(x,sequence)
 
 dit.plotting.system2D.plot(system,RayPaths,500,False)
 # %%
+#M=2049*2**2
+num_rays = (2049*2)**2
+grid = dit.target_grid.GridSquare(final_plot_radius,grid_size=grid_size)
+binned_irradiance = dit.render.binned_irradiance(system,sequence,light_source,detector,grid,num_rays=num_rays,method_ray_tracing="monte_carlo")
+dit.plotting.quantity2D.plot(binned_irradiance, "Irradiance", [-final_plot_radius, final_plot_radius], [-final_plot_radius, final_plot_radius])
+#%%
+
+#smoother = dit.gaussian_smoother.GaussianSmootherSquare(final_plot_radius,grid_size=grid_size,sigma=0.1,desired_irradiance_fun=lambda x: torch.zeros_like(x),smoothed_num_integration_points=8,smoothed_num_splits=1)
+#dit.render.smoothed_irradiance(system,sequence,light_source,detector,smoother,num_rays=num_rays,method_ray_tracing="monte_carlo")
+
+#Qval = light_source.get_flux(x.detach()).detach()
+#sigma=grid_delta*0.5
+#irradiance = dit.gaussian_smoother.gaussian_func_2D(detector.to_local_pos(O)[:,[0,1]],[-aperture_radius,aperture_radius],[-aperture_radius,aperture_radius],grid_size,grid_size,sigma,val_multi=Qval*constant_fac,include_boundary=False)
+
+#%%
+num_rays = 2**19
 def gp2(x):
     O,D,wave_len,_,RayPaths = system(x,sequence)
     O_local = detector.to_local_pos(O)
     return O_local[:,[0,1]],O
 x,weights = light_source.sample(num_rays)
 num_rays = x.shape[0]
-    
+
+
+
+
+#%%
 grid = dit.target_grid.GridSquare(aperture_radius,grid_size=grid_size)
+
+
+#%%
+
+(binned_irradiance*lens.pixel_size**2).sum()
+# %%
