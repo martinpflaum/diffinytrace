@@ -242,7 +242,7 @@ dit_air = dit.RefractiveIndex(lambda x:do_air.A + do_air.B / (x*1000)**2,[0.1,1.
 
 wave_len = 0.5328
 
-lens_pos1D = 0.5
+lens_pos1D = 0.0
 lens_thickness = 6.5
 curvature = cs[0]
 detector_distance = 25.
