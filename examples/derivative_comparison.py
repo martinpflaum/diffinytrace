@@ -72,8 +72,7 @@ num_rays = x.shape[0]
     
 grid = dit.target_grid.GridSquare(aperture_radius,grid_size=grid_size)
 constant_fac = weights/grid.get_pixel_area()
-        
-    
+
 y,O = gp2(x)
     
 irradiance = None
