@@ -28,6 +28,8 @@ from .target_grid import Grid
 import gc
 import warnings
 from .render import binned_irradiance
+from torchmetrics.image import StructuralSimilarityIndexMeasure
+#pip install torchmetrics
 
 def gaussian_func_1D(eval_points:torch.Tensor,
                     x_range,
@@ -350,6 +352,8 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
         #RMSE = torch.sum((residual**2))
         return L2_error
     return evaluate
+
+
 
 def make_merit_function(optical_system:SequentialOpticalSystem,
                         sequence:List,
