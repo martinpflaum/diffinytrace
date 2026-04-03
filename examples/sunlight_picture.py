@@ -213,9 +213,16 @@ def create_lens(
     def minimization_call(k):
 
         convergence_list = []
+        rmse_list = []
+        ssim_list = []
+
+
         def make_convergence_callback():
             def return_func():
-                convergence_list.append(eval_func().detach().cpu().numpy())
+                L2_error,rmse,ssim_error = eval_func()
+                convergence_list.append(L2_error.detach().cpu().numpy())
+                rmse_list.append(rmse.detach().cpu().numpy())
+                ssim_list.append(ssim_error.detach().cpu().numpy())
             
             return return_func 
 
@@ -226,7 +233,8 @@ def create_lens(
         out["loop_number"] = k
         
         out["history"]["convergence"] = convergence_list
-            
+        out["history"]["rmse"] = rmse_list
+        out["history"]["ssim"] = ssim_list
         out["smoothed_desired_irradiance"] = smoother.smoothed_desired_irradiance.detach().cpu().numpy()
         out["discrete_desired_irradiance"] = smoother.discrete_desired_irradiance.detach().cpu().numpy()
 

@@ -337,6 +337,11 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
     Returns:
         Callable: A function that computes the L2 error between simulated and desired irradiance.
     """
+    smoother.x_range
+    L = smoother.x_range[1]-smoother.x_range[0]
+    maxirr_est = (1/(L**2))*10
+    ssim = StructuralSimilarityIndexMeasure(data_range=maxirr_est)
+    
     def evaluate():
         raycounting_list = []
         for k in (range(num_splits)):
@@ -347,13 +352,69 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
         
         smoother.last_raycounting = raycounting.detach().cpu()
         residual = raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1)
-        
+        rmse = torch.sqrt(torch.mean((raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1))**2.0))
+        ssim_error = ssim(raycounting.cpu().reshape(-1),smoother.discrete_desired_irradiance.cpu().reshape(-1))
+
         L2_error = torch.sqrt(smoother.integrate_values(residual**2))
+        #RMSE = torch.sum((residual**2))
+        return L2_error,rmse,ssim_error
+    return evaluate
+
+"""
+def make_evaluation_function_rmse(optical_system:SequentialOpticalSystem,
+                        sequence:List,
+                        source:LightSource,
+                        detector,
+                        smoother:GaussianSmoother,
+                        num_splits:int=10,
+                        num_rays_per_split:int=100000,
+                        method_ray_tracing="monte_carlo",
+                        device=torch.get_default_device())->Callable:
+    def evaluate():
+        raycounting_list = []
+        for k in (range(num_splits)):
+            tmp = binned_irradiance(optical_system=optical_system,sequence=sequence,source=source,detector=detector,grid=smoother.grid,num_rays=num_rays_per_split,method_ray_tracing=method_ray_tracing,device=device)
+            tmp = tmp.detach().cpu()
+            raycounting_list.append(tmp)
+        raycounting = torch.mean(torch.stack(raycounting_list),dim=0).detach().cpu()
+        
+        smoother.last_raycounting = raycounting.detach().cpu()
+        #residual = raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1)
+        L2_error = torch.sqrt(torch.mean((raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1))**2.0))
+        #L2_error = torch.sqrt(smoother.integrate_values(residual**2))
         #RMSE = torch.sum((residual**2))
         return L2_error
     return evaluate
 
-
+def make_evaluation_function_ssim(optical_system:SequentialOpticalSystem,
+                        sequence:List,
+                        source:LightSource,
+                        detector,
+                        smoother:GaussianSmoother,
+                        num_splits:int=10,
+                        num_rays_per_split:int=100000,
+                        method_ray_tracing="monte_carlo",
+                        device=torch.get_default_device())->Callable:
+    smoother.x_range
+    L = smoother.x_range[1]-smoother.x_range[0]
+    maxirr_est = (1/(L**2))*10
+    ssim = StructuralSimilarityIndexMeasure(data_range=maxirr_est)
+    def evaluate():
+        raycounting_list = []
+        for k in (range(num_splits)):
+            tmp = binned_irradiance(optical_system=optical_system,sequence=sequence,source=source,detector=detector,grid=smoother.grid,num_rays=num_rays_per_split,method_ray_tracing=method_ray_tracing,device=device)
+            tmp = tmp.detach().cpu()
+            raycounting_list.append(tmp)
+        raycounting = torch.mean(torch.stack(raycounting_list),dim=0).detach().cpu()
+        
+        smoother.last_raycounting = raycounting.detach().cpu()
+        #residual = raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1)
+        L2_error = ssim(raycounting.cpu().reshape(-1),smoother.discrete_desired_irradiance.cpu().reshape(-1))
+        #L2_error = torch.sqrt(smoother.integrate_values(residual**2))
+        #RMSE = torch.sum((residual**2))
+        return L2_error
+    return evaluate
+"""
 
 def make_merit_function(optical_system:SequentialOpticalSystem,
                         sequence:List,

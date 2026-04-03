@@ -313,6 +313,12 @@ class Grid():
         y_middle = self.y_delta*0.5+torch.arange(0,self.y_grid_size)*self.y_delta+self.y_range[0]
         return y_middle
     
+    def get_y_middle(self):
+        return self.__get_y_middle()
+    
+    def get_x_middle(self):
+        return self.__get_x_middle()
+    
     def nearest(self,local_points,return_args=False):
         """
         Finds the nearest pixel for each local point using L2 distance.
