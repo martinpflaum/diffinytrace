@@ -441,7 +441,7 @@ class VisibleSunlightSimpleMonochromatic(PlaneSource):
     A class representing a visible sunlight source with a monochromatic spectrum.
     It also has a cone of 4.65 mrad."""
     
-    def __init__(self,transform,aperture_radius,wl=0.5,is_square=True,total_power=1.0):
+    def __init__(self,transform,aperture_radius,wl=0.5,is_square=True,total_power=1.0,theta_max_rad=4.65/1000.):
         """
         cube1 = Cube([[-aperture_radius,aperture_radius],[-aperture_radius,aperture_radius]])
         cube2 = Cube([[0.,1.],[0.,1.]])
@@ -451,7 +451,7 @@ class VisibleSunlightSimpleMonochromatic(PlaneSource):
         """
         
         integrator = Cube([[-aperture_radius,aperture_radius],[-aperture_radius,aperture_radius],[0.,1.],[0.,1.]])
-        self.theta_max_rad = 4.65/1000.
+        self.theta_max_rad = theta_max_rad
         self.wl = wl
         PlaneSource.__init__(self,transform,aperture_radius,integrator,is_square,None,total_power)
         

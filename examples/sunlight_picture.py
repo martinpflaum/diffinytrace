@@ -36,6 +36,7 @@ def create_lens(
     num_rays:int=2**16,
     grid_size:int=300,
     minimization_method:str='L-BFGS-B',
+    theta_max_rad:float=4.65/1000.,
     ):
 
     r"""
@@ -80,7 +81,7 @@ def create_lens(
 
     light_source = None
     
-    light_source = source.VisibleSunlightSimpleMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=1.0)
+    light_source = source.VisibleSunlightSimpleMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=1.0,theta_max_rad=theta_max_rad)
     #light_source = source.CollimatedMonochromatic(light_transform,aperture_radius_source,wl=0.5,total_power=total_power,is_square=True)
 
     lens_transform = transforms.Distance(lens_distance,parent_transform=light_transform)
@@ -204,7 +205,7 @@ def create_lens(
                         light_source,
                         detector,
                         smoother,
-                        num_splits=20,
+                        num_splits=40,
                         num_rays_per_split=500000,
                         #method_ray_tracing="monte_carlo",
                         device=device)

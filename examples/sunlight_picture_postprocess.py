@@ -35,8 +35,9 @@ def create_folder(folder_path):
 
 device = "cuda:0"
 #image_file_name = "image_vertical.png"
-results_folder_in = "results/server_lens_picture/"#.2"
-results_folder_out = "results/server_lens_picture_plots/"
+
+results_folder_in = "results/results_final_lens_picture/lens_picture/"#.2"
+results_folder_out = "results/results_final_lens_picture/lens_picture_plots/"
 create_folder(results_folder_out)
 
 
@@ -259,7 +260,14 @@ def create_2d4x4_plots():
     create_convergence_plot_res("Convergence of Merit Function","fun_vals","$m$", file_name_out_merit)
 
     file_name_out_error = results_folder_out + f"/convergence_error.png"
-    create_convergence_plot_default("Convergence of Error","convergence","Error", file_name_out_error)
+    create_convergence_plot_default("Convergence of $L_2$ Error","convergence","$L_2$ Error", file_name_out_error)
+
+    file_name_out_ssim = results_folder_out + f"/convergence_ssim.png"
+    create_convergence_plot_default("Convergence of SSIM","ssim","SSIM", file_name_out_ssim)
+
+    file_name_out_rmse = results_folder_out + f"/convergence_rmse.png"
+    create_convergence_plot_default("Convergence of RMSE","rmse","RMSE", file_name_out_rmse)
+
 
 create_2d4x4_plots()
 

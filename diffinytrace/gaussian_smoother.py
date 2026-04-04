@@ -353,7 +353,7 @@ def make_evaluation_function(optical_system:SequentialOpticalSystem,
         smoother.last_raycounting = raycounting.detach().cpu()
         residual = raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1)
         rmse = torch.sqrt(torch.mean((raycounting.cpu().reshape(-1)-smoother.discrete_desired_irradiance.cpu().reshape(-1))**2.0))
-        ssim_error = ssim(raycounting.cpu().reshape(-1),smoother.discrete_desired_irradiance.cpu().reshape(-1))
+        ssim_error = ssim(raycounting.cpu().reshape(1,1,smoother.x_grid_size,smoother.x_grid_size),smoother.discrete_desired_irradiance.cpu().reshape(1,1,smoother.x_grid_size,smoother.x_grid_size))
 
         L2_error = torch.sqrt(smoother.integrate_values(residual**2))
         #RMSE = torch.sum((residual**2))
