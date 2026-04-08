@@ -457,7 +457,7 @@ class VisibleSunlightSimpleMonochromatic(PlaneSource):
         
     def sample(self,num_points,method="monte_carlo"):
         if not ((method == "sobol_pow2")or (method == "sobol") or (method == "monte_carlo")):
-            raise RuntimeError("Only sobol_pow2,sobol or monte_carlo sampling supported for VisibleSunlightSimpleMonochromatic")
+            print("Only sobol_pow2,sobol or monte_carlo sampling supported for VisibleSunlightSimpleMonochromatic")
         return self.integrator.sample(num_points,method)
         
     def forward(self,x,n_func_enviroment):

@@ -42,7 +42,7 @@ def annotate_position_simple(nz,ny,name):
     plt.annotate(name,xy=(zpos, ypos),fontsize=fontsize,xytext=(0.0,fontsize*0.5), textcoords='offset points')
 
 
-def annotate_position(position,offset,name,color="black"):
+def annotate_position(position,offset,name,color="black",**kwargs):
     """
     Annotate a point in 2D space with an arrow and label.
 
@@ -55,10 +55,10 @@ def annotate_position(position,offset,name,color="black"):
     Returns:
         None
     """
-    plt.annotate(name,color=color,xy=position,xytext=offset, textcoords='offset points',arrowprops=dict(arrowstyle="->",color=color,linewidth=1.5, mutation_scale=10))
+    plt.annotate(name,color=color,xy=position,xytext=offset, textcoords='offset points',arrowprops=dict(arrowstyle="->",color=color,linewidth=1.5, mutation_scale=10), **kwargs)
 
 
-def annotated_arrow(start,end,offset,name,arrowstyle,color="black"):
+def annotated_arrow(start,end,offset,name,arrowstyle,color="black",**kwargs):
     """
     Draw and annotate an arrow between two points in 2D space.
 
@@ -78,7 +78,7 @@ def annotated_arrow(start,end,offset,name,arrowstyle,color="black"):
     plt.gca().add_patch(arrow_patch)
     middle = (start[0]+ (end[0]-start[0])*0.5,start[1]+ (end[1]-start[1])*0.5)
 
-    plt.annotate(name,xy=middle,xytext=offset, textcoords='offset points',color=color)
+    plt.annotate(name,xy=middle,xytext=offset, textcoords='offset points',color=color,**kwargs)
 
 def layout():
     """

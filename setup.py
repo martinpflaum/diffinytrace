@@ -12,5 +12,5 @@ setup(
     author='Martin Pflaum',
     author_email='contact@martinpflaum.com',
     classifiers=[],
-    python_requires='==3.12',
+    python_requires='<3.13',
 )

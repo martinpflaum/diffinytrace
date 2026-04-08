@@ -464,9 +464,6 @@ def make_merit_function(optical_system:SequentialOpticalSystem,
     """
     if T_margin is not None and use_desired_irradiance_smoothing == False:
         raise RuntimeError("T_margin can only be used when use_desired_irradiance_smoothing is True.")
-    if T_margin is not None:
-        if T_margin < 1.0:
-            raise RuntimeError("T_margin should be larger or equal than 1.0 to actually increase the integration domain.")
     def merit_function()->torch.Tensor:
         """
         """
@@ -485,12 +482,13 @@ def make_merit_function(optical_system:SequentialOpticalSystem,
             ymin = y[:,1].min().item()
             ymax = y[:,1].max().item()
 
-            xlen = xmax-xmin
-            ylen = ymax-ymin
-            xmid = (xmax+xmin)*0.5
-            ymid = (ymax+ymin)*0.5
-            x_range = [xmid-(xlen*T_margin*0.5),xmid+(xlen*T_margin*0.5)]
-            y_range = [ymid-(ylen*T_margin*0.5),ymid+(ylen*T_margin*0.5)]
+            
+            #xlen = xmax-xmin
+            #ylen = ymax-ymin
+            #xmid = (xmax+xmin)*0.5
+            #ymid = (ymax+ymin)*0.5
+            x_range = [xmin-T_margin,xmax+T_margin]
+            y_range = [ymin-T_margin,ymax+T_margin]
 
             smoother.smoother_rect_special = [x_range,y_range]
         
