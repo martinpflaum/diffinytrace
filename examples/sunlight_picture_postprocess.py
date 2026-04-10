@@ -42,7 +42,7 @@ create_folder(results_folder_out)
 
 
 import torch
-all_main_subfolders = ["results_classical","results_desired_irr_smoothing","results_margin"]
+all_main_subfolders = ["results_classical","results_desired_irr_smoothing"]
 
 def get_folder(idx):
     out = results_folder_in
@@ -57,16 +57,14 @@ def load_results(idx):
 
 results_classical_e = load_results(0)
 results_ours_e = load_results(1)
-results_margin_e = load_results(2)
 results_ours_e.keys()
 
 
 subtitle_classical_short_e = "Partially Smoothed"
-subtitle_ours_short_e = "Fully Smoothed"
-subtitle_margin_short_e = "Sliding Window"
+subtitle_ours_short_e = "Ours"
     
-columns_title = [subtitle_classical_short_e,subtitle_ours_short_e,subtitle_margin_short_e]
-all_results = [results_classical_e,results_ours_e,results_margin_e]
+columns_title = [subtitle_classical_short_e,subtitle_ours_short_e]
+all_results = [results_classical_e,results_ours_e]
 
 title_all = {}
 title_all["Irradiance MC showcase"] = "Irradiance RC"
@@ -79,22 +77,19 @@ keys1 = ["Irradiance MC showcase","Irr. Smooth", "Relative Surface Profile"]
 def create_2d4x4_plots():
     results_classical = load_results(0)
     results_desired_irr_smoothing = load_results(1)
-    results_margin = load_results(2)
     
     
     subtitle_classical = "Method: Classical Algorithmic Differentiable Ray Tracing"
     subtitle_desired_irr_smoothing = "Method: Desired Irradiance Smoothing"
-    subtitle_margin = "Method: Sliding Window"
     
 
     subtitle_classical_short = "Method: CADRT"
     subtitle_desired_irr_smoothing_short = "Method: DIS"
-    subtitle_margin_short = "Method: Sliding Window"
     
 
-    all_subtitles = [subtitle_classical,subtitle_desired_irr_smoothing,subtitle_margin]
-    all_subtitles_short = [subtitle_classical_short,subtitle_desired_irr_smoothing_short,subtitle_margin_short]
-    all_results = [results_classical,results_desired_irr_smoothing,results_margin]
+    all_subtitles = [subtitle_classical,subtitle_desired_irr_smoothing]
+    all_subtitles_short = [subtitle_classical_short,subtitle_desired_irr_smoothing_short]
+    all_results = [results_classical,results_desired_irr_smoothing]
 
     def get_kwards_from_index(index):
         if index > len(all_subtitles):
@@ -105,6 +100,7 @@ def create_2d4x4_plots():
         return result,subtitle,subtitle_short
 
     def create_convergence_plot_res(title,quantity_key,y_label, file_name_out):
+        plt.figure(figsize=(5,7))
         ax = plt.gca()  # Slightly wider for space
         
 
@@ -113,7 +109,7 @@ def create_2d4x4_plots():
         point_style_all = []
         labels_all = []
 
-        for k in [1,2,0]:
+        for k in [1,0]:
             result, subtitle, _ = get_kwards_from_index(k)
             results_minimize = result["results_minimize"]
             all_fun_vals = []
@@ -138,14 +134,11 @@ def create_2d4x4_plots():
                     
                 all_fun_vals.append(fun_vals)
                 all_iters.append(iters)
-            label_prefix = "Fully Smoothed"
+            label_prefix = "Ours"
             point_style = "o"
-            if k == 0:
+            if k % 2 == 0:
                 label_prefix="Partially Smoothed"
                 point_style = "o"
-            elif k == 2:
-                label_prefix="Sliding Window"
-                point_style = "s"
             
             all_iters = np.concatenate(all_iters)
             all_fun_vals = np.concatenate(all_fun_vals)
@@ -156,12 +149,10 @@ def create_2d4x4_plots():
             refine_fun_all += [refine_fun]
             
 
-        for k in range(3):
+        for k in range(2):
             color = "red"
-            if k == 0:
+            if k % 2 == 0:
                 color = "black"
-            elif k == 2:
-                color = "green"
             
             label = labels_all[k]
             point_style = point_style_all[k]
@@ -176,7 +167,7 @@ def create_2d4x4_plots():
         ax.set_title(title)
         ax.set_xlabel("Number of Iterations")
         ax.set_ylabel(y_label)
-
+        
             # Move legend outside
         #, fontsize=8
         ax.legend()
@@ -188,13 +179,14 @@ def create_2d4x4_plots():
         plt.close()  # Free up memory
 
     def create_convergence_plot_default(title,quantity_key,y_label, file_name_out):
+        plt.figure(figsize=(5,7))
         ax = plt.gca()  # Slightly wider for space
         refine_iters_all = []
         refine_fun_all = []
         point_style_all = []
         labels_all = []
         
-        for k in [1,2,0]:
+        for k in [1,0]:
             result, subtitle, _ = get_kwards_from_index(k)
             results_minimize = result["results_minimize"]
             refine_iter = []
@@ -219,14 +211,11 @@ def create_2d4x4_plots():
                     refine_fun.append(fun_vals[-1])
                 
             
-            label_prefix = "Fully Smoothed"
+            label_prefix = "Ours"
             point_style = "o"
-            if k == 0:
+            if k % 2 == 0:
                 label_prefix="Partially Smoothed"
                 point_style = "o"
-            elif k == 2:
-                label_prefix="Sliding Window"
-                point_style = "s"
             
             all_iters = np.concatenate(all_iters)
             all_fun_vals = np.concatenate(all_fun_vals)
@@ -238,12 +227,10 @@ def create_2d4x4_plots():
             refine_fun_all += [refine_fun]
             
 
-        for k in range(3):
+        for k in range(2):
             color = "red"
-            if k == 0:
+            if k % 2 == 0:
                 color = "black"
-            elif k == 2:
-                color = "green"
             
             label = labels_all[k]
             point_style = point_style_all[k]
@@ -258,8 +245,8 @@ def create_2d4x4_plots():
         ax.set_title(title)
         ax.set_xlabel("Number of Iterations")
         ax.set_ylabel(y_label)
-
-            # Move legend outside
+        
+        # Move legend outside
         #, fontsize=8
         ax.legend()
         #ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', frameon=False)
@@ -329,12 +316,9 @@ classical_smooth_irradiance = results_classical_e["final_irr_results"]["smooth_i
 ours_binned_irradiance = results_ours_e["final_irr_results"]["binned_irradiance"]
 ours_smooth_irradiance = results_ours_e["final_irr_results"]["smooth_irradiance"]
 
-margin_binned_irradiance = results_margin_e["final_irr_results"]["binned_irradiance"]
-margin_smooth_irradiance = results_margin_e["final_irr_results"]["smooth_irradiance"]
 
 ours_lens_offset = results_ours_e["lens_offset"]["z"]
 classical_lens_offset = results_classical_e["lens_offset"]["z"]
-margin_lens_offset = results_margin_e["lens_offset"]["z"]
 
 
 dit.plotting.quantity2D.plot(ours_binned_irradiance,"ours_binned_irradiance [W/mm²]",[-aperture_radius_detector,aperture_radius_detector],cmap="gray",show=False)
@@ -352,15 +336,12 @@ fontsize=cbar_title_fontsize
 
 irr_classical_row = [classical_binned_irradiance, classical_smooth_irradiance]
 irr_ours_row = [ours_binned_irradiance, ours_smooth_irradiance]
-irr_margin_row = [margin_binned_irradiance, margin_smooth_irradiance]
 
-irr_vmin = min(irr_classical_row[0].min(), irr_ours_row[0].min(), irr_margin_row[0].min(),
-               irr_classical_row[1].min(), irr_ours_row[1].min(), irr_margin_row[1].min())
-irr_vmax = max(irr_classical_row[0].max(), irr_ours_row[0].max(), irr_margin_row[0].max(),
-               irr_classical_row[1].max(), irr_ours_row[1].max(), irr_margin_row[1].max())
+irr_vmin = min(irr_classical_row[0].min(), irr_ours_row[0].min(),irr_classical_row[1].min(), irr_ours_row[1].min())
+irr_vmax = max(irr_classical_row[0].max(), irr_ours_row[0].max(),irr_classical_row[1].max(), irr_ours_row[1].max())
 irr_vmax = 0.0015
-surf_vmin = min(ours_lens_offset.min(), classical_lens_offset.min(), margin_lens_offset.min())
-surf_vmax = max(ours_lens_offset.max(), classical_lens_offset.max(), margin_lens_offset.max())
+surf_vmin = min(ours_lens_offset.min(), classical_lens_offset.min())
+surf_vmax = max(ours_lens_offset.max(), classical_lens_offset.max())
 
 
 irr_extent = [
@@ -379,7 +360,7 @@ column_title3 = "Surface Profile"
 column_titles = [column_title1, column_title2, column_title3]
 
 row_title1 = "Partially Smoothed"
-row_title2 = "Fully Smoothed"
+row_title2 = "Ours"
 
 row_titles = [row_title1, row_title2]
 
@@ -392,35 +373,29 @@ irr_cmap_title = "[W/mm²]"
 
 surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
-surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2,surface3])
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
 
 row1 = make_row(irr_classical_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row2 = make_row(irr_ours_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row3 = make_row(irr_margin_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
 #tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
 baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-ours_text = create_image_with_text_orientation(tmp[0],"Fully Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-margin_text = create_image_with_text_orientation(tmp[0],"Sliding Window", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
 
 row1 = [baseline_text]+row1
 row2 = [ours_text]+row2
-row3 = [margin_text]+row3
 row1 = concatenate_images_tempfile_row(row1)
 row2 = concatenate_images_tempfile_row(row2)
-row3 = concatenate_images_tempfile_row(row3)
 
 culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC", column_title_ratio,font_size_PIL,vertical=False)
 culomn2 = create_image_with_text_orientation(tmp[0],"Smoothed Irr.", column_title_ratio,font_size_PIL,vertical=False)
 corner = create_white_image_with_dimensions(baseline_text,culomn1)
 row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2])
 
-out = concatenate_images_tempfile_vertical([row0,row1,row2,row3])
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
 
 
 xout = [out,surface_img]
@@ -437,24 +412,20 @@ ours_lens_offset_dy = results_ours_e["lens_offset"]["dz_dy"]
 classical_lens_offset_dx = results_classical_e["lens_offset"]["dz_dx"]
 classical_lens_offset_dy = results_classical_e["lens_offset"]["dz_dy"]
 
-margin_lens_offset_dx = results_margin_e["lens_offset"]["dz_dx"]
-margin_lens_offset_dy = results_margin_e["lens_offset"]["dz_dy"]
-
 #%%
 
-dit.plotting.quantity2D.plot(ours_lens_offset_dy.T,"Fully Smoothed Lens Offset Y Diff [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
+dit.plotting.quantity2D.plot(ours_lens_offset_dy.T,"Ours Lens Offset Y Diff [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
 
 # %%
-dit.plotting.quantity2D.plot(ours_lens_offset_dx.T,"Fully Smoothed Lens Offset X Diff [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
+dit.plotting.quantity2D.plot(ours_lens_offset_dx.T,"Ours Lens Offset Y Diff [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
 
 # %%
 from matplotlib.colors import LogNorm
 ours_size_grad = np.sqrt(ours_lens_offset_dx**2+ours_lens_offset_dy**2)
 
-dit.plotting.quantity2D.plot(ours_size_grad,"Fully Smoothed Lens Offset Size Grad [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
+dit.plotting.quantity2D.plot(ours_size_grad,"Ours Lens Offset Size Grad [1]",[-aperture_radius_lens, aperture_radius_lens],cmap="jet",show=True)
 # %%
 classical_size_grad = np.sqrt(classical_lens_offset_dx**2+classical_lens_offset_dy**2)
-margin_size_grad = np.sqrt(margin_lens_offset_dx**2+margin_lens_offset_dy**2)
 
 
 surf_grad_cmap_title = "[1]"
@@ -465,13 +436,11 @@ surf_grad_vmax = 0.15#max(np.max(classical_size_grad),np.max(ours_size_grad))
 
 surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
-surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2,surface3])
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
 
 
 xout = [out,surface_img,surface_grad_img]
@@ -485,7 +454,6 @@ image.save(file_name_out)
 
 high_res_irradiance_classical = results_classical_e["high_res_irradiance"]
 high_res_irradiance_ours = results_ours_e["high_res_irradiance"]
-high_res_irradiance_margin = results_margin_e["high_res_irradiance"]
 plt.imshow(high_res_irradiance_ours,cmap="gray")
 #%%
 
@@ -500,35 +468,28 @@ font_size_PIL = 37
 
 irr_ours_row2 = irr_ours_row+[high_res_irradiance_ours]
 irr_classical_row2 = irr_classical_row+[high_res_irradiance_classical]
-irr_margin_row2 = irr_margin_row+[high_res_irradiance_margin]
 
 surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row2+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
-surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2,surface3])
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
 
 row1 = make_row(irr_classical_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row2 = make_row(irr_ours_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row3 = make_row(irr_margin_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
 
 
 #tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
 baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-ours_text = create_image_with_text_orientation(tmp[0],"Fully Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-margin_text = create_image_with_text_orientation(tmp[0],"Sliding Window", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
 
 row1 = [baseline_text]+row1
 row2 = [ours_text]+row2
-row3 = [margin_text]+row3
 #(²)
 row1 = concatenate_images_tempfile_row(row1)
 row2 = concatenate_images_tempfile_row(row2)
-row3 = concatenate_images_tempfile_row(row3)
 
 
 culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(10M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
@@ -538,7 +499,7 @@ corner = create_white_image_with_dimensions(baseline_text,culomn1)
 
 row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2,culomn3])
 
-out = concatenate_images_tempfile_vertical([row0,row1,row2,row3])
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
 
 
 xout = [out,surface_img]
@@ -565,13 +526,11 @@ surf_grad_vmax = 0.15#max(np.max(classical_size_grad),np.max(ours_size_grad))
 
 surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
-surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2,surface3])
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
 
 
 xout = [out,surface_img,surface_grad_img]
@@ -593,7 +552,7 @@ High res irradiance final plot
 
 """
 
-irr_vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max(),high_res_irradiance_ours.max(),high_res_irradiance_classical.max(),high_res_irradiance_margin.max())
+irr_vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max(),high_res_irradiance_ours.max(),high_res_irradiance_classical.max())
 irr_vmin = 0
 
 
@@ -602,35 +561,28 @@ font_size_PIL = 37
 
 irr_ours_row2 = irr_ours_row+[high_res_irradiance_ours]
 irr_classical_row2 = irr_classical_row+[high_res_irradiance_classical]
-irr_margin_row2 = irr_margin_row+[high_res_irradiance_margin]
 
 surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row2+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
-surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2,surface3])
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
 
 row1 = make_row(irr_classical_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row2 = make_row(irr_ours_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row3 = make_row(irr_margin_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row2,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
 
 
 #tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
 baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-ours_text = create_image_with_text_orientation(tmp[0],"Fully Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-margin_text = create_image_with_text_orientation(tmp[0],"Sliding Window", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
 
 row1 = [baseline_text]+row1
 row2 = [ours_text]+row2
-row3 = [margin_text]+row3
 #(²)
 row1 = concatenate_images_tempfile_row(row1)
 row2 = concatenate_images_tempfile_row(row2)
-row3 = concatenate_images_tempfile_row(row3)
 
 
 culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC\n(10M rays, 300² pixels)", column_title_ratio,font_size_PIL,vertical=False)
@@ -640,7 +592,7 @@ corner = create_white_image_with_dimensions(baseline_text,culomn1)
 
 row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2,culomn3])
 
-out = concatenate_images_tempfile_vertical([row0,row1,row2,row3])
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
 
 
 xout = [out,surface_img]
@@ -667,13 +619,11 @@ surf_grad_vmax = 0.15#max(np.max(classical_size_grad),np.max(ours_size_grad))
 
 surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
-surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2,surface3])
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
 
 
 xout = [out,surface_img,surface_grad_img]
@@ -694,35 +644,29 @@ no clamp
 
 surface1 = make_row([classical_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
+surface2 = make_row([ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_vmin,vmax=surf_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row+[ours_lens_offset],surf_extent,surf_cmap,cbar_labelsize,surf_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_vmin,vmax=surf_vmax)
 surface_text = create_image_with_text_orientation(tmp[0],"Surface Profile", column_title_ratio,font_size_PIL,vertical=False)
-surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2,surface3])
+surface_img = concatenate_images_tempfile_vertical([surface_text,surface1,surface2])
 
 row1 = make_row(irr_classical_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row2 = make_row(irr_ours_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=irr_vmin,vmax=irr_vmax)
-row3 = make_row(irr_margin_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
+row2 = make_row(irr_ours_row,irr_extent,irr_cmap,cbar_labelsize,irr_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=irr_vmin,vmax=irr_vmax)
 #tmp = make_row(matrices_row,rows_extent[i],rows_cmap[i],cbar_labelsize,cbar_titles[i],cbar_title_fontsize,show_x_axis_first=False,vmin=rows_vmin[i],vmax=rows_vmax[i])
 baseline_text = create_image_with_text_orientation(tmp[0],"Partially Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-ours_text = create_image_with_text_orientation(tmp[0],"Fully Smoothed", column_title_ratio,font_size_PIL,vertical=True)
-margin_text = create_image_with_text_orientation(tmp[0],"Sliding Window", column_title_ratio,font_size_PIL,vertical=True)
+ours_text = create_image_with_text_orientation(tmp[0],"Ours", column_title_ratio,font_size_PIL,vertical=True)
 
 row1 = [baseline_text]+row1
 row2 = [ours_text]+row2
-row3 = [margin_text]+row3
 row1 = concatenate_images_tempfile_row(row1)
 row2 = concatenate_images_tempfile_row(row2)
-row3 = concatenate_images_tempfile_row(row3)
 
 culomn1 = create_image_with_text_orientation(tmp[0],"Irradiance RC", column_title_ratio,font_size_PIL,vertical=False)
 culomn2 = create_image_with_text_orientation(tmp[0],"Smoothed Irr.", column_title_ratio,font_size_PIL,vertical=False)
 corner = create_white_image_with_dimensions(baseline_text,culomn1)
 row0 = concatenate_images_tempfile_row([corner,culomn1,culomn2])
 
-out = concatenate_images_tempfile_vertical([row0,row1,row2,row3])
+out = concatenate_images_tempfile_vertical([row0,row1,row2])
 
 
 xout = [out,surface_img]
@@ -734,17 +678,15 @@ image = Image.open(xout)
 image.save(file_name_out)
 
 
-irr_vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max(),ours_binned_irradiance.max(),classical_binned_irradiance.max(),margin_binned_irradiance.max())
+irr_vmax = max(discrete_desired_irradiance.max(),smoothed_desired_irradiance.max(),ours_binned_irradiance.max(),classical_binned_irradiance.max())
 
 surface1 = make_row([classical_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface1 = surface1[0]
-surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
+surface2 = make_row([ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface2 = surface2[0]
-surface3 = make_row([margin_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=True,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
-surface3 = surface3[0]
 tmp = make_row(irr_ours_row+[ours_lens_offset]+[ours_size_grad],surf_extent,surf_grad_cmap,cbar_labelsize,surf_grad_cmap_title,cbar_title_fontsize,show_x_axis_first=False,vmin=surf_grad_vmin,vmax=surf_grad_vmax)
 surface_grad_text = create_image_with_text_orientation(tmp[0],"Surface Gradient", column_title_ratio,font_size_PIL,vertical=False)
-surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2,surface3])
+surface_grad_img = concatenate_images_tempfile_vertical([surface_grad_text,surface1,surface2])
 
 
 xout = [out,surface_img,surface_grad_img]
