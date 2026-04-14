@@ -100,7 +100,6 @@ def create_2d4x4_plots():
         return result,subtitle,subtitle_short
 
     def create_convergence_plot_res(title,quantity_key,y_label, file_name_out):
-        plt.figure(figsize=(5,7))
         ax = plt.gca()  # Slightly wider for space
         
 
@@ -179,7 +178,6 @@ def create_2d4x4_plots():
         plt.close()  # Free up memory
 
     def create_convergence_plot_default(title,quantity_key,y_label, file_name_out):
-        plt.figure(figsize=(5,7))
         ax = plt.gca()  # Slightly wider for space
         refine_iters_all = []
         refine_fun_all = []
