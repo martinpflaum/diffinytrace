@@ -211,7 +211,7 @@ def create_lens(
                         light_source,
                         detector,
                         smoother,
-                        num_splits=40,
+                        num_splits=40*5,
                         num_rays_per_split=500000,
                         #method_ray_tracing="monte_carlo",
                         device=device)
