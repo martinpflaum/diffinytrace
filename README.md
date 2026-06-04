@@ -88,7 +88,7 @@ dit.plotting.system2D.plot(system,meta_data)
 
 ## Documentation
 
-For comprehensive documentation, tutorials, and API reference, visit the [full documentation](https://martinpflaum.github.io/diffinytrace/).
+For comprehensive documentation, tutorials, and API reference, visit the [full documentation](https://diffinytrace.readthedocs.io/en/latest/comparison_smoothing.html).
 
 ## License
 
