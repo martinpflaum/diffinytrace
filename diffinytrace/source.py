@@ -11,7 +11,8 @@ __all__ = [
     "VisibleSunlightSimple",
     "CollimatedMonochromatic",
     "CollimatedGaussianBeam",
-    "CollimatedMonochromatic1D"
+    "CollimatedMonochromatic1D",
+    "CollimatedMonochromatic1DRotSym",
 ]
 
 import torch
@@ -457,7 +458,7 @@ class VisibleSunlightSimpleMonochromatic(PlaneSource):
         
     def sample(self,num_points,method="monte_carlo"):
         if not ((method == "sobol_pow2")or (method == "sobol") or (method == "monte_carlo")):
-            raise RuntimeError("Only sobol_pow2,sobol or monte_carlo sampling supported for VisibleSunlightSimpleMonochromatic")
+            print("Only sobol_pow2,sobol or monte_carlo sampling supported for VisibleSunlightSimpleMonochromatic")
         return self.integrator.sample(num_points,method)
         
     def forward(self,x,n_func_enviroment):
@@ -600,6 +601,44 @@ class CollimatedMonochromatic1D(PlaneSource1D):
         dtype = x.dtype
         O1 = torch.zeros(N,3,device=device,dtype=dtype)
         O1[:,1] = x[:,0]
+        O1[:,-1] = 0.0
+
+        D1 = torch.zeros_like(O1)
+        D1[:,-1] = 1.0
+        PL,OPL = 0.0,0.0
+
+        O2 = self.transform.to_global_pos(O1)
+        D2 = self.transform.to_global_dir(D1)
+        
+        ray_paths = [O2.detach()]
+        valid = self.integrator.in_bounds(x)
+        wl = torch.ones(N,device=device,dtype=dtype)*self.wl
+
+        meta_data = {}
+        meta_data["PL"],meta_data["OPL"],meta_data["ray_paths"], meta_data["valid"] = PL, OPL, ray_paths, valid
+        return O2,D2,wl,n_func_enviroment,meta_data
+
+
+class CollimatedMonochromatic1DRotSym(PlaneSource1D):
+    """
+    A class representing a collimated monochromatic light source.
+    This class is a subclass of PlaneSource1D and is used to generate rays
+    with a specific wavelength and a collimated beam profile."""
+    def __init__(self,transform,aperture_radius,wl,flux_func=None,total_power=1.0):
+        self.wl = wl
+        integrator = Cube([[0,1]])
+        super().__init__(transform,aperture_radius,integrator,flux_func,total_power)
+     
+    def sample(self,num_points,method="monte_carlo"):
+        return self.integrator.sample(num_points,method)
+
+    def forward(self,x,n_func_enviroment):    
+        N = x.shape[0]
+        device = x.device
+        dtype = x.dtype
+        O1 = torch.zeros(N,3,device=device,dtype=dtype)
+        #print(self.aperture_radius,torch.sqrt(x[:,0]))
+        O1[:,1] = torch.sqrt(x[:,0]) * self.aperture_radius
         O1[:,-1] = 0.0
 
         D1 = torch.zeros_like(O1)

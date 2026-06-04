@@ -166,7 +166,7 @@ def create_2d4x4_plots():
         ax.set_title(title)
         ax.set_xlabel("Number of Iterations")
         ax.set_ylabel(y_label)
-
+        
             # Move legend outside
         #, fontsize=8
         ax.legend()
@@ -243,8 +243,8 @@ def create_2d4x4_plots():
         ax.set_title(title)
         ax.set_xlabel("Number of Iterations")
         ax.set_ylabel(y_label)
-
-            # Move legend outside
+        
+        # Move legend outside
         #, fontsize=8
         ax.legend()
         #ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', frameon=False)

@@ -41,6 +41,14 @@ Gaussian Smoother
    :show-inheritance:
    :undoc-members:
 
+Hat Smoother
+---------------------------------
+
+.. automodule:: diffinytrace.hat_smoother
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Integrators
 -------------------------------
 

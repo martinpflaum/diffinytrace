@@ -37,8 +37,11 @@ def create_lens(
     grid_size:int=300,
     minimization_method:str='L-BFGS-B',
     theta_max_rad:float=4.65/1000.,
+    T_margin=None,
+    smoothed_num_splits = 10,
+    smoothed_num_integration_points = 2**22,
     ):
-
+    print("in create lens")
     r"""
     Creates and optimizes a lens system to match a desired irradiance distribution from an input image.
 
@@ -100,7 +103,9 @@ def create_lens(
     detector = Detector(detector_transform,plane_surface,aperture_radius_detector)
     system = SequentialOpticalSystem({"source":light_source,"lens":lens1,"detector":detector},air_material)
     sequence = ["source","lens","detector"]
+    print("after system init")
     system.to(device)
+    print("after system to device")
     irr_func = utils.irradiance_importer.create_irradiance_from_image_square(image_file_name,image_padding,0.,aperture_radius_detector,shape=[grid_size,grid_size])
     #plotting.quantity2D.plot(irr_func,"Desired Irradiance Distribution",cmap="grey",x_range=[-aperture_radius_detector,aperture_radius_detector])
     
@@ -148,15 +153,15 @@ def create_lens(
         plot(lens_copy,html_file_name=_html_plot_file_name+prefix+"_lens.html",show=False)
     """    
     #create_html_plot("initial")
-    
+    print("pre smoother init")
     smoother = gaussian_smoother.GaussianSmootherSquare(aperture_radius_detector,
                                     grid_size=grid_size,
                                     sigma=sigma,
                                     desired_irradiance_fun=irr_func,
-                                    smoothed_num_integration_points=2**22,
-                                    smoothed_num_splits=10,
+                                    smoothed_num_integration_points=smoothed_num_integration_points,
+                                    smoothed_num_splits=smoothed_num_splits,
                                     device=device)
-    
+    print("after smoother init")
     """def run_ray_tracer_smooth(smoother):
         with torch.no_grad():
             out = render.smoothed_irradiance(system,sequence,light_source,detector,smoother,num_rays=num_rays,device=device,method_ray_tracing=method_ray_tracing)
@@ -198,19 +203,19 @@ def create_lens(
                         num_rays,
                         method_ray_tracing="sobol_pow2",
                         use_desired_irradiance_smoothing=use_desired_irradiance_smoothing,
-                        device=device)
+                        device=device,
+                        T_margin=T_margin)
 
     eval_func = gaussian_smoother.make_evaluation_function(system,
                         sequence,
                         light_source,
                         detector,
                         smoother,
-                        num_splits=40,
+                        num_splits=40*5,
                         num_rays_per_split=500000,
                         #method_ray_tracing="monte_carlo",
                         device=device)
-
-
+    print("after eval_func init")
     def minimization_call(k):
 
         convergence_list = []
@@ -377,4 +382,5 @@ def create_lens(
         raycounting_list.append(tmp)
     raycounting = torch.mean(torch.stack(raycounting_list),dim=0).detach().cpu()
     out["high_res_irradiance"] = raycounting
+    out["smoother_rect_special"] = smoother.smoother_rect_special
     return out
