@@ -11,3 +11,5 @@ examples/results/lens_picture/results_classical/results_dict.pkl
 examples/results/lens_picture/results_desired_irr_smoothing/results_dict.pkl
 examples/results/lens_picture/simpson/results_dict.pkl
 .vscode/
+diffinytrace.egg-info/
+dist/

@@ -1,7 +1,9 @@
 from setuptools import setup, find_packages
+import os
 
+here = os.path.dirname(os.path.abspath(__file__))
 
-with open('requirements.txt') as f:
+with open(os.path.join(here, 'requirements.txt')) as f:
     install_requires = f.read().splitlines()
 
 setup(
@@ -12,5 +14,5 @@ setup(
     author='Martin Pflaum',
     author_email='contact@martinpflaum.com',
     classifiers=[],
-    python_requires='<3.13',
+    python_requires='==3.12',
 )
