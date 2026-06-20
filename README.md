@@ -54,7 +54,7 @@ The source code is available at the [GitHub repository](https://github.com/marti
 3. **Install DiffinyTrace**
    Install all other dependencies and the library itself via:
    ```bash
-   pip install diffinytrace
+   no pip package yet
    ```
    or directly in the folder via
    ```bash
