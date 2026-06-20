@@ -7,17 +7,17 @@ The source code is available at the [GitHub repository](https://github.com/marti
 ## Key Features
 
 <div align="center">
-<img src="docs/_static/system_3D_plot.png" width="60%" alt="Transformation example">
+<img src="https://raw.githubusercontent.com/martinpflaum/diffinytrace/main/docs/_static/system_3D_plot.png" width="60%" alt="Transformation example">
 <p><strong>Flexible Transformations</strong> — apply general transformations such as rotations and translations to optical components, with full control over the parameters and their role in the transformation.</p>
 </div>
 
 <div align="center">
-<img src="docs/_static/cad_export.png" width="40%" alt="CAD export example">
+<img src="https://raw.githubusercontent.com/martinpflaum/diffinytrace/main/docs/_static/cad_export.png" width="40%" alt="CAD export example">
 <p><strong>Seamless CAD Export</strong> — generate lenses and mirrors that can be exported to standard CAD file formats.</p>
 </div>
 
 <div align="center">
-<img src="docs/_static/bspline_plot1.png" width="80%" alt="B-spline surface example">
+<img src="https://raw.githubusercontent.com/martinpflaum/diffinytrace/main/docs/_static/bspline_plot1.png" width="80%" alt="B-spline surface example">
 <p><strong>Freeform Surfaces</strong> — design complex optical elements with advanced B-spline representations for maximum flexibility.</p>
 </div>
 
