@@ -40,15 +40,48 @@ Key Features
 
 Installation
 ------------
-DiffinyTrace requires PyTorch to be installed. Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the `PyTorch website <https://pytorch.org/get-started/locally/>`_.
 
-You can install DiffinyTrace via pip:
+1. **Create a new Environment** via conda:
 
-.. code-block:: bash
+   .. code-block:: bash
 
-   pip install diffinytrace 
+      conda create -n dit python==3.12
 
-DiffinyTrace has been tested only with PyTorch 2.6. Additionally numpy 2 is not supported as of now.
+   Activate the environment via:
+
+   .. code-block:: bash
+
+      conda activate dit
+
+   Install pip:
+
+   .. code-block:: bash
+
+      conda install pip
+
+2. **Install PyTorch**
+
+   Check your CUDA version with:
+
+   .. code-block:: bash
+
+      nvcc --version
+
+   DiffinyTrace has only been tested with 2.10.0+cu130. Make sure to install the appropriate version of PyTorch for your system. You can find the installation instructions on the `PyTorch website <https://pytorch.org/get-started/locally/>`_. DiffinyTrace should work for both CPU and CUDA versions.
+
+3. **Install DiffinyTrace**
+
+   Install all other dependencies and the library itself via:
+
+   .. code-block:: bash
+
+      pip install diffinytrace
+
+   Or directly in the folder via:
+
+   .. code-block:: bash
+
+      pip install -r requirements.txt
 
 Basic Usage Example
 -------------------
